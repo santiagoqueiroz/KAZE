@@ -62,8 +62,12 @@
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-    import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import {
+      getFirestore, collection, getDocs, query, orderBy
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import {
+      getAuth, onAuthStateChanged
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyD5kVoWRWZB6xtacyu6lH--QFXry_MPKps",
@@ -87,7 +91,8 @@
       const tabela = document.querySelector("#tabelaClientes tbody");
 
       try {
-        const querySnapshot = await getDocs(collection(db, "clientes"));
+        const q = query(collection(db, "clientes"), orderBy("nome"));
+        const querySnapshot = await getDocs(q);
         console.log("Total de clientes:", querySnapshot.size);
 
         querySnapshot.forEach((doc) => {
