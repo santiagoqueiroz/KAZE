@@ -63,18 +63,19 @@
 
       const dados = Object.fromEntries(new FormData(form).entries());
 
-      // ⚠️ Substituir pela URL do seu Google Apps Script
-      const urlScript = 'https://corsproxy.io/?https://script.google.com/macros/s/AKfycbxtfJMBt67uZp0i7tqas275cCKlfNxzTCBgexSgfp3oUiOM0dK5hVR2lTeGoy5FR46P/exec';
-
+      // ✅ URL direta do Apps Script
+      const urlScript = 'https://script.google.com/macros/s/AKfycbxtfJMBt67uZp0i7tqas275cCKlfNxzTCBgexSgfp3oUiOM0dK5hVR2lTeGoy5FR46P/exec';
 
       try {
-        const res = await fetch(urlScript, {
+        await fetch(urlScript, {
           method: 'POST',
+          mode: 'no-cors', // resolve CORS
           body: JSON.stringify(dados),
-          headers: { 'Content-Type': 'application/json' }
+          headers: {
+            'Content-Type': 'application/json'
+          }
         });
 
-        const resultado = await res.text();
         mensagem.textContent = 'Cliente cadastrado com sucesso!';
         form.reset();
       } catch (err) {
