@@ -31,7 +31,7 @@
       margin-top: 20px;
     }
 
-    select {
+    select, input {
       width: 100%;
       padding: 10px;
       margin-top: 5px;
@@ -99,6 +99,10 @@
       min-width: 300px;
       max-width: 90%;
     }
+
+    .campo {
+      margin-top: 15px;
+    }
   </style>
 </head>
 <body>
@@ -138,11 +142,23 @@
     </table>
   </div>
 
-  <!-- Modal (janela flutuante) -->
+  <!-- Modal -->
   <div id="janelaItem">
     <div class="conteudo">
       <h3>Novo Item</h3>
-      <p>Conteúdo da janela será adicionado depois.</p>
+
+      <label for="formula">Fórmula:</label>
+      <select id="formula" onchange="mostrarCamposFormula()">
+        <option value="">Selecione...</option>
+        <option value="persiana">Persiana</option>
+        <option value="cortina">Cortina</option>
+        <option value="bk">BK</option>
+        <option value="cortina_bk">Cortina + BK</option>
+        <option value="cortina_forro">Cortina + Forro</option>
+      </select>
+
+      <div id="campos-formula"></div>
+
       <button onclick="fecharJanelaItem()">Fechar</button>
     </div>
   </div>
@@ -173,6 +189,7 @@
     const dadosBox = document.getElementById("dados-cliente");
     const tabelaItens = document.getElementById("tabela-itens");
     const corpoItens = document.getElementById("lista-itens");
+    const camposFormula = document.getElementById("campos-formula");
 
     const span = (id) => document.getElementById(id);
     const clientes = {};
@@ -223,9 +240,60 @@
 
     window.fecharJanelaItem = function () {
       document.getElementById("janelaItem").style.display = "none";
+      camposFormula.innerHTML = "";
+      document.getElementById("formula").value = "";
     };
 
-    // Exemplo futuro: função para adicionar item na tabela
+    window.mostrarCamposFormula = function () {
+      const formula = document.getElementById("formula").value;
+      camposFormula.innerHTML = "";
+
+      if (formula === "persiana") {
+        camposFormula.innerHTML = `
+          <div class="campo">
+            <label for="largura">Largura (m):</label>
+            <input type="number" step="0.01" id="largura">
+          </div>
+          <div class="campo">
+            <label for="altura">Altura (m):</label>
+            <input type="number" step="0.01" id="altura">
+          </div>
+          <div class="campo">
+            <label for="tipo">Tipo:</label>
+            <select id="tipo">
+              <option value="rolo">Rolo</option>
+              <option value="romana">Romana</option>
+            </select>
+          </div>
+          <div class="campo">
+            <label for="ambiente">Ambiente:</label>
+            <input type="text" id="ambiente">
+          </div>
+          <button onclick="adicionarPersiana()">Adicionar</button>
+        `;
+      }
+    };
+
+    window.adicionarPersiana = function () {
+      const largura = parseFloat(document.getElementById("largura").value);
+      const altura = parseFloat(document.getElementById("altura").value);
+      const tipo = document.getElementById("tipo").value;
+      const ambiente = document.getElementById("ambiente").value;
+
+      if (!largura || !altura || !tipo || !ambiente) {
+        alert("Preencha todos os campos.");
+        return;
+      }
+
+      const area = largura * altura;
+      const unit = 10;
+      const total = area * unit;
+
+      const produto = `Persiana ${tipo} - ${ambiente}`;
+      adicionarItem(produto, largura.toFixed(2), altura.toFixed(2), 1, unit);
+      fecharJanelaItem();
+    };
+
     window.adicionarItem = function (produto, largura, altura, qtd, unit) {
       const total = (parseFloat(qtd) * parseFloat(unit)).toFixed(2);
 
