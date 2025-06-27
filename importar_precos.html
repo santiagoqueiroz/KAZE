@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <title>Importar Preços - KAZE</title>
+</head>
+<body>
+  <h2>Importando preços de persianas...</h2>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyD5kVoWRWZB6xtacyu6lH--QFXry_MPKps",
+      authDomain: "kaze-8836b.firebaseapp.com",
+      projectId: "kaze-8836b",
+      storageBucket: "kaze-8836b.firebaseapp.com",
+      messagingSenderId: "336054068300",
+      appId: "1:336054068300:web:6125e8eecc08d667fac0e9"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    const precos = [
+      { nome: "ROLÔ - TECIDO BLACKOUT 100%", valor: 355.00 },
+      { nome: "ROLÔ - TECIDO TRANSLÚCIDO", valor: 290.00 },
+      { nome: "ROLÔ - TECIDO TELA SOLAR 1%", valor: 450.00 },
+      { nome: "ROLÔ - TECIDO TELA SOLAR 3%", valor: 305.00 },
+      { nome: "ROLÔ - TECIDO TELA SOLAR 5%", valor: 295.00 },
+      { nome: "ROMANA - TECIDO TRANSLÚCIDO", valor: 445.00 },
+      { nome: "ROMANA - TECIDO TELA SOLAR 1%", valor: 550.00 },
+      { nome: "ROMANA - TECIDO TELA SOLAR 3%", valor: 390.00 },
+      { nome: "ROMANA - TECIDO TELA SOLAR 5%", valor: 360.00 },
+      { nome: "ROMANA - BLACKOUT 100%", valor: 435.00 },
+      { nome: "DOUBLE VISION BASIC", valor: 520.00 },
+      { nome: "HORIZONTAL 25mm - ALUM LISA", valor: 310.00 },
+      { nome: "HORIZONTAL 50mm - ALUM LISA", valor: 455.00 },
+      { nome: "HORIZONTAL 50mm - ALUM LISA C/ FITA", valor: 620.00 },
+      { nome: "HORIZONTAL 50mm - PVC TEXTURIZADO C/ FITA", valor: 825.00 },
+      { nome: "HORIZONTAL 50mm - MADEIRA LISA", valor: 1300.00 },
+      { nome: "HORIZONTAL 50mm - MADEIRA LISA C/ FITA", valor: 1450.00 },
+      { nome: "HORIZONTAL 50mm - BAMBOO LISA", valor: 1060.00 },
+      { nome: "HORIZONTAL 50mm - BAMBOO LISA C/ FITA", valor: 1215.00 },
+      { nome: "VERTICAL 89mm - PVC LISA", valor: 370.00 }
+    ];
+
+    async function importar() {
+      for (const item of precos) {
+        await addDoc(collection(db, "tipos_persiana"), item);
+        console.log("Adicionado:", item.nome);
+      }
+      console.log("✅ Todos os preços foram importados.");
+    }
+
+    importar();
+  </script>
+</body>
+</html>
