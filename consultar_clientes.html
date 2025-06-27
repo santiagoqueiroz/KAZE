@@ -85,15 +85,30 @@
       }
 
       const tabela = document.querySelector("#tabelaClientes tbody");
-      const querySnapshot = await getDocs(collection(db, "clientes"));
 
-      console.log("Total de clientes:", querySnapshot.size);
-      querySnapshot.forEach((doc) => {
-        const c = doc.data();
-        const linha = document.createElement("tr");
-        linha.innerHTML = `
-          <td>${c.nome || ""}</td>
-          <td>${c.telefone || ""}</td>
-          <td>${c.cpfOuCnpj || ""}</td>
-          <td>${c.endereco || ""}</td>
-          <td>${c.bairro || ""}</td>
+      try {
+        const querySnapshot = await getDocs(collection(db, "clientes"));
+        console.log("Total de clientes:", querySnapshot.size);
+
+        querySnapshot.forEach((doc) => {
+          const c = doc.data();
+          const linha = document.createElement("tr");
+          linha.innerHTML = `
+            <td>${c.nome || ""}</td>
+            <td>${c.telefone || ""}</td>
+            <td>${c.cpfOuCnpj || ""}</td>
+            <td>${c.endereco || ""}</td>
+            <td>${c.bairro || ""}</td>
+            <td>${c.cidade || ""}</td>
+            <td>${c.email || ""}</td>
+          `;
+          tabela.appendChild(linha);
+        });
+      } catch (erro) {
+        console.error("Erro ao buscar clientes:", erro);
+      }
+    });
+  </script>
+
+</body>
+</html>
