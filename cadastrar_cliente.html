@@ -58,4 +58,30 @@
     const form = document.getElementById('formCliente');
     const mensagem = document.getElementById('mensagem');
 
-    fo
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const dados = Object.fromEntries(new FormData(form).entries());
+
+      // ⚠️ Substituir pela URL do seu Google Apps Script
+      const urlScript = 'https://script.google.com/macros/s/AKfycbzGt4Gf9KHG-VCSxFgSizPcBJSI0A103gZKnhkzJZb_5O6b8DYC4Fi1N0NbIpfqFZCk/exec';
+
+      try {
+        const res = await fetch(urlScript, {
+          method: 'POST',
+          body: JSON.stringify(dados),
+          headers: { 'Content-Type': 'application/json' }
+        });
+
+        const resultado = await res.text();
+        mensagem.textContent = 'Cliente cadastrado com sucesso!';
+        form.reset();
+      } catch (err) {
+        mensagem.textContent = 'Erro ao cadastrar cliente.';
+        mensagem.style.color = 'red';
+      }
+    });
+  </script>
+
+</body>
+</html>
