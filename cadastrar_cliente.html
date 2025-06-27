@@ -3,71 +3,87 @@
 <head>
   <meta charset="UTF-8">
   <title>Cadastrar Cliente</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body {
+      font-family: sans-serif;
+      background-color: #f8f8f8;
+      padding: 40px;
+    }
+    h1 {
+      margin-bottom: 20px;
+    }
+    form {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      max-width: 400px;
+    }
+    input, button {
+      padding: 10px;
+      font-size: 16px;
+    }
+    button {
+      background-color: #333;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #555;
+    }
+    .mensagem {
+      margin-top: 20px;
+      color: green;
+    }
+  </style>
 </head>
 <body>
-  <h1>Cadastro de Cliente</h1>
 
-  <form id="formCliente" onsubmit="salvarCliente(event)">
-    <input type="text" id="nome" placeholder="Nome" required><br><br>
-    <input type="text" id="telefone" placeholder="Telefone" required><br><br>
-    <input type="text" id="endereco" placeholder="Endereço" required><br><br>
-    <input type="text" id="bairro" placeholder="Bairro" required><br><br>
-    <input type="text" id="cidade" placeholder="Cidade" required><br><br>
-    <input type="email" id="email" placeholder="E-mail" required><br><br>
-    <input type="text" id="cpfOuCnpj" placeholder="CPF ou CNPJ" required><br><br>
-    <button type="submit">Salvar</button>
+  <h1>Cadastrar Cliente</h1>
+
+  <form id="formCliente">
+    <input type="text" name="nome" placeholder="Nome completo" required>
+    <input type="tel" name="telefone" placeholder="Telefone/WhatsApp" required>
+    <input type="text" name="endereco" placeholder="Endereço" required>
+    <input type="text" name="bairro" placeholder="Bairro">
+    <input type="text" name="cidade" placeholder="Cidade">
+    <input type="email" name="email" placeholder="E-mail (opcional)">
+    <button type="submit">Salvar Cliente</button>
   </form>
 
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-    import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-    import { getAuth } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+  <div class="mensagem" id="mensagem"></div>
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyD5kVoWRWZB6xtacyu6lH--QFXry_MPKps",
-      authDomain: "kaze-8836b.firebaseapp.com",
-      projectId: "kaze-8836b",
-      storageBucket: "kaze-8836b.firebasestorage.app",
-      messagingSenderId: "336054068300",
-      appId: "1:336054068300:web:6125e8eecc08d667fac0e9"
-    };
+  <script>
+    const form = document.getElementById('formCliente');
+    const mensagem = document.getElementById('mensagem');
 
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-    const auth = getAuth(app);
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
 
-    async function salvarCliente(event) {
-      event.preventDefault();
+      const dados = Object.fromEntries(new FormData(form).entries());
 
-      const user = auth.currentUser;
-      if (!user) {
-        alert("Você precisa estar logado.");
-        return;
-      }
-
-      const dadosCliente = {
-        nome: document.getElementById("nome").value,
-        telefone: document.getElementById("telefone").value,
-        endereco: document.getElementById("endereco").value,
-        bairro: document.getElementById("bairro").value,
-        cidade: document.getElementById("cidade").value,
-        email: document.getElementById("email").value,
-        cpfOuCnpj: document.getElementById("cpfOuCnpj").value,
-        criadoPor: user.uid,
-        criadoEm: new Date()
-      };
+      // ✅ URL direta do Apps Script
+      const urlScript = 'https://script.google.com/macros/s/AKfycbxtfJMBt67uZp0i7tqas275cCKlfNxzTCBgexSgfp3oUiOM0dK5hVR2lTeGoy5FR46P/exec';
 
       try {
-        await addDoc(collection(db, "clientes"), dadosCliente);
-        alert("Cliente cadastrado com sucesso!");
-        document.getElementById("formCliente").reset();
-      } catch (error) {
-        console.error("Erro ao salvar:", error);
-        alert("Erro ao salvar cliente.");
-      }
-    }
+        await fetch(urlScript, {
+          method: 'POST',
+          mode: 'no-cors', // resolve CORS
+          body: JSON.stringify(dados),
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        });
 
-    window.salvarCliente = salvarCliente;
+        mensagem.textContent = 'Cliente cadastrado com sucesso!';
+        form.reset();
+      } catch (err) {
+        mensagem.textContent = 'Erro ao cadastrar cliente.';
+        mensagem.style.color = 'red';
+      }
+    });
   </script>
+
 </body>
 </html>
