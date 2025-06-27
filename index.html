@@ -3,12 +3,45 @@
 <head>
   <meta charset="UTF-8">
   <title>Login KAZE</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body {
+      font-family: sans-serif;
+      background-color: #f8f8f8;
+      padding: 40px;
+    }
+    h2 {
+      margin-bottom: 20px;
+    }
+    input, button {
+      padding: 10px;
+      font-size: 16px;
+      margin-bottom: 10px;
+      width: 100%;
+      max-width: 300px;
+    }
+    button {
+      background-color: #333;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #555;
+    }
+    #mensagem {
+      margin-top: 20px;
+      color: red;
+    }
+  </style>
 </head>
 <body>
   <h2>Login</h2>
-  <input type="email" id="email" placeholder="Email"><br>
-  <input type="password" id="senha" placeholder="Senha"><br>
+
+  <input type="email" id="email" placeholder="Email" required><br>
+  <input type="password" id="senha" placeholder="Senha" required><br>
   <button onclick="login()">Entrar</button>
+
   <p id="mensagem"></p>
 
   <script type="module">
@@ -33,13 +66,21 @@
       const msg = document.getElementById('mensagem');
 
       signInWithEmailAndPassword(auth, email, senha)
-        .then((userCredential) => {
-          msg.textContent = "Login realizado com sucesso!";
-          window.location.href = "pagina-protegida.html"; // substitua pelo seu destino
+        .then(() => {
+          window.location.href = "painel.html";
         })
         .catch((error) => {
-          msg.textContent = "Erro: " + error.message;
+          msg.textContent = "Erro ao fazer login: " + traduzErro(error.code);
         });
+    }
+
+    function traduzErro(codigo) {
+      switch (codigo) {
+        case "auth/user-not-found": return "Usuário não encontrado.";
+        case "auth/wrong-password": return "Senha incorreta.";
+        case "auth/invalid-email": return "E-mail inválido.";
+        default: return "Erro desconhecido.";
+      }
     }
   </script>
 </body>
