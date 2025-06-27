@@ -12,7 +12,7 @@
     }
 
     .container {
-      max-width: 500px;
+      max-width: 700px;
       margin: auto;
       background: white;
       padding: 20px;
@@ -49,6 +49,56 @@
     .info-box p {
       margin: 5px 0;
     }
+
+    button {
+      margin-top: 30px;
+      padding: 10px 20px;
+      font-size: 16px;
+      border: none;
+      background: #007bff;
+      color: white;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #0056b3;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+
+    th, td {
+      border: 1px solid #ccc;
+      padding: 8px;
+      text-align: center;
+    }
+
+    th {
+      background-color: #eee;
+    }
+
+    /* Modal */
+    #janelaItem {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.6);
+      z-index: 999;
+      justify-content: center;
+      align-items: center;
+    }
+
+    #janelaItem .conteudo {
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      min-width: 300px;
+      max-width: 90%;
+    }
   </style>
 </head>
 <body>
@@ -69,6 +119,31 @@
       <p><strong>Bairro:</strong> <span id="bairro"></span></p>
       <p><strong>Cidade:</strong> <span id="cidade"></span></p>
       <p><strong>Email:</strong> <span id="email"></span></p>
+    </div>
+
+    <button onclick="abrirJanelaItem()">➕ Adicionar item</button>
+
+    <table id="tabela-itens" style="display: none;">
+      <thead>
+        <tr>
+          <th>Produto</th>
+          <th>Largura</th>
+          <th>Altura</th>
+          <th>Qtd</th>
+          <th>V. Unit.</th>
+          <th>Total</th>
+        </tr>
+      </thead>
+      <tbody id="lista-itens"></tbody>
+    </table>
+  </div>
+
+  <!-- Modal (janela flutuante) -->
+  <div id="janelaItem">
+    <div class="conteudo">
+      <h3>Novo Item</h3>
+      <p>Conteúdo da janela será adicionado depois.</p>
+      <button onclick="fecharJanelaItem()">Fechar</button>
     </div>
   </div>
 
@@ -96,6 +171,8 @@
 
     const select = document.getElementById("cliente");
     const dadosBox = document.getElementById("dados-cliente");
+    const tabelaItens = document.getElementById("tabela-itens");
+    const corpoItens = document.getElementById("lista-itens");
 
     const span = (id) => document.getElementById(id);
     const clientes = {};
@@ -138,6 +215,31 @@
       span("cidade").textContent = c.cidade || "-";
       span("email").textContent = c.email || "-";
       dadosBox.style.display = "block";
+    };
+
+    window.abrirJanelaItem = function () {
+      document.getElementById("janelaItem").style.display = "flex";
+    };
+
+    window.fecharJanelaItem = function () {
+      document.getElementById("janelaItem").style.display = "none";
+    };
+
+    // Exemplo futuro: função para adicionar item na tabela
+    window.adicionarItem = function (produto, largura, altura, qtd, unit) {
+      const total = (parseFloat(qtd) * parseFloat(unit)).toFixed(2);
+
+      const linha = document.createElement("tr");
+      linha.innerHTML = `
+        <td>${produto}</td>
+        <td>${largura}</td>
+        <td>${altura}</td>
+        <td>${qtd}</td>
+        <td>R$ ${parseFloat(unit).toFixed(2)}</td>
+        <td>R$ ${total}</td>
+      `;
+      corpoItens.appendChild(linha);
+      tabelaItens.style.display = "table";
     };
   </script>
 
