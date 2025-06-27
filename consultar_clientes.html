@@ -87,6 +87,7 @@
       const tabela = document.querySelector("#tabelaClientes tbody");
       const querySnapshot = await getDocs(collection(db, "clientes"));
 
+      console.log("Total de clientes:", querySnapshot.size);
       querySnapshot.forEach((doc) => {
         const c = doc.data();
         const linha = document.createElement("tr");
