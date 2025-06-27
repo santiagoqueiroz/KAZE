@@ -2,10 +2,45 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <title>Redirecionando...</title>
-  <meta http-equiv="refresh" content="0; url=painel.html">
+  <title>Login KAZE</title>
 </head>
 <body>
-  <p>Redirecionando para o painel...</p>
+  <h2>Login</h2>
+  <input type="email" id="email" placeholder="Email"><br>
+  <input type="password" id="senha" placeholder="Senha"><br>
+  <button onclick="login()">Entrar</button>
+  <p id="mensagem"></p>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyD5kVoWRWZB6xtacyu6lH--QFXry_MPKps",
+      authDomain: "kaze-8836b.firebaseapp.com",
+      projectId: "kaze-8836b",
+      storageBucket: "kaze-8836b.firebasestorage.app",
+      messagingSenderId: "336054068300",
+      appId: "1:336054068300:web:6125e8eecc08d667fac0e9"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+
+    window.login = function () {
+      const email = document.getElementById('email').value;
+      const senha = document.getElementById('senha').value;
+      const msg = document.getElementById('mensagem');
+
+      signInWithEmailAndPassword(auth, email, senha)
+        .then((userCredential) => {
+          msg.textContent = "Login realizado com sucesso!";
+          window.location.href = "pagina-protegida.html"; // substitua pelo seu destino
+        })
+        .catch((error) => {
+          msg.textContent = "Erro: " + error.message;
+        });
+    }
+  </script>
 </body>
 </html>
