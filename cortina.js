@@ -61,13 +61,6 @@ function preencherSelects() {
     trilhoSelect.appendChild(opt);
   }
 
-  const ambienteInput = document.createElement("input");
-  ambienteInput.id = "ambiente";
-  ambienteInput.placeholder = "Ambiente";
-  ambienteInput.style.marginTop = "10px";
-  ambienteInput.addEventListener("input", calcular);
-  document.body.insertBefore(ambienteInput, document.getElementById("resultado"));
-
   const descontoInput = document.createElement("input");
   descontoInput.id = "desconto";
   descontoInput.type = "number";
@@ -76,6 +69,14 @@ function preencherSelects() {
   descontoInput.style.marginTop = "10px";
   descontoInput.addEventListener("input", calcular);
   document.body.insertBefore(descontoInput, document.getElementById("resultado"));
+
+  const ambienteInput = document.createElement("input");
+  ambienteInput.id = "ambiente";
+  ambienteInput.type = "text";
+  ambienteInput.placeholder = "Ambiente";
+  ambienteInput.style.marginTop = "10px";
+  ambienteInput.addEventListener("input", calcular);
+  document.body.insertBefore(ambienteInput, document.getElementById("resultado"));
 }
 
 window.onload = () => {
@@ -134,39 +135,38 @@ function calcular() {
 
   const produto = `${ambiente} - Cortina ${nomeTecido} - ${nomeTrilho}`;
 
-  const detalhes = [
-    `Tecido: ${qtdTecidoTotal} m x R$ ${precoTecido.toFixed(2)} = ${formatarReais(valorTecido)}`,
-    `Trilho = ${formatarReais(trilho)}`,
-    `Entrela: ${qtdTecidoBase} m x R$ 1,64 = ${formatarReais(entrela)}`,
-    `Deslizante: ${qntDeslizante} x R$ 0,15 = ${formatarReais(deslizante)}`,
-    `Terminal: 2 x R$ 0,60 = ${formatarReais(terminal)}`,
-    `Costura: ${qtdTecidoTotal} m x R$ 8,00 = ${formatarReais(costura)}`,
-    `Barra: ${qtdTecidoBase} m x R$ 4,00 = ${formatarReais(barra)}`,
-    `Instalação = ${formatarReais(instalacao)}`,
-    `Bucha e Parafuso: ${kitsBucha} x R$ 4,00 = ${formatarReais(bucha)}`
-  ];
-
-  const adicionais = [
-    `Simples Nacional (6%) = ${formatarReais(simples)}`,
-    `Subtotal + Simples = ${formatarReais(baseMaisSimples)}`,
-    `Markup (2,4x) = ${formatarReais(totalVista)}`,
-    `Ajuste Cartão (/0.879) = ${formatarReais(totalCorrigido)}`,
-    `Desconto = ${formatarReais(desconto)}`
+  const linhas = [
+    { label: `Tecido: ${qtdTecidoTotal} m x R$ ${precoTecido.toFixed(2)}`, valor: valorTecido },
+    { label: `Trilho`, valor: trilho },
+    { label: `Entrela: ${qtdTecidoBase} m x R$ 1,64`, valor: entrela },
+    { label: `Deslizante: ${qntDeslizante} x R$ 0,15`, valor: deslizante },
+    { label: `Terminal: 2 x R$ 0,60`, valor: terminal },
+    { label: `Costura: ${qtdTecidoTotal} m x R$ 8,00`, valor: costura },
+    { label: `Barra: ${qtdTecidoBase} m x R$ 4,00`, valor: barra },
+    { label: `Instalação`, valor: instalacao },
+    { label: `Bucha e Parafuso: ${kitsBucha} x R$ 4,00`, valor: bucha },
   ];
 
   const tabela = `
-    <div style="font-family:sans-serif; max-width:600px;">
-      <h2 style="margin-bottom:0;">${produto}</h2>
-      <div style="font-size:0.9em; margin-bottom:16px; color:#555;">
-        ${detalhes.join('<br>')}
-      </div>
-      <div style="margin-bottom:10px;"><strong>Subtotal: ${formatarReais(subtotal)}</strong></div>
-      <div style="font-size:0.9em; margin-bottom:16px; color:#555;">
-        ${adicionais.join('<br>')}
-      </div>
-      <div style="font-size:1.2em; font-weight:bold; color:#1a1a1a;">TOTAL FINAL: ${formatarReais(totalFinal)}</div>
-    </div>
-  `;
+  <style>
+    table { border-collapse: collapse; width: 100%; font-family: sans-serif; }
+    th, td { border-top: 1px solid #ccc; padding: 8px; text-align: right; }
+    th:first-child, td:first-child { text-align: left; }
+    tr:nth-child(even) { background-color: #f9f9f9; }
+    tr:last-child td { font-weight: bold; color: #1a1a1a; background-color: #e0e0e0; }
+  </style>
+  <h2>${produto}</h2>
+  <table>
+    <tr><th>Item</th><th>Valor (R$)</th></tr>
+    ${linhas.map(l => `<tr><td>${l.label}</td><td>${formatarReais(l.valor)}</td></tr>`).join('')}
+    <tr><td><strong>Subtotal</strong></td><td>${formatarReais(subtotal)}</td></tr>
+    <tr><td>Simples Nacional (6%)</td><td>${formatarReais(simples)}</td></tr>
+    <tr><td>Subtotal + Simples</td><td>${formatarReais(baseMaisSimples)}</td></tr>
+    <tr><td>Markup (2,4x)</td><td>${formatarReais(totalVista)}</td></tr>
+    <tr><td>Ajuste Cartão (/0.879)</td><td>${formatarReais(totalCorrigido)}</td></tr>
+    <tr><td>Desconto</td><td>${formatarReais(desconto)}</td></tr>
+    <tr><td><strong>TOTAL FINAL</strong></td><td><strong>${formatarReais(totalFinal)}</strong></td></tr>
+  </table>`;
 
   document.getElementById('resultado').innerHTML = tabela;
 }
