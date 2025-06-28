@@ -22,13 +22,13 @@ const tecidos = {
 };
 
 const trilhos = {
-  "TRILHO SUÍÇO SIMPLES": 12.75,
-  "TRILHO SUÍÇO DUPLO": 16.50,
-  "TRILHO SUÍÇO TRIPLO": 25.50,
-  "TRILHO SUÍÇO FLEXÍVEL": 22.50,
+  "TRILHO SUÍÇO SIMPLES": 17.00,
+  "TRILHO SUÍÇO DUPLO": 22.00,
+  "TRILHO SUÍÇO TRIPLO": 34.00,
+  "TRILHO SUÍÇO FLEXÍVEL": 30.00,
   "SEM TRILHO": 0.00,
-  "VARÃO SUÍÇO": 47.50,
-  "VARÃO SUÍÇO DUPLO": 59.50
+  "VARÃO SUÍÇO": 56.00,
+  "VARÃO SUÍÇO DUPLO": 72.00
 };
 
 function arred(val) {
@@ -72,12 +72,21 @@ function calcular() {
   const largura = parseFloat(document.getElementById('largura').value);
   const altura = parseFloat(document.getElementById('altura').value);
   const precoTecido = parseFloat(document.getElementById('tecido').value);
-  const trilhoSel = parseFloat(document.getElementById('trilho').value);
+  const trilhoSel = document.getElementById('trilho');
+  const nomeTrilho = trilhoSel.options[trilhoSel.selectedIndex].text.split(' - ')[0];
+  const precoTrilho = parseFloat(trilhoSel.value);
   const descontoInput = document.getElementById('desconto');
   const desconto = parseFloat(descontoInput?.value || 0);
 
   const qtdTecidoBase = arred((largura * 3.1) + 0.7);
-  let qtdTecidoTotal = altura > 2.6 ? arred((altura + 0.12 + 0.40) * 2) : qtdTecidoBase;
+  let qtdTecidoTotal = 0;
+
+  if (altura > 2.6) {
+    const tira = arred(altura + 0.12 + 0.40);
+    qtdTecidoTotal = arred(tira * 2);
+  } else {
+    qtdTecidoTotal = qtdTecidoBase;
+  }
 
   const valorTecido = arred(qtdTecidoTotal * precoTecido);
   const entrela = arred(qtdTecidoBase * 1.64);
@@ -88,7 +97,16 @@ function calcular() {
   const barra = arred(qtdTecidoBase * 4);
   const instalacao = 5.00;
   const bucha = arred(1 * 4);
-  const trilho = arred(trilhoSel);
+
+  let trilho = 0;
+  if (nomeTrilho.includes("VARÃO SUÍÇO")) {
+    const tubo = Math.ceil(largura) * 17;
+    const suporte = 3 * 8.10;
+    const tampa = 2 * 2.00;
+    trilho = arred(tubo + suporte + tampa);
+  } else {
+    trilho = arred(Math.ceil(largura) * precoTrilho);
+  }
 
   const subtotal = arred(valorTecido + entrela + deslizante + terminal + costura + barra + instalacao + bucha + trilho);
   const simples = arred(subtotal * 0.06);
@@ -97,32 +115,29 @@ function calcular() {
   const fatorCartao = 0.879;
   const totalCorrigido = arred(totalVista / fatorCartao);
   const totalComDesconto = arred(totalCorrigido - desconto);
+  const totalFinal = totalComDesconto;
 
   const linhas = [
-    [`Tecido`, `${qtdTecidoTotal} m x R$ ${precoTecido.toFixed(2)}`, valorTecido],
-    [`Trilho`, ``, trilho],
-    [`Costura`, `${qtdTecidoTotal} m x R$ 8,00`, costura],
-    [`Barra`, `${qtdTecidoBase} m x R$ 4,00`, barra],
-    [`Entrela`, `${qtdTecidoBase} m x R$ 1,64`, entrela],
-    [`Instalação`, ``, instalacao],
-    [`Deslizante`, `${qntDeslizante} x R$ 0,15`, deslizante],
-    [`Bucha e Parafuso`, ``, bucha],
-    [`Terminal`, `2 x R$ 0,60`, terminal]
+    { label: `Tecido: ${qtdTecidoTotal} m x R$ ${precoTecido.toFixed(2)}`, valor: valorTecido },
+    { label: `Trilho`, valor: trilho },
+    { label: `Costura: ${qtdTecidoTotal} m x R$ 8,00`, valor: costura },
+    { label: `Barra: ${qtdTecidoBase} m x R$ 4,00`, valor: barra },
+    { label: `Entrela: ${qtdTecidoBase} m x R$ 1,64`, valor: entrela },
+    { label: `Deslizante: ${qntDeslizante} x R$ 0,15`, valor: deslizante },
+    { label: `Bucha e Parafuso`, valor: bucha },
+    { label: `Instalação`, valor: instalacao },
+    { label: `Terminal: 2 x R$ 0,60`, valor: terminal },
   ];
 
-  let tabela = `<table border='1' cellpadding='5' cellspacing='0'><tr><th>Item</th><th>Cálculo</th><th>Valor (R$)</th></tr>`;
-  linhas.forEach(([nome, desc, val]) => {
-    tabela += `<tr><td>${nome}</td><td>${desc}</td><td>${val.toFixed(2)}</td></tr>`;
-  });
-  tabela += `</table>`;
-
-  tabela += `<p>Subtotal: R$ ${subtotal.toFixed(2)}</p>`;
-  tabela += `<p>Simples Nacional (6%): R$ ${simples.toFixed(2)}</p>`;
-  tabela += `<p>Subtotal + Simples: R$ ${baseMaisSimples.toFixed(2)}</p>`;
-  tabela += `<p>Markup (2,4x): R$ ${totalVista.toFixed(2)}</p>`;
-  tabela += `<p>Ajuste Cartão (/0.879): R$ ${totalCorrigido.toFixed(2)}</p>`;
-  tabela += `<p>Desconto: R$ ${desconto.toFixed(2)}</p>`;
-  tabela += `<h3>TOTAL FINAL: R$ ${totalComDesconto.toFixed(2)}</h3>`;
+  const tabela = `<table><tr><th>Item</th><th>Valor (R$)</th></tr>` +
+    linhas.map(l => `<tr><td>${l.label}</td><td>${l.valor.toFixed(2)}</td></tr>`).join('') +
+    `<tr><td><strong>Subtotal</strong></td><td>${subtotal.toFixed(2)}</td></tr>` +
+    `<tr><td>Simples Nacional (6%)</td><td>${simples.toFixed(2)}</td></tr>` +
+    `<tr><td>Subtotal + Simples</td><td>${baseMaisSimples.toFixed(2)}</td></tr>` +
+    `<tr><td>Markup (2,4x)</td><td>${totalVista.toFixed(2)}</td></tr>` +
+    `<tr><td>Ajuste Cartão (/0.879)</td><td>${totalCorrigido.toFixed(2)}</td></tr>` +
+    `<tr><td>Desconto</td><td>${desconto.toFixed(2)}</td></tr>` +
+    `<tr><td><strong>TOTAL FINAL</strong></td><td><strong>${totalFinal.toFixed(2)}</strong></td></tr></table>`;
 
   document.getElementById('resultado').innerHTML = tabela;
 }
