@@ -22,13 +22,13 @@ const tecidos = {
 };
 
 const trilhos = {
-  "TRILHO SUÍÇO SIMPLES": 17.00,
-  "TRILHO SUÍÇO DUPLO": 22.00,
-  "TRILHO SUÍÇO TRIPLO": 34.00,
-  "TRILHO SUÍÇO FLEXÍVEL": 30.00,
+  "TRILHO SUÍÇO SIMPLES": 8.50,
+  "TRILHO SUÍÇO DUPLO": 11.00,
+  "TRILHO SUÍÇO TRIPLO": 17.00,
+  "TRILHO SUÍÇO FLEXÍVEL": 15.00,
   "SEM TRILHO": 0.00,
-  "VARÃO SUÍÇO": 56.00,
-  "VARÃO SUÍÇO DUPLO": 72.00
+  "VARÃO SUÍÇO": 17.00,
+  "VARÃO SUÍÇO DUPLO": 25.00
 };
 
 function arred(val) {
@@ -100,8 +100,8 @@ function calcular() {
 
   let trilho = 0;
   if (nomeTrilho.includes("VARÃO SUÍÇO")) {
-    const tubo = Math.ceil(largura) * 17;
-    const suporte = 3 * 8.10;
+    const tubo = Math.ceil(largura) * trilhos[nomeTrilho];
+    const suporte = 3 * 9.00;
     const tampa = 2 * 2.00;
     trilho = arred(tubo + suporte + tampa);
   } else {
