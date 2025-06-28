@@ -82,14 +82,15 @@ function calcular() {
   const descontoInput = document.getElementById('desconto');
   const desconto = parseFloat((descontoInput?.value || "0").replace(',', '.'));
 
-  const qtdTecidoBase = arred((largura * 3.1) + 0.7);
-  let qtdTecidoTotal = 0;
+  const qtdTecidoBase = arred(largura * 3.1);
+  const qtdTiras = Math.ceil(qtdTecidoBase / 3);
+  const alturaTira = arred(altura + 0.12 + 0.40);
 
+  let qtdTecidoTotal = 0;
   if (altura > 2.6) {
-    const tira = arred(altura + 0.12 + 0.40);
-    qtdTecidoTotal = arred(tira * 2);
+    qtdTecidoTotal = arred(qtdTiras * alturaTira);
   } else {
-    qtdTecidoTotal = qtdTecidoBase;
+    qtdTecidoTotal = arred(qtdTecidoBase);
   }
 
   const valorTecido = arred(qtdTecidoTotal * precoTecido);
