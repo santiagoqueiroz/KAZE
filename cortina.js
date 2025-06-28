@@ -92,7 +92,9 @@ function calcular() {
   const subtotal = arred(valorTecido + entrela + deslizante + terminal + costura + barra + instalacao + bucha + trilho);
   const simples = 14.15;
   const totalVista = arred(subtotal * 2.4);
-  const totalComDesconto = arred(totalVista - desconto);
+  const fatorCartao = 0.879;
+  const totalCorrigido = arred(totalVista / fatorCartao);
+  const totalComDesconto = arred(totalCorrigido - desconto);
   const totalFinal = arred(totalComDesconto + simples);
 
   const detalhamento = `
@@ -107,10 +109,11 @@ Bucha e Parafuso: R$ ${bucha.toFixed(2)}
 ${trilhoDetalhes}
 Subtotal: R$ ${subtotal.toFixed(2)}
 Markup (2,4x): R$ ${totalVista.toFixed(2)}
+Ajuste Cartão (/0.879): R$ ${totalCorrigido.toFixed(2)}
 Desconto: R$ ${desconto.toFixed(2)}
 Simples Nacional: R$ ${simples.toFixed(2)}
 TOTAL FINAL: R$ ${totalFinal.toFixed(2)}
 `;
 
   document.getElementById('resultado').textContent = detalhamento;
-} 
+}
