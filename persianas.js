@@ -19,18 +19,16 @@ const db = getFirestore(app);
 console.log("✅ Firebase inicializado");
 console.log("db:", db);
 
+const precos = {};
 const select = document.getElementById('tipo');
 const larguraInput = document.getElementById('largura');
 const alturaInput = document.getElementById('altura');
 const descontoInput = document.getElementById('desconto');
 const resultado = document.getElementById('resultado');
 
-const precos = {};
-
 async function carregarTipos() {
   console.log("🔍 Buscando dados no Firestore...");
   const querySnapshot = await getDocs(collection(db, "persianas"));
-
   const lista = [];
 
   querySnapshot.forEach((doc) => {
@@ -38,29 +36,46 @@ async function carregarTipos() {
     lista.push({ nome: dados.nome, preco: dados.preco });
   });
 
-  // 🔤 Ordena os nomes em ordem alfabética
   lista.sort((a, b) => a.nome.localeCompare(b.nome));
 
-  // Preenche o select e o dicionário de preços
   lista.forEach((item) => {
     precos[item.nome] = item.preco;
 
-    const option = document.createElement('option');
-    option.value = item.nome;
-    option.textContent = item.nome;
-    select.appendChild(option);
+    if (select) {
+      const option = document.createElement('option');
+      option.value = item.nome;
+      option.textContent = item.nome;
+      select.appendChild(option);
+    }
   });
 
   console.log("✅ Persianas carregadas:", precos);
 }
 
-
 function calcular() {
-  const largura = parseFloat(larguraInput.value) || 0;
-  const altura = parseFloat(alturaInput.value) || 0;
-  const tipo = select.value;
-  const desconto = parseFloat(descontoInput.value) || 0;
+  const largura = parseFloat(larguraInput?.value) || 0;
+  const altura = parseFloat(alturaInput?.value) || 0;
+  const tipo = select?.value;
+  const desconto = parseFloat(descontoInput?.value) || 0;
 
+  const resultadoValor = calcularPersiana(largura, altura, tipo, desconto);
+  resultado.textContent = `Total: R$ ${resultadoValor.total.replace('.', ',')}`;
+}
+
+onAuthStateChanged(auth, async (user) => {
+  if (user) {
+    console.log("👤 Usuário autenticado:", user.email);
+    await carregarTipos();
+    [larguraInput, alturaInput, select, descontoInput].forEach(el =>
+      el?.addEventListener('input', calcular)
+    );
+  } else {
+    console.warn("⚠️ Usuário não autenticado. Acesso bloqueado.");
+    if (resultado) resultado.textContent = "⚠️ Faça login para visualizar os valores.";
+  }
+});
+
+export function calcularPersiana(largura, altura, tipo, desconto = 0) {
   let area = largura * altura;
   if (area < 1.5) area = 1.5;
 
@@ -68,20 +83,9 @@ function calcular() {
   let total = area * valorM2 - desconto;
   if (total < 0) total = 0;
 
-  resultado.textContent = `Total: R$ ${total.toFixed(2).replace('.', ',')}`;
+  return {
+    area: area.toFixed(2),
+    valorUnitario: valorM2.toFixed(2),
+    total: total.toFixed(2)
+  };
 }
-
-document.addEventListener('DOMContentLoaded', () => {
-  onAuthStateChanged(auth, async (user) => {
-    if (user) {
-      console.log("👤 Usuário autenticado:", user.email);
-      await carregarTipos();
-      [larguraInput, alturaInput, select, descontoInput].forEach(el =>
-        el.addEventListener('input', calcular)
-      );
-    } else {
-      console.warn("⚠️ Usuário não autenticado. Acesso bloqueado.");
-      resultado.textContent = "⚠️ Faça login para visualizar os valores.";
-    }
-  });
-});
