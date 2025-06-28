@@ -19,7 +19,9 @@ const db = getFirestore(app);
 console.log("✅ Firebase inicializado");
 console.log("db:", db);
 
+// 🔄 Variáveis compartilhadas
 const precos = {};
+
 const select = document.getElementById('tipo');
 const larguraInput = document.getElementById('largura');
 const alturaInput = document.getElementById('altura');
@@ -75,6 +77,7 @@ onAuthStateChanged(auth, async (user) => {
   }
 });
 
+// 🔢 Função de cálculo exportável
 export function calcularPersiana(largura, altura, tipo, desconto = 0) {
   let area = largura * altura;
   if (area < 1.5) area = 1.5;
@@ -89,3 +92,6 @@ export function calcularPersiana(largura, altura, tipo, desconto = 0) {
     total: total.toFixed(2)
   };
 }
+
+// 📦 Exportações compartilhadas
+export { precos, auth, db, carregarTipos };
