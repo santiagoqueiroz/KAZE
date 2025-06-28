@@ -30,17 +30,30 @@ const precos = {};
 async function carregarTipos() {
   console.log("🔍 Buscando dados no Firestore...");
   const querySnapshot = await getDocs(collection(db, "persianas"));
+
+  const lista = [];
+
   querySnapshot.forEach((doc) => {
     const dados = doc.data();
-    precos[dados.nome] = dados.preco;
+    lista.push({ nome: dados.nome, preco: dados.preco });
+  });
+
+  // 🔤 Ordena os nomes em ordem alfabética
+  lista.sort((a, b) => a.nome.localeCompare(b.nome));
+
+  // Preenche o select e o dicionário de preços
+  lista.forEach((item) => {
+    precos[item.nome] = item.preco;
 
     const option = document.createElement('option');
-    option.value = dados.nome;
-    option.textContent = dados.nome;
+    option.value = item.nome;
+    option.textContent = item.nome;
     select.appendChild(option);
   });
+
   console.log("✅ Persianas carregadas:", precos);
 }
+
 
 function calcular() {
   const largura = parseFloat(larguraInput.value) || 0;
