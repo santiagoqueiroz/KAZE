@@ -95,9 +95,7 @@ function calcular() {
   const barra = arred(qtdTecidoBase * 4);
   const instalacao = 5.00;
   const bucha = arred(1 * 4);
-
   const trilho = arred(trilhoSel);
-  const trilhoDetalhes = `Trilho: R$ ${trilho.toFixed(2)}`;
 
   const subtotal = arred(valorTecido + entrela + deslizante + terminal + costura + barra + instalacao + bucha + trilho);
   const simples = arred(subtotal * 0.06);
@@ -108,24 +106,28 @@ function calcular() {
   const totalComDesconto = arred(totalCorrigido - desconto);
   const totalFinal = totalComDesconto;
 
-  const detalhamento = `
-Tecido: ${qtdTecidoTotal} m x R$ ${precoTecido.toFixed(2)} = R$ ${valorTecido.toFixed(2)}
-Entrela: ${qtdTecidoBase} m x R$ 1,64 = R$ ${entrela.toFixed(2)}
-Deslizante: ((largura / 0,1)+1)*2 = ${qntDeslizante} x R$ 0,15 = R$ ${deslizante.toFixed(2)}
-Terminal: 2 x R$ 0,60 = R$ ${terminal.toFixed(2)}
-Costura: ${qtdTecidoTotal} m x R$ 8,00 = R$ ${costura.toFixed(2)}
-Barra: ${qtdTecidoBase} m x R$ 4,00 = R$ ${barra.toFixed(2)}
-Instalação: R$ ${instalacao.toFixed(2)}
-Bucha e Parafuso: R$ ${bucha.toFixed(2)}
-${trilhoDetalhes}
-Subtotal: R$ ${subtotal.toFixed(2)}
-Simples Nacional (6%): R$ ${simples.toFixed(2)}
-Subtotal + Simples: R$ ${baseMaisSimples.toFixed(2)}
-Markup (2,4x): R$ ${totalVista.toFixed(2)}
-Ajuste Cartão (/0.879): R$ ${totalCorrigido.toFixed(2)}
-Desconto: R$ ${desconto.toFixed(2)}
-TOTAL FINAL: R$ ${totalFinal.toFixed(2)}
-`;
+  const linhas = [
+    { label: `Tecido: ${qtdTecidoTotal} m x R$ ${precoTecido.toFixed(2)}`, valor: valorTecido },
+    { label: `Costura: ${qtdTecidoTotal} m x R$ 8,00`, valor: costura },
+    { label: `Entrela: ${qtdTecidoBase} m x R$ 1,64`, valor: entrela },
+    { label: `Barra: ${qtdTecidoBase} m x R$ 4,00`, valor: barra },
+    { label: `Deslizante: ${qntDeslizante} x R$ 0,15`, valor: deslizante },
+    { label: `Trilho`, valor: trilho },
+    { label: `Bucha e Parafuso`, valor: bucha },
+    { label: `Instalação`, valor: instalacao },
+    { label: `Terminal: 2 x R$ 0,60`, valor: terminal },
+  ];
+
+  linhas.sort((a, b) => b.valor - a.valor);
+  let detalhamento = linhas.map(l => `${l.label} = R$ ${l.valor.toFixed(2)}`).join("\n");
+
+  detalhamento += `\nSubtotal: R$ ${subtotal.toFixed(2)}`;
+  detalhamento += `\nSimples Nacional (6%): R$ ${simples.toFixed(2)}`;
+  detalhamento += `\nSubtotal + Simples: R$ ${baseMaisSimples.toFixed(2)}`;
+  detalhamento += `\nMarkup (2,4x): R$ ${totalVista.toFixed(2)}`;
+  detalhamento += `\nAjuste Cartão (/0.879): R$ ${totalCorrigido.toFixed(2)}`;
+  detalhamento += `\nDesconto: R$ ${desconto.toFixed(2)}`;
+  detalhamento += `\nTOTAL FINAL: R$ ${totalFinal.toFixed(2)}`;
 
   document.getElementById('resultado').textContent = detalhamento;
 }
