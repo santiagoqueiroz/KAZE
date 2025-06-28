@@ -73,14 +73,14 @@ window.onload = () => {
 };
 
 function calcular() {
-  const largura = parseFloat(document.getElementById('largura').value);
-  const altura = parseFloat(document.getElementById('altura').value);
+  const largura = parseFloat(document.getElementById('largura').value.replace(',', '.'));
+  const altura = parseFloat(document.getElementById('altura').value.replace(',', '.'));
   const precoTecido = parseFloat(document.getElementById('tecido').value);
   const trilhoSel = document.getElementById('trilho');
   const nomeTrilho = trilhoSel.options[trilhoSel.selectedIndex].text.split(' - ')[0];
   const precoTrilho = parseFloat(trilhoSel.value);
   const descontoInput = document.getElementById('desconto');
-  const desconto = parseFloat(descontoInput?.value || 0);
+  const desconto = parseFloat((descontoInput?.value || "0").replace(',', '.'));
 
   const qtdTecidoBase = arred((largura * 3.1) + 0.7);
   let qtdTecidoTotal = 0;
