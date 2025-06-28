@@ -242,10 +242,7 @@
           </div>
           <div class="campo">
             <label for="tipo">Tipo:</label>
-            <select id="tipo">
-              <option value="rolo">Rolo</option>
-              <option value="romana">Romana</option>
-            </select>
+            <select id="tipo"></select>
           </div>
           <div class="campo">
             <label for="ambiente">Ambiente:</label>
@@ -257,6 +254,8 @@
           </div>
           <button onclick="adicionarPersiana()">Adicionar</button>
         `;
+        importarTiposPersiana();
+
       }
     };
 
