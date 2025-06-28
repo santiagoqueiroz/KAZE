@@ -1,5 +1,5 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { getAuth } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 // 🔧 Config Firebase
@@ -20,6 +20,8 @@ console.log("✅ Firebase inicializado");
 console.log("db:", db);
 
 const precos = {};
+
+// 🔍 Carrega os tipos de persiana no <select>
 export async function carregarTipos(selectElement) {
   console.log("🔍 Buscando dados no Firestore...");
   const querySnapshot = await getDocs(collection(db, "persianas"));
@@ -44,32 +46,7 @@ export async function carregarTipos(selectElement) {
   console.log("✅ Persianas carregadas:", precos);
 }
 
-
-function calcular() {
-  const largura = parseFloat(larguraInput?.value) || 0;
-  const altura = parseFloat(alturaInput?.value) || 0;
-  const tipo = select?.value;
-  const desconto = parseFloat(descontoInput?.value) || 0;
-
-  const resultadoValor = calcularPersiana(largura, altura, tipo, desconto);
-  if (resultado) {
-    resultado.textContent = `Total: R$ ${resultadoValor.total.replace('.', ',')}`;
-  }
-}
-
-onAuthStateChanged(auth, async (user) => {
-  if (user) {
-    console.log("👤 Usuário autenticado:", user.email);
-    await carregarTipos();
-    [larguraInput, alturaInput, select, descontoInput].forEach(el =>
-      el?.addEventListener('input', calcular)
-    );
-  } else {
-    console.warn("⚠️ Usuário não autenticado. Acesso bloqueado.");
-    if (resultado) resultado.textContent = "⚠️ Faça login para visualizar os valores.";
-  }
-});
-
+// 🧮 Cálculo da persiana
 function calcularPersiana(largura, altura, tipo, desconto = 0) {
   let area = largura * altura;
   if (area < 1.5) area = 1.5;
@@ -85,12 +62,10 @@ function calcularPersiana(largura, altura, tipo, desconto = 0) {
   };
 }
 
-// ✅ Exportações corrigidas
-export { auth, carregarTipos, calcularPersiana };
+// ✅ Exportações únicas
+export { auth, calcularPersiana };
 
-
-
-// ✅ Torna a função visível globalmente se necessário
+// ✅ Torna função acessível globalmente, se usada fora do módulo
 window.abrirJanelaItem = function () {
   const modal = document.getElementById("janelaItem");
   if (modal) modal.style.display = "flex";
