@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Simulador de Cortina</title>
+  <style>
+    body { font-family: Arial; max-width: 800px; margin: auto; padding: 2rem; }
+    label { display: block; margin-top: 10px; }
+    input, select { width: 100%; padding: 5px; }
+    #resultado { margin-top: 2rem; font-weight: bold; }
+  </style>
+</head>
+<body>
+  <h1>Simulador de Orçamento - Cortina</h1>
+
+  <label>Largura (m): <input type="number" step="0.01" id="largura" value="1.5"></label>
+  <label>Altura (m): <input type="number" step="0.01" id="altura" value="2.9"></label>
+
+  <label>Tecido:
+    <select id="tecido"></select>
+  </label>
+
+  <label>Tipo de Trilho:
+    <select id="trilho"></select>
+  </label>
+
+  <button onclick="calcular()">Calcular</button>
+
+  <div id="resultado"></div>
+
+  <script src="cortina.js"></script>
+</body>
+</html>
