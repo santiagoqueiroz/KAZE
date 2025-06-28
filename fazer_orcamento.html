@@ -4,164 +4,10 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Selecionar Cliente - KAZE</title>
-  <style>
-    body {
-      font-family: sans-serif;
-      background: #f9f9f9;
-      padding: 20px;
-    }
-
-    .container {
-      max-width: 700px;
-      margin: auto;
-      background: white;
-      padding: 20px;
-      border-radius: 12px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
-    }
-
-    h2 {
-      margin-top: 0;
-      text-align: center;
-    }
-
-    label {
-      font-weight: bold;
-      display: block;
-      margin-top: 20px;
-    }
-
-    select, input {
-      width: 100%;
-      padding: 10px;
-      margin-top: 5px;
-      border-radius: 6px;
-      border: 1px solid #ccc;
-    }
-
-    .info-box {
-      background: #f1f1f1;
-      padding: 15px;
-      margin-top: 20px;
-      border-radius: 6px;
-    }
-
-    .info-box p {
-      margin: 5px 0;
-    }
-
-    button {
-      margin-top: 30px;
-      padding: 10px 20px;
-      font-size: 16px;
-      border: none;
-      background: #007bff;
-      color: white;
-      border-radius: 6px;
-      cursor: pointer;
-    }
-
-    button:hover {
-      background: #0056b3;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 20px;
-    }
-
-    th, td {
-      border: 1px solid #ccc;
-      padding: 8px;
-      text-align: center;
-    }
-
-    th {
-      background-color: #eee;
-    }
-
-    /* Modal */
-    #janelaItem {
-      display: none;
-      position: fixed;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(0,0,0,0.6);
-      z-index: 999;
-      justify-content: center;
-      align-items: center;
-    }
-
-    #janelaItem .conteudo {
-      background: white;
-      padding: 20px;
-      border-radius: 10px;
-      min-width: 300px;
-      max-width: 90%;
-    }
-
-    .campo {
-      margin-top: 15px;
-    }
-  </style>
+  <script type="module" src="index.js" defer></script>
 </head>
 <body>
-
-  <div class="container">
-    <h2>Selecionar Cliente</h2>
-
-    <label for="cliente">Cliente:</label>
-    <select id="cliente" onchange="mostrarDadosCliente()">
-      <option value="">Selecione...</option>
-    </select>
-
-    <div class="info-box" id="dados-cliente" style="display:none;">
-      <p><strong>Nome:</strong> <span id="nome"></span></p>
-      <p><strong>Telefone:</strong> <span id="telefone"></span></p>
-      <p><strong>CPF/CNPJ:</strong> <span id="cpf"></span></p>
-      <p><strong>Endereço:</strong> <span id="endereco"></span></p>
-      <p><strong>Bairro:</strong> <span id="bairro"></span></p>
-      <p><strong>Cidade:</strong> <span id="cidade"></span></p>
-      <p><strong>Email:</strong> <span id="email"></span></p>
-    </div>
-
-    <button onclick="abrirJanelaItem()">➕ Adicionar item</button>
-
-    <table id="tabela-itens" style="display: none;">
-      <thead>
-        <tr>
-          <th>Produto</th>
-          <th>Largura</th>
-          <th>Altura</th>
-          <th>Qtd</th>
-          <th>V. Unit.</th>
-          <th>Total</th>
-        </tr>
-      </thead>
-      <tbody id="lista-itens"></tbody>
-    </table>
-  </div>
-
-  <!-- Modal -->
-  <div id="janelaItem">
-    <div class="conteudo">
-      <h3>Novo Item</h3>
-
-      <label for="formula">Fórmula:</label>
-      <select id="formula" onchange="mostrarCamposFormula()">
-        <option value="">Selecione...</option>
-        <option value="persiana">Persiana</option>
-        <option value="cortina">Cortina</option>
-        <option value="bk">BK</option>
-        <option value="cortina_bk">Cortina + BK</option>
-        <option value="cortina_forro">Cortina + Forro</option>
-      </select>
-
-      <div id="campos-formula"></div>
-
-      <button onclick="fecharJanelaItem()">Fechar</button>
-    </div>
-  </div>
+  <!-- ... tudo igual até aqui ... -->
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
@@ -171,6 +17,7 @@
     import {
       getAuth, onAuthStateChanged
     } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import { calcularPersiana } from "./persianas.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyD5kVoWRWZB6xtacyu6lH--QFXry_MPKps",
@@ -260,10 +107,7 @@
           </div>
           <div class="campo">
             <label for="tipo">Tipo:</label>
-            <select id="tipo">
-              <option value="rolo">Rolo</option>
-              <option value="romana">Romana</option>
-            </select>
+            <select id="tipo"></select>
           </div>
           <div class="campo">
             <label for="ambiente">Ambiente:</label>
@@ -285,31 +129,25 @@
         return;
       }
 
-      const area = largura * altura;
-      const unit = 10;
-      const total = area * unit;
-
+      const resultado = calcularPersiana(largura, altura, tipo);
       const produto = `Persiana ${tipo} - ${ambiente}`;
-      adicionarItem(produto, largura.toFixed(2), altura.toFixed(2), 1, unit);
+      adicionarItem(produto, largura.toFixed(2), altura.toFixed(2), 1, resultado.valorUnitario, resultado.total);
       fecharJanelaItem();
     };
 
-    window.adicionarItem = function (produto, largura, altura, qtd, unit) {
-      const total = (parseFloat(qtd) * parseFloat(unit)).toFixed(2);
-
+    window.adicionarItem = function (produto, largura, altura, qtd, unit, total) {
       const linha = document.createElement("tr");
       linha.innerHTML = `
         <td>${produto}</td>
         <td>${largura}</td>
         <td>${altura}</td>
         <td>${qtd}</td>
-        <td>R$ ${parseFloat(unit).toFixed(2)}</td>
-        <td>R$ ${total}</td>
+        <td>R$ ${parseFloat(unit).toFixed(2).replace('.', ',')}</td>
+        <td>R$ ${parseFloat(total).toFixed(2).replace('.', ',')}</td>
       `;
       corpoItens.appendChild(linha);
       tabelaItens.style.display = "table";
     };
   </script>
-
 </body>
 </html>
