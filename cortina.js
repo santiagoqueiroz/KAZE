@@ -106,10 +106,12 @@ function calcular() {
 
   let trilho = 0;
   if (nomeTrilho.includes("VARÃO SUÍÇO")) {
-    const tubo = ceiling(largura, 0.5) * trilhos[nomeTrilho];
-    const suporte = 3 * 9.00;
-    const tampa = 2 * 2.00;
-    trilho = arred(tubo + suporte + tampa);
+    const qtdTubo = Math.ceil(largura);
+    const qtdSuporte = Math.ceil(largura / 1.1);
+    const precoTubo = trilhos[nomeTrilho];
+    const precoSuporte = 9.00;
+    const precoTampa = 2.00;
+    trilho = arred((qtdTubo * precoTubo) + (qtdSuporte * precoSuporte) + (2 * precoTampa));
   } else {
     trilho = arred(ceiling(largura, 0.5) * precoTrilho);
   }
