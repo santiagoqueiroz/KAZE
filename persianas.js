@@ -20,13 +20,7 @@ console.log("✅ Firebase inicializado");
 console.log("db:", db);
 
 const precos = {};
-const select = document.getElementById('tipo');
-const larguraInput = document.getElementById('largura');
-const alturaInput = document.getElementById('altura');
-const descontoInput = document.getElementById('desconto');
-const resultado = document.getElementById('resultado');
-
-async function carregarTipos() {
+export async function carregarTipos(selectElement) {
   console.log("🔍 Buscando dados no Firestore...");
   const querySnapshot = await getDocs(collection(db, "persianas"));
   const lista = [];
@@ -41,13 +35,15 @@ async function carregarTipos() {
   lista.forEach((item) => {
     precos[item.nome] = item.preco;
 
-    if (select) {
-      const option = document.createElement('option');
-      option.value = item.nome;
-      option.textContent = item.nome;
-      select.appendChild(option);
-    }
+    const option = document.createElement('option');
+    option.value = item.nome;
+    option.textContent = item.nome;
+    selectElement.appendChild(option);
   });
+
+  console.log("✅ Persianas carregadas:", precos);
+}
+
 
   console.log("✅ Persianas carregadas:", precos);
 }
