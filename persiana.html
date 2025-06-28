@@ -21,26 +21,5 @@
   <input type="number" id="desconto" step="0.01" value="0"><br>
 
   <h2 id="resultado">Total: R$ 0,00</h2>
-
-  <!-- Firebase SDK -->
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-    import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-
-   const firebaseConfig = {
-      apiKey: "AIzaSyD5kVoWRWZB6xtacyu6lH--QFXry_MPKps",
-      authDomain: "kaze-8836b.firebaseapp.com",
-      projectId: "kaze-8836b",
-      storageBucket: "kaze-8836b.firebasestorage.app",
-      messagingSenderId: "336054068300",
-      appId: "1:336054068300:web:6125e8eecc08d667fac0e9"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-
-    window.firebaseApp = app;
-    window.db = db;
-  </script>
 </body>
 </html>
