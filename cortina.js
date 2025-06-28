@@ -54,14 +54,18 @@ function preencherSelects() {
   }
 }
 
-window.onload = preencherSelects;
+window.onload = () => {
+  preencherSelects();
+  calcular();
+};
 
 function calcular() {
   const largura = parseFloat(document.getElementById('largura').value);
   const altura = parseFloat(document.getElementById('altura').value);
   const precoTecido = parseFloat(document.getElementById('tecido').value);
   const trilhoSel = parseFloat(document.getElementById('trilho').value);
-  const desconto = parseFloat(prompt("Insira o valor do desconto (em reais):", "0")) || 0;
+  const descontoInput = document.getElementById('desconto');
+  const desconto = parseFloat(descontoInput?.value || 0);
 
   const qtdTecidoBase = arred((largura * 3.1) + 0.7);
   let qtdTecidoTotal = 0;
@@ -109,4 +113,4 @@ TOTAL FINAL: R$ ${totalFinal.toFixed(2)}
 `;
 
   document.getElementById('resultado').textContent = detalhamento;
-}
+} 
