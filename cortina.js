@@ -101,7 +101,8 @@ function calcular() {
   const costura = arred(qtdTecidoTotal * 8);
   const barra = arred(qtdTecidoBase * 4);
   const instalacao = 5.00;
-  const bucha = arred(1 * 4);
+  const kitsBucha = Math.ceil(largura * 0.5);
+  const bucha = arred(kitsBucha * 4);
 
   let trilho = 0;
   if (nomeTrilho.includes("VARÃO SUÍÇO")) {
@@ -113,7 +114,7 @@ function calcular() {
     trilho = arred(ceiling(largura, 0.5) * precoTrilho);
   }
 
-  const subtotal = arred(valorTecido + entrela + deslizante + terminal + costura + barra + instalacao + bucha + trilho);
+  const subtotal = arred(valorTecido + trilho + entrela + deslizante + terminal + costura + barra + instalacao + bucha);
   const simples = arred(subtotal * 0.06);
   const baseMaisSimples = arred(subtotal + simples);
   const totalVista = arred(baseMaisSimples * 2.4);
@@ -125,13 +126,13 @@ function calcular() {
   const linhas = [
     { label: `Tecido: ${qtdTecidoTotal} m x R$ ${precoTecido.toFixed(2)}`, valor: valorTecido },
     { label: `Trilho`, valor: trilho },
-    { label: `Costura: ${qtdTecidoTotal} m x R$ 8,00`, valor: costura },
-    { label: `Barra: ${qtdTecidoBase} m x R$ 4,00`, valor: barra },
     { label: `Entrela: ${qtdTecidoBase} m x R$ 1,64`, valor: entrela },
     { label: `Deslizante: ${qntDeslizante} x R$ 0,15`, valor: deslizante },
-    { label: `Bucha e Parafuso`, valor: bucha },
-    { label: `Instalação`, valor: instalacao },
     { label: `Terminal: 2 x R$ 0,60`, valor: terminal },
+    { label: `Costura: ${qtdTecidoTotal} m x R$ 8,00`, valor: costura },
+    { label: `Barra: ${qtdTecidoBase} m x R$ 4,00`, valor: barra },
+    { label: `Instalação`, valor: instalacao },
+    { label: `Bucha e Parafuso: ${kitsBucha} x R$ 4,00`, valor: bucha }
   ];
 
   const tabela = `<table><tr><th>Item</th><th>Valor (R$)</th></tr>` +
