@@ -1,6 +1,20 @@
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-const db = window.db;
+// Configuração do seu projeto
+const firebaseConfig = {
+  apiKey: "AIzaSyD5kVoWRWZB6xtacyu6lH--QFXry_MPKps",
+  authDomain: "kaze-8836b.firebaseapp.com",
+  projectId: "kaze-8836b",
+  storageBucket: "kaze-8836b.firebasestorage.app",
+  messagingSenderId: "336054068300",
+  appId: "1:336054068300:web:6125e8eecc08d667fac0e9"
+};
+
+// Inicializa Firebase
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
 const select = document.getElementById('tipo');
 const larguraInput = document.getElementById('largura');
 const alturaInput = document.getElementById('altura');
