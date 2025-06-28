@@ -22,11 +22,13 @@ const tecidos = {
 };
 
 const trilhos = {
-  "Trilho Suíço Simples": 8.50,
-  "Trilho Suíço Duplo": 11.00,
-  "Trilho Suíço Triplo": 17.00,
-  "Trilho Suíço Flexível": 15.00,
-  "Varão Suíço": -1
+  "TRILHO SUÍÇO SIMPLES": 12.75,
+  "TRILHO SUÍÇO DUPLO": 16.50,
+  "TRILHO SUÍÇO TRIPLO": 25.50,
+  "TRILHO SUÍÇO FLEXÍVEL": 22.50,
+  "SEM TRILHO": 0.00,
+  "VARÃO SUÍÇO": 47.50,
+  "VARÃO SUÍÇO DUPLO": 59.50
 };
 
 function arred(val) {
@@ -47,7 +49,7 @@ function preencherSelects() {
   for (const [nome, preco] of Object.entries(trilhos)) {
     const opt = document.createElement("option");
     opt.value = preco;
-    opt.textContent = nome + (preco > 0 ? ` - R$ ${preco.toFixed(2)}` : "");
+    opt.textContent = `${nome} - R$ ${preco.toFixed(2)}`;
     trilhoSelect.appendChild(opt);
   }
 }
@@ -59,6 +61,7 @@ function calcular() {
   const altura = parseFloat(document.getElementById('altura').value);
   const precoTecido = parseFloat(document.getElementById('tecido').value);
   const trilhoSel = parseFloat(document.getElementById('trilho').value);
+  const desconto = parseFloat(prompt("Insira o valor do desconto (em reais):", "0")) || 0;
 
   const qtdTecidoBase = arred((largura * 3.1) + 0.7);
   let qtdTecidoTotal = 0;
@@ -79,24 +82,31 @@ function calcular() {
   const instalacao = 5.00;
   const bucha = arred(1 * 4);
 
-  let trilho = 0;
-  if (trilhoSel === -1) {
-    const tubo = arred(largura * 17);
-    const suporte = arred(3 * 9);
-    const tampas = arred(2 * 2);
-    trilho = arred(tubo + suporte + tampas);
-  } else {
-    trilho = arred(trilhoSel);
-  }
+  const trilho = arred(trilhoSel);
+  const trilhoDetalhes = `Trilho: R$ ${trilho.toFixed(2)}`;
 
   const subtotal = arred(valorTecido + entrela + deslizante + terminal + costura + barra + instalacao + bucha + trilho);
   const simples = 14.15;
   const totalVista = arred(subtotal * 2.4);
-  const totalFinal = arred(totalVista + simples);
+  const totalComDesconto = arred(totalVista - desconto);
+  const totalFinal = arred(totalComDesconto + simples);
 
-  document.getElementById('resultado').innerHTML = `
-    <p>Subtotal: R$ ${subtotal.toFixed(2)}</p>
-    <p>Total à Vista (com markup): R$ ${totalVista.toFixed(2)}</p>
-    <p>Total Final (com Simples Nacional): <strong>R$ ${totalFinal.toFixed(2)}</strong></p>
-  `;
+  const detalhamento = `
+Tecido: ${qtdTecidoTotal} m x R$ ${precoTecido.toFixed(2)} = R$ ${valorTecido.toFixed(2)}
+Entrela: ${qtdTecidoBase} m x R$ 1,64 = R$ ${entrela.toFixed(2)}
+Deslizante: ${largura}m x 32 x R$ 0,15 = R$ ${deslizante.toFixed(2)}
+Terminal: 2 x R$ 0,60 = R$ ${terminal.toFixed(2)}
+Costura: ${qtdTecidoTotal} m x R$ 8,00 = R$ ${costura.toFixed(2)}
+Barra: ${qtdTecidoBase} m x R$ 4,00 = R$ ${barra.toFixed(2)}
+Instalação: R$ ${instalacao.toFixed(2)}
+Bucha e Parafuso: R$ ${bucha.toFixed(2)}
+${trilhoDetalhes}
+Subtotal: R$ ${subtotal.toFixed(2)}
+Markup (2,4x): R$ ${totalVista.toFixed(2)}
+Desconto: R$ ${desconto.toFixed(2)}
+Simples Nacional: R$ ${simples.toFixed(2)}
+TOTAL FINAL: R$ ${totalFinal.toFixed(2)}
+`;
+
+  document.getElementById('resultado').textContent = detalhamento;
 }
