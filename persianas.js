@@ -2,7 +2,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/fireba
 import { getAuth } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-// 🔧 Config Firebase
+// 🔧 Configuração do Firebase
 const firebaseConfig = {
   apiKey: "AIzaSyD5kVoWRWZB6xtacyu6lH--QFXry_MPKps",
   authDomain: "kaze-8836b.firebaseapp.com",
@@ -13,7 +13,7 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
+export const auth = getAuth(app);
 const db = getFirestore(app);
 
 console.log("✅ Firebase inicializado");
@@ -37,7 +37,7 @@ export async function carregarTipos(selectElement) {
   lista.forEach((item) => {
     precos[item.nome] = item.preco;
 
-    const option = document.createElement('option');
+    const option = document.createElement("option");
     option.value = item.nome;
     option.textContent = item.nome;
     selectElement.appendChild(option);
@@ -47,7 +47,7 @@ export async function carregarTipos(selectElement) {
 }
 
 // 🧮 Cálculo da persiana
-function calcularPersiana(largura, altura, tipo, desconto = 0) {
+export function calcularPersiana(largura, altura, tipo, desconto = 0) {
   let area = largura * altura;
   if (area < 1.5) area = 1.5;
 
@@ -62,10 +62,7 @@ function calcularPersiana(largura, altura, tipo, desconto = 0) {
   };
 }
 
-// ✅ Exportações únicas
-export { auth, calcularPersiana };
-
-// ✅ Torna função acessível globalmente, se usada fora do módulo
+// 🔓 Função global (opcional)
 window.abrirJanelaItem = function () {
   const modal = document.getElementById("janelaItem");
   if (modal) modal.style.display = "flex";
