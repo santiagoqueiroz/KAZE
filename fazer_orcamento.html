@@ -258,7 +258,14 @@
   `;
 
   // ✅ Agora sim chama corretamente a função importada do módulo
-  import("./persianas.js").then(mod => mod.carregarTipos());
+  import("./persianas.js").then(mod => {
+  mod.carregarTipos().then(() => {
+    const selectTipo = document.getElementById("tipo");
+    selectTipo?.addEventListener("change", () => {
+      // Você pode chamar o cálculo aqui se quiser no futuro
+    });
+  });
+});
     }
 }
 
