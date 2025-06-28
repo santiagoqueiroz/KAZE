@@ -1,4 +1,5 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 // 🔧 Config Firebase
@@ -12,10 +13,11 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
 const db = getFirestore(app);
 
 console.log("✅ Firebase inicializado");
-console.log("db:", db); // isso deve mostrar um objeto válido no console
+console.log("db:", db);
 
 const select = document.getElementById('tipo');
 const larguraInput = document.getElementById('largura');
@@ -26,22 +28,18 @@ const resultado = document.getElementById('resultado');
 const precos = {};
 
 async function carregarTipos() {
-  try {
-    console.log("🔍 Buscando dados no Firestore...");
-    const querySnapshot = await getDocs(collection(db, "persianas"));
-    querySnapshot.forEach((doc) => {
-      const dados = doc.data();
-      precos[dados.nome] = dados.preco;
+  console.log("🔍 Buscando dados no Firestore...");
+  const querySnapshot = await getDocs(collection(db, "persianas"));
+  querySnapshot.forEach((doc) => {
+    const dados = doc.data();
+    precos[dados.nome] = dados.preco;
 
-      const option = document.createElement('option');
-      option.value = dados.nome;
-      option.textContent = dados.nome;
-      select.appendChild(option);
-    });
-    console.log("✅ Persianas carregadas:", precos);
-  } catch (err) {
-    console.error("❌ Erro ao carregar persianas:", err);
-  }
+    const option = document.createElement('option');
+    option.value = dados.nome;
+    option.textContent = dados.nome;
+    select.appendChild(option);
+  });
+  console.log("✅ Persianas carregadas:", precos);
 }
 
 function calcular() {
@@ -60,9 +58,17 @@ function calcular() {
   resultado.textContent = `Total: R$ ${total.toFixed(2).replace('.', ',')}`;
 }
 
-document.addEventListener('DOMContentLoaded', async () => {
-  await carregarTipos();
-  [larguraInput, alturaInput, select, descontoInput].forEach(el =>
-    el.addEventListener('input', calcular)
-  );
+document.addEventListener('DOMContentLoaded', () => {
+  onAuthStateChanged(auth, async (user) => {
+    if (user) {
+      console.log("👤 Usuário autenticado:", user.email);
+      await carregarTipos();
+      [larguraInput, alturaInput, select, descontoInput].forEach(el =>
+        el.addEventListener('input', calcular)
+      );
+    } else {
+      console.warn("⚠️ Usuário não autenticado. Acesso bloqueado.");
+      resultado.textContent = "⚠️ Faça login para visualizar os valores.";
+    }
+  });
 });
