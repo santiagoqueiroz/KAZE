@@ -39,6 +39,10 @@ function ceiling(val, step) {
   return Math.ceil(val / step) * step;
 }
 
+function formatarReais(valor) {
+  return valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+}
+
 function preencherSelects() {
   const tecidoSelect = document.getElementById("tecido");
   const trilhoSelect = document.getElementById("trilho");
@@ -65,6 +69,14 @@ function preencherSelects() {
   descontoInput.style.marginTop = "10px";
   descontoInput.addEventListener("input", calcular);
   document.body.insertBefore(descontoInput, document.getElementById("resultado"));
+
+  const ambienteInput = document.createElement("input");
+  ambienteInput.id = "ambiente";
+  ambienteInput.type = "text";
+  ambienteInput.placeholder = "Ambiente";
+  ambienteInput.style.marginTop = "10px";
+  ambienteInput.addEventListener("input", calcular);
+  document.body.insertBefore(ambienteInput, document.getElementById("resultado"));
 }
 
 window.onload = () => {
@@ -76,22 +88,19 @@ function calcular() {
   const largura = parseFloat(document.getElementById('largura').value.replace(',', '.'));
   const altura = parseFloat(document.getElementById('altura').value.replace(',', '.'));
   const precoTecido = parseFloat(document.getElementById('tecido').value);
+  const tecidoSel = document.getElementById('tecido');
+  const nomeTecido = tecidoSel.options[tecidoSel.selectedIndex].text.split(' - ')[0];
   const trilhoSel = document.getElementById('trilho');
   const nomeTrilho = trilhoSel.options[trilhoSel.selectedIndex].text.split(' - ')[0];
   const precoTrilho = parseFloat(trilhoSel.value);
-  const descontoInput = document.getElementById('desconto');
-  const desconto = parseFloat((descontoInput?.value || "0").replace(',', '.'));
+  const desconto = parseFloat((document.getElementById('desconto')?.value || "0").replace(',', '.'));
+  const ambiente = document.getElementById('ambiente')?.value || "Ambiente";
 
   const qtdTecidoBase = arred((largura * 3.1) + 0.7);
   const qtdTiras = Math.ceil(qtdTecidoBase / 3);
   const alturaTira = arred(altura + 0.12 + 0.40);
 
-  let qtdTecidoTotal = 0;
-  if (altura > 2.6) {
-    qtdTecidoTotal = arred(qtdTiras * alturaTira);
-  } else {
-    qtdTecidoTotal = arred(qtdTecidoBase);
-  }
+  let qtdTecidoTotal = altura > 2.6 ? arred(qtdTiras * alturaTira) : arred(qtdTecidoBase);
 
   const valorTecido = arred(qtdTecidoTotal * precoTecido);
   const entrela = arred(qtdTecidoBase * 1.64);
@@ -122,8 +131,9 @@ function calcular() {
   const totalVista = arred(baseMaisSimples * 2.4);
   const fatorCartao = 0.879;
   const totalCorrigido = arred(totalVista / fatorCartao);
-  const totalComDesconto = arred(totalCorrigido - desconto);
-  const totalFinal = totalComDesconto;
+  const totalFinal = arred(totalCorrigido - desconto);
+
+  const produto = `${ambiente} - Cortina ${nomeTecido} - ${nomeTrilho}`;
 
   const linhas = [
     { label: `Tecido: ${qtdTecidoTotal} m x R$ ${precoTecido.toFixed(2)}`, valor: valorTecido },
@@ -134,18 +144,29 @@ function calcular() {
     { label: `Costura: ${qtdTecidoTotal} m x R$ 8,00`, valor: costura },
     { label: `Barra: ${qtdTecidoBase} m x R$ 4,00`, valor: barra },
     { label: `Instalação`, valor: instalacao },
-    { label: `Bucha e Parafuso: ${kitsBucha} x R$ 4,00`, valor: bucha }
+    { label: `Bucha e Parafuso: ${kitsBucha} x R$ 4,00`, valor: bucha },
   ];
 
-  const tabela = `<table><tr><th>Item</th><th>Valor (R$)</th></tr>` +
-    linhas.map(l => `<tr><td>${l.label}</td><td>${l.valor.toFixed(2)}</td></tr>`).join('') +
-    `<tr><td><strong>Subtotal</strong></td><td>${subtotal.toFixed(2)}</td></tr>` +
-    `<tr><td>Simples Nacional (6%)</td><td>${simples.toFixed(2)}</td></tr>` +
-    `<tr><td>Subtotal + Simples</td><td>${baseMaisSimples.toFixed(2)}</td></tr>` +
-    `<tr><td>Markup (2,4x)</td><td>${totalVista.toFixed(2)}</td></tr>` +
-    `<tr><td>Ajuste Cartão (/0.879)</td><td>${totalCorrigido.toFixed(2)}</td></tr>` +
-    `<tr><td>Desconto</td><td>${desconto.toFixed(2)}</td></tr>` +
-    `<tr><td><strong>TOTAL FINAL</strong></td><td><strong>${totalFinal.toFixed(2)}</strong></td></tr></table>`;
+  const tabela = `
+  <style>
+    table { border-collapse: collapse; width: 100%; font-family: sans-serif; }
+    th, td { border-top: 1px solid #ccc; padding: 8px; text-align: right; }
+    th:first-child, td:first-child { text-align: left; }
+    tr:nth-child(even) { background-color: #f9f9f9; }
+    tr:last-child td { font-weight: bold; color: #1a1a1a; background-color: #e0e0e0; }
+  </style>
+  <h2>${produto}</h2>
+  <table>
+    <tr><th>Item</th><th>Valor (R$)</th></tr>
+    ${linhas.map(l => `<tr><td>${l.label}</td><td>${formatarReais(l.valor)}</td></tr>`).join('')}
+    <tr><td><strong>Subtotal</strong></td><td>${formatarReais(subtotal)}</td></tr>
+    <tr><td>Simples Nacional (6%)</td><td>${formatarReais(simples)}</td></tr>
+    <tr><td>Subtotal + Simples</td><td>${formatarReais(baseMaisSimples)}</td></tr>
+    <tr><td>Markup (2,4x)</td><td>${formatarReais(totalVista)}</td></tr>
+    <tr><td>Ajuste Cartão (/0.879)</td><td>${formatarReais(totalCorrigido)}</td></tr>
+    <tr><td>Desconto</td><td>${formatarReais(desconto)}</td></tr>
+    <tr><td><strong>TOTAL FINAL</strong></td><td><strong>${formatarReais(totalFinal)}</strong></td></tr>
+  </table>`;
 
   document.getElementById('resultado').innerHTML = tabela;
 }
