@@ -35,6 +35,10 @@ function arred(val) {
   return Math.round(val * 100) / 100;
 }
 
+function ceiling(val, step) {
+  return Math.ceil(val / step) * step;
+}
+
 function preencherSelects() {
   const tecidoSelect = document.getElementById("tecido");
   const trilhoSelect = document.getElementById("trilho");
@@ -100,12 +104,12 @@ function calcular() {
 
   let trilho = 0;
   if (nomeTrilho.includes("VARÃO SUÍÇO")) {
-    const tubo = Math.ceil(largura) * trilhos[nomeTrilho];
+    const tubo = ceiling(largura, 0.5) * trilhos[nomeTrilho];
     const suporte = 3 * 9.00;
     const tampa = 2 * 2.00;
     trilho = arred(tubo + suporte + tampa);
   } else {
-    trilho = arred(Math.ceil(largura) * precoTrilho);
+    trilho = arred(ceiling(largura, 0.5) * precoTrilho);
   }
 
   const subtotal = arred(valorTecido + entrela + deslizante + terminal + costura + barra + instalacao + bucha + trilho);
