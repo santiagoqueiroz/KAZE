@@ -94,6 +94,8 @@ function calcularPersiana(largura, altura, tipo, desconto = 0) {
 
 // ✅ Exportações corrigidas
 export { auth, calcularPersiana };
+export { carregarTipos, calcularPersiana };
+
 
 // ✅ Torna a função visível globalmente se necessário
 window.abrirJanelaItem = function () {
