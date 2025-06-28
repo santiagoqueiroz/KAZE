@@ -52,6 +52,15 @@ function preencherSelects() {
     opt.textContent = `${nome} - R$ ${preco.toFixed(2)}`;
     trilhoSelect.appendChild(opt);
   }
+
+  const descontoInput = document.createElement("input");
+  descontoInput.id = "desconto";
+  descontoInput.type = "number";
+  descontoInput.step = "0.01";
+  descontoInput.placeholder = "Desconto em R$";
+  descontoInput.style.marginTop = "10px";
+  descontoInput.addEventListener("input", calcular);
+  document.body.insertBefore(descontoInput, document.getElementById("resultado"));
 }
 
 window.onload = () => {
@@ -79,7 +88,8 @@ function calcular() {
 
   const valorTecido = arred(qtdTecidoTotal * precoTecido);
   const entrela = arred(qtdTecidoBase * 1.64);
-  const deslizante = arred(largura * 32 * 0.15);
+  const qntDeslizante = Math.ceil(((largura / 0.1) + 1) * 2);
+  const deslizante = arred(qntDeslizante * 0.15);
   const terminal = arred(2 * 0.60);
   const costura = arred(qtdTecidoTotal * 8);
   const barra = arred(qtdTecidoBase * 4);
@@ -100,7 +110,7 @@ function calcular() {
   const detalhamento = `
 Tecido: ${qtdTecidoTotal} m x R$ ${precoTecido.toFixed(2)} = R$ ${valorTecido.toFixed(2)}
 Entrela: ${qtdTecidoBase} m x R$ 1,64 = R$ ${entrela.toFixed(2)}
-Deslizante: ${largura}m x 32 x R$ 0,15 = R$ ${deslizante.toFixed(2)}
+Deslizante: ((largura / 0,1)+1)*2 = ${qntDeslizante} x R$ 0,15 = R$ ${deslizante.toFixed(2)}
 Terminal: 2 x R$ 0,60 = R$ ${terminal.toFixed(2)}
 Costura: ${qtdTecidoTotal} m x R$ 8,00 = R$ ${costura.toFixed(2)}
 Barra: ${qtdTecidoBase} m x R$ 4,00 = R$ ${barra.toFixed(2)}
