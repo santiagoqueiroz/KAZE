@@ -77,14 +77,7 @@ function calcular() {
   const desconto = parseFloat(descontoInput?.value || 0);
 
   const qtdTecidoBase = arred((largura * 3.1) + 0.7);
-  let qtdTecidoTotal = 0;
-
-  if (altura > 2.6) {
-    const tira = arred(altura + 0.12 + 0.40);
-    qtdTecidoTotal = arred(tira * 2);
-  } else {
-    qtdTecidoTotal = qtdTecidoBase;
-  }
+  let qtdTecidoTotal = altura > 2.6 ? arred((altura + 0.12 + 0.40) * 2) : qtdTecidoBase;
 
   const valorTecido = arred(qtdTecidoTotal * precoTecido);
   const entrela = arred(qtdTecidoBase * 1.64);
@@ -104,30 +97,32 @@ function calcular() {
   const fatorCartao = 0.879;
   const totalCorrigido = arred(totalVista / fatorCartao);
   const totalComDesconto = arred(totalCorrigido - desconto);
-  const totalFinal = totalComDesconto;
 
   const linhas = [
-    { label: `Tecido: ${qtdTecidoTotal} m x R$ ${precoTecido.toFixed(2)}`, valor: valorTecido },
-    { label: `Costura: ${qtdTecidoTotal} m x R$ 8,00`, valor: costura },
-    { label: `Entrela: ${qtdTecidoBase} m x R$ 1,64`, valor: entrela },
-    { label: `Barra: ${qtdTecidoBase} m x R$ 4,00`, valor: barra },
-    { label: `Deslizante: ${qntDeslizante} x R$ 0,15`, valor: deslizante },
-    { label: `Trilho`, valor: trilho },
-    { label: `Bucha e Parafuso`, valor: bucha },
-    { label: `Instalação`, valor: instalacao },
-    { label: `Terminal: 2 x R$ 0,60`, valor: terminal },
+    [`Tecido`, `${qtdTecidoTotal} m x R$ ${precoTecido.toFixed(2)}`, valorTecido],
+    [`Trilho`, ``, trilho],
+    [`Costura`, `${qtdTecidoTotal} m x R$ 8,00`, costura],
+    [`Barra`, `${qtdTecidoBase} m x R$ 4,00`, barra],
+    [`Entrela`, `${qtdTecidoBase} m x R$ 1,64`, entrela],
+    [`Instalação`, ``, instalacao],
+    [`Deslizante`, `${qntDeslizante} x R$ 0,15`, deslizante],
+    [`Bucha e Parafuso`, ``, bucha],
+    [`Terminal`, `2 x R$ 0,60`, terminal]
   ];
 
-  linhas.sort((a, b) => b.valor - a.valor);
-  let detalhamento = linhas.map(l => `${l.label} = R$ ${l.valor.toFixed(2)}`).join("\n");
+  let tabela = `<table border='1' cellpadding='5' cellspacing='0'><tr><th>Item</th><th>Cálculo</th><th>Valor (R$)</th></tr>`;
+  linhas.forEach(([nome, desc, val]) => {
+    tabela += `<tr><td>${nome}</td><td>${desc}</td><td>${val.toFixed(2)}</td></tr>`;
+  });
+  tabela += `</table>`;
 
-  detalhamento += `\nSubtotal: R$ ${subtotal.toFixed(2)}`;
-  detalhamento += `\nSimples Nacional (6%): R$ ${simples.toFixed(2)}`;
-  detalhamento += `\nSubtotal + Simples: R$ ${baseMaisSimples.toFixed(2)}`;
-  detalhamento += `\nMarkup (2,4x): R$ ${totalVista.toFixed(2)}`;
-  detalhamento += `\nAjuste Cartão (/0.879): R$ ${totalCorrigido.toFixed(2)}`;
-  detalhamento += `\nDesconto: R$ ${desconto.toFixed(2)}`;
-  detalhamento += `\nTOTAL FINAL: R$ ${totalFinal.toFixed(2)}`;
+  tabela += `<p>Subtotal: R$ ${subtotal.toFixed(2)}</p>`;
+  tabela += `<p>Simples Nacional (6%): R$ ${simples.toFixed(2)}</p>`;
+  tabela += `<p>Subtotal + Simples: R$ ${baseMaisSimples.toFixed(2)}</p>`;
+  tabela += `<p>Markup (2,4x): R$ ${totalVista.toFixed(2)}</p>`;
+  tabela += `<p>Ajuste Cartão (/0.879): R$ ${totalCorrigido.toFixed(2)}</p>`;
+  tabela += `<p>Desconto: R$ ${desconto.toFixed(2)}</p>`;
+  tabela += `<h3>TOTAL FINAL: R$ ${totalComDesconto.toFixed(2)}</h3>`;
 
-  document.getElementById('resultado').textContent = detalhamento;
+  document.getElementById('resultado').innerHTML = tabela;
 }
