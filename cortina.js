@@ -82,7 +82,7 @@ function calcular() {
   const descontoInput = document.getElementById('desconto');
   const desconto = parseFloat((descontoInput?.value || "0").replace(',', '.'));
 
-  const qtdTecidoBase = arred(largura * 3.1);
+  const qtdTecidoBase = arred((largura * 3.1) + 0.7);
   const qtdTiras = Math.ceil(qtdTecidoBase / 3);
   const alturaTira = arred(altura + 0.12 + 0.40);
 
