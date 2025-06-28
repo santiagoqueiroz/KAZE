@@ -45,9 +45,6 @@ export async function carregarTipos(selectElement) {
 }
 
 
-  console.log("✅ Persianas carregadas:", precos);
-}
-
 function calcular() {
   const largura = parseFloat(larguraInput?.value) || 0;
   const altura = parseFloat(alturaInput?.value) || 0;
