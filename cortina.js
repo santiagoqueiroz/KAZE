@@ -79,9 +79,7 @@ function preencherSelects() {
 
   const barraExtraInput = document.createElement("input");
   barraExtraInput.id = "barraExtra";
-  barraExtraInput.type = "number";
-  barraExtraInput.step = "0.01";
-  barraExtraInput.placeholder = "Tamanho da barra (ex: 0,40)";
+  barraExtraInput.placeholder = "Barra (ex: 0,40)";
   barraExtraInput.value = "0,40";
   barraExtraInput.style.marginTop = "10px";
   barraExtraInput.addEventListener("input", calcular);
