@@ -114,9 +114,9 @@ function calcular() {
   const entrela = arred(qtdTecidoBase * 1.64);
   const qntDeslizante = Math.ceil(((largura / 0.1) + 1) * 2);
   const deslizante = arred(qntDeslizante * 0.15);
-  const terminal = arred(2 * 0.60);
+  const terminal = arred(2 * 0.66);
   const costura = arred(qtdTecidoTotal * 8);
-  const barra = arred(qtdTecidoBase * 4);
+  const barra = arred(qtdTecidoBase * 5.50);
   const instalacao = 5.00;
   const kitsBucha = Math.ceil(largura * 0.5);
   const bucha = arred(kitsBucha * 4);
