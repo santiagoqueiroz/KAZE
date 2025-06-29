@@ -200,3 +200,6 @@ if (nomeTrilho.includes("VARÃO SUÍÇO")) {
 
   document.getElementById('resultado').innerHTML = tabela;
 }
+
+window.calcular = calcular;
+window.preencherSelects = preencherSelects;
