@@ -133,7 +133,14 @@
     <div class="conteudo">
       <h3>Novo Item</h3>
       <label for="formula">Fórmula:</label>
-      <select id="formula"></select>
+      <select id="formula">
+        <option value="">Selecione...</option>
+        <option value="persiana">Persiana</option>
+        <option value="cortina">Cortina</option>
+        <option value="bk">BK</option>
+        <option value="cortina_bk">Cortina + BK</option>
+        <option value="cortina_forro">Cortina + Forro</option>
+      </select>
       <div id="campos-formula"></div>
       <div id="resultado"></div>
       <button onclick="fecharJanelaItem()">Fechar</button>
@@ -194,6 +201,16 @@
       dadosBox.style.display = "block";
       botaoAdicionar.disabled = false;
     });
+  </script>
+
+  <script>
+    function fecharJanelaItem() {
+      const janela = document.getElementById("janelaItem");
+      if (janela) janela.style.display = "none";
+      document.getElementById("campos-formula").innerHTML = "";
+      document.getElementById("resultado").innerHTML = "";
+      document.getElementById("formula").value = "";
+    }
   </script>
 
   <script src="./cortina.js"></script>
