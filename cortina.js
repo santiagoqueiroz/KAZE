@@ -84,6 +84,14 @@ function preencherSelects() {
   barraExtraInput.style.marginTop = "10px";
   barraExtraInput.addEventListener("input", calcular);
   document.body.insertBefore(barraExtraInput, document.getElementById("resultado"));
+
+  const xBarraAltaInput = document.createElement("input");
+  xBarraAltaInput.id = "xBarraAlta";
+  xBarraAltaInput.placeholder = "xBarraAlta";
+  xBarraAltaInput.value = "1.4";
+  xBarraAltaInput.style.marginTop = "10px";
+  xBarraAltaInput.addEventListener("input", calcular);
+  document.body.insertBefore(xBarraAltaInput, document.getElementById("resultado"));
 }
 
 window.onload = () => {
@@ -103,9 +111,15 @@ function calcular() {
   const desconto = parseFloat((document.getElementById('desconto')?.value || "0").replace(',', '.'));
   const ambiente = document.getElementById('ambiente')?.value || "Ambiente";
   const barraExtra = parseFloat(document.getElementById('barraExtra').value.replace(',', '.'));
+  const xBarraAlta = parseFloat(document.getElementById('xBarraAlta')?.value.replace(',', '.') || "1.4");
+  const multiplicadorFinalBarra = altura > 3.5 ? xBarraAlta : 1;
 
   const qtdTecidoBase = arred((largura * 3.1) + 0.7);
-  const qtdTiras = Math.ceil(qtdTecidoBase / 3);
+  function arredondarTiras(valor) {
+    const parteDecimal = valor % 1;
+    return parteDecimal < 0.4 ? Math.floor(valor) : Math.ceil(valor);
+  }
+  const qtdTiras = arredondarTiras(qtdTecidoBase / 3);
   const alturaTira = arred(altura + 0.12 + barraExtra);
 
   let qtdTecidoTotal = altura > 2.6 ? arred(qtdTiras * alturaTira) : arred(qtdTecidoBase);
@@ -116,7 +130,7 @@ function calcular() {
   const deslizante = arred(qntDeslizante * 0.15);
   const terminal = arred(2 * 0.66);
   const costura = arred(qtdTecidoTotal * 8);
-  const barra = arred(qtdTecidoBase * 5.50);
+  const barra = arred(qtdTecidoBase * 5.50 * multiplicadorFinalBarra);
   const instalacao = 5.00;
   const kitsBucha = Math.ceil(largura * 0.5);
   const bucha = arred(kitsBucha * 4);
@@ -124,7 +138,14 @@ function calcular() {
   let trilho = 0;
   if (nomeTrilho.includes("VARÃO SUÍÇO")) {
     const qtdTubo = Math.ceil(largura);
-    const qtdSuporte = Math.ceil(largura / 1.1);
+    let qtdSuporte = 2;
+    if (largura > 1.9 && largura <= 3.5) {
+      qtdSuporte = 3;
+    } else if (largura > 3.5 && largura <= 4.8) {
+      qtdSuporte = 4;
+    } else if (largura > 4.8) {
+      qtdSuporte = 4 + Math.ceil((largura - 4.8) / 1.5);
+    }
     const precoTubo = trilhos[nomeTrilho];
     const precoSuporte = 9.00;
     const precoTampa = 2.00;
@@ -137,40 +158,19 @@ function calcular() {
   const simples = arred(subtotal * 0.06);
   const baseMaisSimples = arred(subtotal + simples);
   const totalVista = arred(baseMaisSimples * 2.4);
-  const fatorCartao = 0.879;
-  const totalCorrigido = arred(totalVista / fatorCartao);
+  const totalCorrigido = arred(totalVista / 0.879);
   const totalFinal = arred(totalCorrigido - desconto);
 
   const produto = `${ambiente} - Cortina ${nomeTecido} - ${nomeTrilho}`;
-
-  const detalhes = [
-    `Tecido: ${qtdTecidoTotal} m x R$ ${precoTecido.toFixed(2)} = ${formatarReais(valorTecido)}`,
-    `Trilho = ${formatarReais(trilho)}`,
-    `Entrela: ${qtdTecidoBase} m x R$ 1,64 = ${formatarReais(entrela)}`,
-    `Deslizante: ${qntDeslizante} x R$ 0,15 = ${formatarReais(deslizante)}`,
-    `Terminal: 2 x R$ 0,60 = ${formatarReais(terminal)}`,
-    `Costura: ${qtdTecidoTotal} m x R$ 8,00 = ${formatarReais(costura)}`,
-    `Barra: ${qtdTecidoBase} m x R$ 4,00 = ${formatarReais(barra)}`,
-    `Instalação = ${formatarReais(instalacao)}`,
-    `Bucha e Parafuso: ${kitsBucha} x R$ 4,00 = ${formatarReais(bucha)}`
-  ];
-
-  const adicionais = [
-    `Simples Nacional (6%) = ${formatarReais(simples)}`,
-    `Subtotal + Simples = ${formatarReais(baseMaisSimples)}`,
-    `Markup (2,4x) = ${formatarReais(totalVista)}`,
-    `Ajuste Cartão (/0.879) = ${formatarReais(totalCorrigido)}`,
-    `Desconto = ${formatarReais(desconto)}`
-  ];
 
   const linhas = [
     { label: `Tecido: ${qtdTecidoTotal} m x R$ ${precoTecido.toFixed(2)}`, valor: valorTecido },
     { label: `Trilho`, valor: trilho },
     { label: `Entrela: ${qtdTecidoBase} m x R$ 1,64`, valor: entrela },
     { label: `Deslizante: ${qntDeslizante} x R$ 0,15`, valor: deslizante },
-    { label: `Terminal: 2 x R$ 0,60`, valor: terminal },
+    { label: `Terminal: 2 x R$ 0,66`, valor: terminal },
     { label: `Costura: ${qtdTecidoTotal} m x R$ 8,00`, valor: costura },
-    { label: `Barra: ${qtdTecidoBase} m x R$ 4,00`, valor: barra },
+    { label: `Barra: ${qtdTecidoBase} m x R$ 5,50 x ${multiplicadorFinalBarra}`, valor: barra },
     { label: `Instalação`, valor: instalacao },
     { label: `Bucha e Parafuso: ${kitsBucha} x R$ 4,00`, valor: bucha },
   ];
