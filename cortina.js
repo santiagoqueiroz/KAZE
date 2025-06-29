@@ -102,7 +102,7 @@ function calcular() {
   const precoTrilho = parseFloat(trilhoSel.value);
   const desconto = parseFloat((document.getElementById('desconto')?.value || "0").replace(',', '.'));
   const ambiente = document.getElementById('ambiente')?.value || "Ambiente";
-  const barraExtra = parseFloat((document.getElementById('barraExtra')?.value || "0.40").replace(',', '.'));
+ const barraExtra = parseFloat(document.getElementById('barraExtra').value.replace(',', '.'));
 
   const qtdTecidoBase = arred((largura * 3.1) + 0.7);
   const qtdTiras = Math.ceil(qtdTecidoBase / 3);
