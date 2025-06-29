@@ -46,6 +46,7 @@ function formatarReais(valor) {
 function preencherSelects() {
   const tecidoSelect = document.getElementById("tecido");
   const trilhoSelect = document.getElementById("trilho");
+  const container = document.getElementById("campos-formula");
 
   for (const [nome, preco] of Object.entries(tecidos)) {
     const opt = document.createElement("option");
@@ -66,7 +67,7 @@ function preencherSelects() {
   ambienteInput.placeholder = "Ambiente";
   ambienteInput.style.marginTop = "10px";
   ambienteInput.addEventListener("input", calcular);
-  document.body.insertBefore(ambienteInput, document.getElementById("resultado"));
+  container.appendChild(ambienteInput);
 
   const descontoInput = document.createElement("input");
   descontoInput.id = "desconto";
@@ -75,7 +76,7 @@ function preencherSelects() {
   descontoInput.placeholder = "Desconto em R$";
   descontoInput.style.marginTop = "10px";
   descontoInput.addEventListener("input", calcular);
-  document.body.insertBefore(descontoInput, document.getElementById("resultado"));
+  container.appendChild(descontoInput);
 
   const barraExtraInput = document.createElement("input");
   barraExtraInput.id = "barraExtra";
@@ -83,7 +84,7 @@ function preencherSelects() {
   barraExtraInput.value = "0,40";
   barraExtraInput.style.marginTop = "10px";
   barraExtraInput.addEventListener("input", calcular);
-  document.body.insertBefore(barraExtraInput, document.getElementById("resultado"));
+  container.appendChild(barraExtraInput);
 
   const xBarraAltaInput = document.createElement("input");
   xBarraAltaInput.id = "xBarraAlta";
@@ -91,9 +92,8 @@ function preencherSelects() {
   xBarraAltaInput.value = "1.4";
   xBarraAltaInput.style.marginTop = "10px";
   xBarraAltaInput.addEventListener("input", calcular);
-  document.body.insertBefore(xBarraAltaInput, document.getElementById("resultado"));
+  container.appendChild(xBarraAltaInput);
 }
-
 
 function calcular() {
   const largura = parseFloat(document.getElementById('largura').value.replace(',', '.'));
@@ -106,8 +106,8 @@ function calcular() {
   const precoTrilho = parseFloat(trilhoSel.value);
   const desconto = parseFloat((document.getElementById('desconto')?.value || "0").replace(',', '.'));
   const ambiente = document.getElementById('ambiente')?.value || "Ambiente";
-  const barraExtra = parseFloat(document.getElementById('barraExtra').value.replace(',', '.'));
-  const xBarraAlta = parseFloat(document.getElementById('xBarraAlta')?.value.replace(',', '.') || "1.4");
+  const barraExtra = parseFloat((document.getElementById('barraExtra')?.value || "0").replace(',', '.'));
+  const xBarraAlta = parseFloat((document.getElementById('xBarraAlta')?.value || "1.4").replace(',', '.'));
   const multiplicadorFinalBarra = altura > 3.5 ? xBarraAlta : 1;
 
   const qtdTecidoBase = arred((largura * 3.1) + 0.7);
@@ -131,26 +131,25 @@ function calcular() {
   const kitsBucha = Math.ceil(largura * 0.5);
   const bucha = arred(kitsBucha * 4);
 
-let trilho = 0;
-const precoSuporte = 9.00;
-const precoTampa = 2.00;
+  let trilho = 0;
+  const precoSuporte = 9.00;
+  const precoTampa = 2.00;
 
-if (nomeTrilho.includes("VARÃO SUÍÇO")) {
-  const qtdTubo = ceiling(largura, 0.5); // agora arredonda de 0,5 em 0,5
-  let qtdSuporte = 2;
-  if (largura > 1.9 && largura <= 3.5) {
-    qtdSuporte = 3;
-  } else if (largura > 3.5 && largura <= 4.8) {
-    qtdSuporte = 4;
-  } else if (largura > 4.8) {
-    qtdSuporte = 4 + Math.ceil((largura - 4.8) / 1.5);
+  if (nomeTrilho.includes("VARÃO SUÍÇO")) {
+    const qtdTubo = ceiling(largura, 0.5);
+    let qtdSuporte = 2;
+    if (largura > 1.9 && largura <= 3.5) {
+      qtdSuporte = 3;
+    } else if (largura > 3.5 && largura <= 4.8) {
+      qtdSuporte = 4;
+    } else if (largura > 4.8) {
+      qtdSuporte = 4 + Math.ceil((largura - 4.8) / 1.5);
+    }
+    const precoTubo = trilhos[nomeTrilho];
+    trilho = arred((qtdTubo * precoTubo) + (qtdSuporte * precoSuporte) + (2 * precoTampa));
+  } else {
+    trilho = arred(ceiling(largura, 0.5) * precoTrilho);
   }
-  const precoTubo = trilhos[nomeTrilho];
-  trilho = arred((qtdTubo * precoTubo) + (qtdSuporte * precoSuporte) + (2 * precoTampa));
-} else {
-  trilho = arred(ceiling(largura, 0.5) * precoTrilho);
-}
-
 
   const subtotal = arred(valorTecido + trilho + entrela + deslizante + terminal + costura + barra + instalacao + bucha);
   const simples = arred(subtotal * 0.06);
