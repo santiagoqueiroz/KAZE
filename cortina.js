@@ -135,24 +135,26 @@ function calcular() {
   const kitsBucha = Math.ceil(largura * 0.5);
   const bucha = arred(kitsBucha * 4);
 
-  let trilho = 0;
-  if (nomeTrilho.includes("VARÃO SUÍÇO")) {
-    const qtdTubo = Math.ceil(largura);
-    let qtdSuporte = 2;
-    if (largura > 1.9 && largura <= 3.5) {
-      qtdSuporte = 3;
-    } else if (largura > 3.5 && largura <= 4.8) {
-      qtdSuporte = 4;
-    } else if (largura > 4.8) {
-      qtdSuporte = 4 + Math.ceil((largura - 4.8) / 1.5);
-    }
-    const precoTubo = trilhos[nomeTrilho];
-    const precoSuporte = 9.00;
-    const precoTampa = 2.00;
-    trilho = arred((qtdTubo * precoTubo) + (qtdSuporte * precoSuporte) + (2 * precoTampa));
-  } else {
-    trilho = arred(ceiling(largura, 0.5) * precoTrilho);
+let trilho = 0;
+const precoSuporte = 9.00;
+const precoTampa = 2.00;
+
+if (nomeTrilho.includes("VARÃO SUÍÇO")) {
+  const qtdTubo = ceiling(largura, 0.5); // agora arredonda de 0,5 em 0,5
+  let qtdSuporte = 2;
+  if (largura > 1.9 && largura <= 3.5) {
+    qtdSuporte = 3;
+  } else if (largura > 3.5 && largura <= 4.8) {
+    qtdSuporte = 4;
+  } else if (largura > 4.8) {
+    qtdSuporte = 4 + Math.ceil((largura - 4.8) / 1.5);
   }
+  const precoTubo = trilhos[nomeTrilho];
+  trilho = arred((qtdTubo * precoTubo) + (qtdSuporte * precoSuporte) + (2 * precoTampa));
+} else {
+  trilho = arred(ceiling(largura, 0.5) * precoTrilho);
+}
+
 
   const subtotal = arred(valorTecido + trilho + entrela + deslizante + terminal + costura + barra + instalacao + bucha);
   const simples = arred(subtotal * 0.06);
