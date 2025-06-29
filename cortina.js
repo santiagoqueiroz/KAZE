@@ -163,19 +163,18 @@ function calcular() {
     `Desconto = ${formatarReais(desconto)}`
   ];
 
-  const tabela = `
-    <div style="font-family:sans-serif; max-width:600px;">
-      <h2 style="margin-bottom:0;">${produto}</h2>
-      <div style="font-size:0.9em; margin-bottom:16px; color:#555;">
-        ${detalhes.join('<br>')}
-      </div>
-      <div style="margin-bottom:10px;"><strong>Subtotal: ${formatarReais(subtotal)}</strong></div>
-      <div style="font-size:0.9em; margin-bottom:16px; color:#555;">
-        ${adicionais.join('<br>')}
-      </div>
-      <div style="font-size:1.2em; font-weight:bold; color:#1a1a1a;">TOTAL FINAL: ${formatarReais(totalFinal)}</div>
-    </div>
-  `;
+  const tabela =
+    '<div style="font-family:sans-serif; max-width:600px;">' +
+      '<h2 style="margin-bottom:0;">' + produto + '</h2>' +
+      '<div style="font-size:0.9em; margin-bottom:16px; color:#555;">' +
+        detalhes.join('<br>') +
+      '</div>' +
+      '<div style="margin-bottom:10px;"><strong>Subtotal: ' + formatarReais(subtotal) + '</strong></div>' +
+      '<div style="font-size:0.9em; margin-bottom:16px; color:#555;">' +
+        adicionais.join('<br>') +
+      '</div>' +
+      '<div style="font-size:1.2em; font-weight:bold; color:#1a1a1a;">TOTAL FINAL: ' + formatarReais(totalFinal) + '</div>' +
+    '</div>';
 
   document.getElementById('resultado').innerHTML = tabela;
 }
