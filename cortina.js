@@ -94,10 +94,6 @@ function preencherSelects() {
   document.body.insertBefore(xBarraAltaInput, document.getElementById("resultado"));
 }
 
-window.onload = () => {
-  preencherSelects();
-  calcular();
-};
 
 function calcular() {
   const largura = parseFloat(document.getElementById('largura').value.replace(',', '.'));
