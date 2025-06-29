@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Selecionar Cliente - KAZE</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      background: #f9f9f9;
+      padding: 20px;
+    }
+    .container {
+      max-width: 700px;
+      margin: auto;
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    h2 {
+      margin-top: 0;
+      text-align: center;
+    }
+    label {
+      font-weight: bold;
+      display: block;
+      margin-top: 20px;
+    }
+    select, input {
+      width: 100%;
+      padding: 10px;
+      margin-top: 5px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
+    .info-box {
+      background: #f1f1f1;
+      padding: 15px;
+      margin-top: 20px;
+      border-radius: 6px;
+    }
+    .info-box p {
+      margin: 5px 0;
+    }
+    button {
+      margin-top: 30px;
+      padding: 10px 20px;
+      font-size: 16px;
+      border: none;
+      background: #007bff;
+      color: white;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    button:disabled {
+      background: #aaa;
+      cursor: not-allowed;
+    }
+    button:hover:not(:disabled) {
+      background: #0056b3;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 8px;
+      text-align: center;
+    }
+    th {
+      background-color: #eee;
+    }
+    #janelaItem {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.6);
+      z-index: 999;
+      justify-content: center;
+      align-items: center;
+    }
+    #janelaItem .conteudo {
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      min-width: 300px;
+      max-width: 90%;
+    }
+    .campo {
+      margin-top: 15px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Selecionar Cliente</h2>
+    <label for="cliente">Cliente:</label>
+    <select id="cliente">
+      <option value="">Selecione...</option>
+    </select>
+
+    <div class="info-box" id="dados-cliente" style="display:none;">
+      <p><strong>Nome:</strong> <span id="nome"></span></p>
+      <p><strong>Telefone:</strong> <span id="telefone"></span></p>
+      <p><strong>CPF/CNPJ:</strong> <span id="cpf"></span></p>
+      <p><strong>Endereço:</strong> <span id="endereco"></span></p>
+      <p><strong>Bairro:</strong> <span id="bairro"></span></p>
+      <p><strong>Cidade:</strong> <span id="cidade"></span></p>
+      <p><strong>Email:</strong> <span id="email"></span></p>
+    </div>
+
+    <button id="botao-adicionar" onclick="abrirJanelaItem()" disabled>➕ Adicionar item</button>
+
+    <table id="tabela-itens" style="display: none;">
+      <thead>
+        <tr>
+          <th>Produto</th>
+          <th>Largura</th>
+          <th>Altura</th>
+          <th>Qtd</th>
+          <th>V. Unit.</th>
+          <th>Total</th>
+        </tr>
+      </thead>
+      <tbody id="lista-itens"></tbody>
+    </table>
+  </div>
+
+  <div id="janelaItem">
+    <div class="conteudo">
+      <h3>Novo Item</h3>
+      <label for="formula">Fórmula:</label>
+      <select id="formula"></select>
+      <div id="campos-formula"></div>
+      <div id="resultado"></div>
+      <button onclick="fecharJanelaItem()">Fechar</button>
+    </div>
+  </div>
+
+  <script type="module">
+    import { auth } from "./persianas.js";
+    import {
+      getFirestore, collection, getDocs, query, orderBy
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import {
+      onAuthStateChanged
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+    const db = getFirestore();
+    const select = document.getElementById("cliente");
+    const dadosBox = document.getElementById("dados-cliente");
+    const botaoAdicionar = document.getElementById("botao-adicionar");
+
+    const span = (id) => document.getElementById(id);
+    const clientes = {};
+
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        window.location.href = "index.html";
+        return;
+      }
+      const q = query(collection(db, "clientes"), orderBy("nome"));
+      const querySnapshot = await getDocs(q);
+      querySnapshot.forEach((doc) => {
+        const id = doc.id;
+        const data = doc.data();
+        clientes[id] = data;
+
+        const opt = document.createElement("option");
+        opt.value = id;
+        opt.textContent = data.nome || "(sem nome)";
+        select.appendChild(opt);
+      });
+    });
+
+    select.addEventListener("change", () => {
+      const id = select.value;
+      const c = clientes[id];
+      if (!c) {
+        dadosBox.style.display = "none";
+        botaoAdicionar.disabled = true;
+        return;
+      }
+      span("nome").textContent = c.nome || "-";
+      span("telefone").textContent = c.telefone || "-";
+      span("cpf").textContent = c.cpfOuCnpj || "-";
+      span("endereco").textContent = c.endereco || "-";
+      span("bairro").textContent = c.bairro || "-";
+      span("cidade").textContent = c.cidade || "-";
+      span("email").textContent = c.email || "-";
+      dadosBox.style.display = "block";
+      botaoAdicionar.disabled = false;
+    });
+  </script>
+
+  <script src="./cortina.js"></script>
+</body>
+</html>
