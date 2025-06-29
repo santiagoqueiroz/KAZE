@@ -306,36 +306,57 @@
     };
 
     window.adicionarItem = function (produto, largura, altura, qtd, unit) {
-      const total = (parseFloat(qtd) * parseFloat(unit)).toFixed(2);
+  const total = (parseFloat(qtd) * parseFloat(unit)).toFixed(2);
 
-      const linha = document.createElement("tr");
-      linha.innerHTML = `
-        <td>${produto}</td>
-        <td>${largura}</td>
-        <td>${altura}</td>
-        <td>${qtd}</td>
-        <td>R$ ${parseFloat(unit).toFixed(2)}</td>
-        <td>R$ ${total}</td>
-      `;
-      corpoItens.appendChild(linha);
-      tabelaItens.style.display = "table";
-    };
+  const linha = document.createElement("tr");
+  linha.innerHTML = `
+    <td>${produto}</td>
+    <td>${largura}</td>
+    <td>${altura}</td>
+    <td>${qtd}</td>
+    <td>R$ ${parseFloat(unit).toFixed(2)}</td>
+    <td>R$ ${total}</td>
+  `;
+  corpoItens.appendChild(linha);
+  tabelaItens.style.display = "table";
+};
 
-    window.adicionarCortina = function () {
-      calcular();
+window.adicionarCortina = function () {
+  calcular();
 
-      const produtoHTML = document.querySelector("#resultado h2");
-      if (!produtoHTML) return;
+  const produtoHTML = document.querySelector("#resultado h2");
+  const totalHTML = document.querySelector("#resultado tr:last-child td:last-child");
 
-      const produto = produtoHTML.textContent.trim();
-      const largura = parseFloat(document.getElementById("largura").value).toFixed(2);
-      const altura = parseFloat(document.getElementById("altura").value).toFixed(2);
-      const totalText = document.querySelector("#resultado tr:last-child td:last-child")?.textContent || "";
-      const unit = parseFloat(totalText.replace("R$", "").replace(",", ".")).toFixed(2);
+  if (!produtoHTML || !totalHTML) return;
 
-      adicionarItem(produto, largura, altura, 1, unit);
-      fecharJanelaItem();
-    };
+  const produto = produtoHTML.textContent.trim();
+  const largura = parseFloat(document.getElementById("largura").value || "0").toFixed(2);
+  const altura = parseFloat(document.getElementById("altura").value || "0").toFixed(2);
+  const unit = parseFloat(totalHTML.textContent.replace("R$", "").replace(",", ".")).toFixed(2);
+
+  adicionarItem(produto, largura, altura, 1, unit);
+  fecharJanelaItem();
+};
+
+window.adicionarPersiana = function () {
+  const largura = parseFloat(document.getElementById("largura").value);
+  const altura = parseFloat(document.getElementById("altura").value);
+  const tipo = document.getElementById("tipo").value;
+  const ambiente = document.getElementById("ambiente").value;
+  const desconto = parseFloat(document.getElementById("desconto").value) || 0;
+
+  if (!largura || !altura || !tipo || !ambiente) {
+    alert("Preencha todos os campos.");
+    return;
+  }
+
+  const resultado = calcularPersiana(largura, altura, tipo, desconto);
+  const produto = `Persiana ${tipo} - ${ambiente}`;
+
+  adicionarItem(produto, largura.toFixed(2), altura.toFixed(2), 1, resultado.total.toFixed(2));
+  fecharJanelaItem();
+};
+
   </script>
 
   <script src="./cortina.js"></script>
