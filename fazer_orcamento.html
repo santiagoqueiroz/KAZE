@@ -170,14 +170,6 @@
       onAuthStateChanged
     } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
-    import "./cortina.js";
-
-    // garantir que funções estejam disponíveis globalmente
-    window.addEventListener('load', () => {
-      if (typeof preencherSelects !== 'undefined') window.preencherSelects = preencherSelects;
-      if (typeof calcular !== 'undefined') window.calcular = calcular;
-    });
-
     const db = getFirestore();
     const select = document.getElementById("cliente");
     const dadosBox = document.getElementById("dados-cliente");
@@ -306,7 +298,7 @@
             <label for="xBarraAlta">xBarraAlta:</label>
             <input type="text" id="xBarraAlta" value="1.4">
           </div>
-          <button onclick="calcular()">Adicionar</button>
+          <button onclick="adicionarCortina()">Adicionar</button>
           <div id="resultado"></div>
         `;
         window.preencherSelects();
@@ -328,7 +320,24 @@
       corpoItens.appendChild(linha);
       tabelaItens.style.display = "table";
     };
+
+    window.adicionarCortina = function () {
+      calcular();
+
+      const produtoHTML = document.querySelector("#resultado h2");
+      if (!produtoHTML) return;
+
+      const produto = produtoHTML.textContent.trim();
+      const largura = parseFloat(document.getElementById("largura").value).toFixed(2);
+      const altura = parseFloat(document.getElementById("altura").value).toFixed(2);
+      const totalText = document.querySelector("#resultado tr:last-child td:last-child")?.textContent || "";
+      const unit = parseFloat(totalText.replace("R$", "").replace(",", ".")).toFixed(2);
+
+      adicionarItem(produto, largura, altura, 1, unit);
+      fecharJanelaItem();
+    };
   </script>
 
+  <script src="./cortina.js"></script>
 </body>
 </html>
