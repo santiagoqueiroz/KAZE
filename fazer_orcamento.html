@@ -305,7 +305,7 @@
       }
     };
 
-    window.adicionarItem = function (produto, largura, altura, qtd, unit) {
+window.adicionarItem = function (produto, largura, altura, qtd, unit) {
   const total = (parseFloat(qtd) * parseFloat(unit)).toFixed(2);
 
   const linha = document.createElement("tr");
@@ -324,18 +324,23 @@
 window.adicionarCortina = function () {
   calcular();
 
-  const produtoHTML = document.querySelector("#resultado h2");
-  const totalHTML = document.querySelector("#resultado tr:last-child td:last-child");
+  setTimeout(() => {
+    const produtoHTML = document.querySelector("#resultado h2");
+    const totalHTML = document.querySelector("#resultado tr:last-child td:last-child");
 
-  if (!produtoHTML || !totalHTML) return;
+    if (!produtoHTML || !totalHTML) {
+      alert("Erro: resultado não gerado.");
+      return;
+    }
 
-  const produto = produtoHTML.textContent.trim();
-  const largura = parseFloat(document.getElementById("largura").value || "0").toFixed(2);
-  const altura = parseFloat(document.getElementById("altura").value || "0").toFixed(2);
-  const unit = parseFloat(totalHTML.textContent.replace("R$", "").replace(",", ".")).toFixed(2);
+    const produto = produtoHTML.textContent.trim();
+    const largura = parseFloat(document.getElementById("largura").value || "0").toFixed(2);
+    const altura = parseFloat(document.getElementById("altura").value || "0").toFixed(2);
+    const unit = parseFloat(totalHTML.textContent.replace("R$", "").replace(",", ".")).toFixed(2);
 
-  adicionarItem(produto, largura, altura, 1, unit);
-  fecharJanelaItem();
+    adicionarItem(produto, largura, altura, 1, unit);
+    fecharJanelaItem();
+  }, 0);
 };
 
 window.adicionarPersiana = function () {
@@ -350,11 +355,12 @@ window.adicionarPersiana = function () {
     return;
   }
 
-  const resultado = calcularPersiana(largura, altura, tipo, desconto);
-  const produto = `Persiana ${tipo} - ${ambiente}`;
-
-  adicionarItem(produto, largura.toFixed(2), altura.toFixed(2), 1, resultado.total.toFixed(2));
-  fecharJanelaItem();
+  setTimeout(() => {
+    const resultado = calcularPersiana(largura, altura, tipo, desconto);
+    const produto = `Persiana ${tipo} - ${ambiente}`;
+    adicionarItem(produto, largura.toFixed(2), altura.toFixed(2), 1, resultado.total.toFixed(2));
+    fecharJanelaItem();
+  }, 0);
 };
 
   </script>
