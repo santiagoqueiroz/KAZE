@@ -172,6 +172,12 @@
 
     import "./cortina.js";
 
+    // garantir que funções estejam disponíveis globalmente
+    window.addEventListener('load', () => {
+      if (typeof preencherSelects !== 'undefined') window.preencherSelects = preencherSelects;
+      if (typeof calcular !== 'undefined') window.calcular = calcular;
+    });
+
     const db = getFirestore();
     const select = document.getElementById("cliente");
     const dadosBox = document.getElementById("dados-cliente");
