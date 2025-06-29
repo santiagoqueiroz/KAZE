@@ -133,7 +133,7 @@
     <div class="conteudo">
       <h3>Novo Item</h3>
       <label for="formula">Fórmula:</label>
-      <select id="formula">
+      <select id="formula" onchange="mostrarCamposFormula()">
         <option value="">Selecione...</option>
         <option value="persiana">Persiana</option>
         <option value="cortina">Cortina</option>
@@ -210,6 +210,76 @@
       document.getElementById("campos-formula").innerHTML = "";
       document.getElementById("resultado").innerHTML = "";
       document.getElementById("formula").value = "";
+    }
+
+    function mostrarCamposFormula() {
+      const formula = document.getElementById("formula").value;
+      const campos = document.getElementById("campos-formula");
+      campos.innerHTML = "";
+      if (formula === "persiana") {
+        campos.innerHTML = `
+          <div class="campo">
+            <label for="largura">Largura (m):</label>
+            <input type="number" step="0.01" id="largura">
+          </div>
+          <div class="campo">
+            <label for="altura">Altura (m):</label>
+            <input type="number" step="0.01" id="altura">
+          </div>
+          <div class="campo">
+            <label for="tipo">Tipo:</label>
+            <select id="tipo"></select>
+          </div>
+          <div class="campo">
+            <label for="ambiente">Ambiente:</label>
+            <input type="text" id="ambiente">
+          </div>
+          <div class="campo">
+            <label for="desconto">Desconto (R$):</label>
+            <input type="number" id="desconto" step="0.01" value="0">
+          </div>
+          <button onclick="adicionarPersiana()">Adicionar</button>
+        `;
+      }
+      if (formula === "cortina") {
+        campos.innerHTML = `
+          <div class="campo">
+            <label for="largura">Largura (m):</label>
+            <input type="number" step="0.01" id="largura">
+          </div>
+          <div class="campo">
+            <label for="altura">Altura (m):</label>
+            <input type="number" step="0.01" id="altura">
+          </div>
+          <div class="campo">
+            <label for="tecido">Tecido:</label>
+            <select id="tecido"></select>
+          </div>
+          <div class="campo">
+            <label for="trilho">Trilho:</label>
+            <select id="trilho"></select>
+          </div>
+          <div class="campo">
+            <label for="ambiente">Ambiente:</label>
+            <input type="text" id="ambiente">
+          </div>
+          <div class="campo">
+            <label for="desconto">Desconto (R$):</label>
+            <input type="number" id="desconto" step="0.01" value="0">
+          </div>
+          <div class="campo">
+            <label for="Barra:">Barra:</label>
+            <input type="text" id="barraExtra" value="0,40">
+          </div>
+          <div class="campo">
+            <label for="xBarraAlta">xBarraAlta:</label>
+            <input type="text" id="xBarraAlta" value="1.4">
+          </div>
+          <button onclick="adicionarCortina()">Adicionar</button>
+          <div id="resultado"></div>
+        `;
+        if (typeof preencherSelects === "function") preencherSelects();
+      }
     }
   </script>
 
