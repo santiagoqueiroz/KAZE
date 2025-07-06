@@ -251,8 +251,9 @@
         <td>${parseFloat(item.largura).toFixed(2)}</td>
         <td>${parseFloat(item.altura).toFixed(2)}</td>
         <td>${parseInt(item.qtd)}</td>
-        <td>R$ ${parseFloat(item.unit).toFixed(2)}</td>
-        <td>R$ ${parseFloat(item.total).toFixed(2)}</td>
+        <td>${parseFloat(item.unit).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</td>
+        <td>${parseFloat(item.total).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</td>
+
       `;
         corpoItens.appendChild(tr);
       });
