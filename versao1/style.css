@@ -37,6 +37,11 @@
     .info-box p {
       margin: 5px 0;
     }
+
+    #dados-cliente span {
+      text-transform: uppercase;
+    }
+
     table {
       width: 100%;
       border-collapse: collapse;
