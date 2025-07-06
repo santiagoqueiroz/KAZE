@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Selecionar Cliente - KAZE</title>
+  <title>Orçamento de Persianas - KAZE</title>
   <style>
     body {
       font-family: sans-serif;
@@ -59,8 +59,6 @@
     }
     .botoes {
       margin-top: 20px;
-      display: flex;
-      gap: 10px;
     }
     .modal {
       display: none;
@@ -114,7 +112,6 @@
 
     <div class="botoes">
       <button onclick="abrirJanelaPersiana()">+ Adicionar Persiana</button>
-      <button onclick="abrirJanelaCortina()">+ Adicionar Cortina</button>
     </div>
 
     <div id="janelaItem" class="modal">
@@ -135,189 +132,163 @@
         <button onclick="fecharJanelaItem()">Fechar</button>
       </div>
     </div>
-
-    <div id="janelaCortina" class="modal">
-      <div class="conteudo">
-        <h3>Adicionar Cortina</h3>
-        <div id="formulario-cortina"></div>
-        <div id="resultado-cortina"></div>
-        <button onclick="fecharJanelaCortina()">Fechar</button>
-      </div>
-    </div>
   </div>
 
- <!-- MANTÉM TODO SEU HTML IGUAL ACIMA -->
-<!-- SÓ SUBSTITUA O <script type="module"> PELO CÓDIGO ABAIXO -->
+  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
+    import { getFirestore, collection, getDocs, query, orderBy, doc, getDoc, updateDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+    import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
+    import { carregarTipos, calcularPersiana } from './persianas.js';
 
-<script type="module">
-  import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
-  import { getFirestore, collection, getDocs, query, orderBy, doc, getDoc, updateDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
-  import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
-  import { carregarTipos, calcularPersiana } from './persianas.js';
-  import { preencherSelects, calcularCortina } from './cortina.js';
-
-  const firebaseConfig = {
-    apiKey: "AIzaSyD5kVoWRWZB6xtacyu6lH--QFXry_MPKps",
-    authDomain: "kaze-8836b.firebaseapp.com",
-    projectId: "kaze-8836b",
-    storageBucket: "kaze-8836b.firebasestorage.app",
-    messagingSenderId: "336054068300",
-    appId: "1:336054068300:web:6125e8eecc08d667fac0e9"
-  };
-
-  const app = initializeApp(firebaseConfig);
-  const db = getFirestore(app);
-  const auth = getAuth(app);
-
-  const select = document.getElementById("cliente");
-  const dadosBox = document.getElementById("dados-cliente");
-  const tabelaItens = document.getElementById("tabela-itens");
-  const corpoItens = document.getElementById("lista-itens");
-  const span = (id) => document.getElementById(id);
-  const clientes = {};
-
-  let clienteSelecionado = null;
-
-  onAuthStateChanged(auth, async (user) => {
-    if (!user) {
-      window.location.href = "index.html";
-      return;
-    }
-    const q = query(collection(db, "clientes"), orderBy("nome"));
-    const querySnapshot = await getDocs(q);
-    querySnapshot.forEach((doc) => {
-      const id = doc.id;
-      const data = doc.data();
-      clientes[id] = data;
-      const opt = document.createElement("option");
-      opt.value = id;
-      opt.textContent = data.nome || "(sem nome)";
-      select.appendChild(opt);
-    });
-  });
-
-  window.mostrarDadosCliente = async function () {
-    const id = select.value;
-    const c = clientes[id];
-    if (!c) {
-      dadosBox.style.display = "none";
-      tabelaItens.style.display = "none";
-      clienteSelecionado = null;
-      return;
-    }
-    span("nome").textContent = c.nome || "-";
-    span("telefone").textContent = c.telefone || "-";
-    span("cpf").textContent = c.cpfOuCnpj || "-";
-    span("endereco").textContent = c.endereco || "-";
-    span("bairro").textContent = c.bairro || "-";
-    span("cidade").textContent = c.cidade || "-";
-    span("email").textContent = c.email || "-";
-    dadosBox.style.display = "block";
-    clienteSelecionado = id;
-
-    const ref = doc(db, "clientes", id);
-    const snap = await getDoc(ref);
-    const dados = snap.data();
-
-    if (!dados.orcamentoAtivo) {
-      await updateDoc(ref, {
-        orcamentoAtivo: {
-          status: "aberto",
-          dataCriacao: serverTimestamp(),
-          itens: []
-        }
-      });
-    }
-    const snapAtualizado = await getDoc(ref);
-    const orc = snapAtualizado.data().orcamentoAtivo || { itens: [] };
-    mostrarItens(orc.itens);
-  };
-
-  window.abrirJanelaPersiana = async function () {
-    const modal = document.getElementById("janelaItem");
-    modal.style.display = "flex";
-    const select = document.getElementById("tipo");
-    if (select.options.length === 0) await carregarTipos(select);
-  };
-
-  window.fecharJanelaItem = function () {
-    document.getElementById("janelaItem").style.display = "none";
-    document.getElementById("resultado").innerHTML = "";
-  };
-
-  window.abrirJanelaCortina = function () {
-    const modal = document.getElementById("janelaCortina");
-    modal.style.display = "flex";
-    preencherSelects();
-  };
-
-  window.fecharJanelaCortina = function () {
-    document.getElementById("janelaCortina").style.display = "none";
-    document.getElementById("resultado-cortina").innerHTML = "";
-  };
-
-  function mostrarItens(itens) {
-    corpoItens.innerHTML = "";
-    if (!itens || itens.length === 0) {
-      tabelaItens.style.display = "none";
-      return;
-    }
-    itens.forEach(item => {
-      const tr = document.createElement("tr");
-      tr.innerHTML = `
-        <td>${item.produto}</td>
-        <td>${item.largura}</td>
-        <td>${item.altura}</td>
-        <td>${item.qtd}</td>
-        <td>R$ ${parseFloat(item.unit).toFixed(2)}</td>
-        <td>R$ ${parseFloat(item.total).toFixed(2)}</td>
-      `;
-      corpoItens.appendChild(tr);
-    });
-    tabelaItens.style.display = "table";
-  }
-
-  window.confirmarItemPersiana = async function () {
-    if (!clienteSelecionado) {
-      alert("Selecione um cliente primeiro.");
-      return;
-    }
-
-    const tipo = document.getElementById("tipo").value;
-    const largura = parseFloat(document.getElementById("largura").value);
-    const altura = parseFloat(document.getElementById("altura").value);
-    const ambiente = document.getElementById("ambiente").value;
-    const desconto = parseFloat(document.getElementById("desconto").value || 0);
-
-    if (!tipo || !largura || !altura || !ambiente) {
-      alert("Preencha todos os campos.");
-      return;
-    }
-
-    const resultado = calcularPersiana(tipo, largura, altura, desconto);
-    const item = {
-      produto: `Persiana - ${tipo} (${ambiente})`,
-      largura,
-      altura,
-      qtd: 1,
-      unit: resultado.valorUnitario,
-      total: resultado.total
+    const firebaseConfig = {
+      apiKey: "AIzaSyD5kVoWRWZB6xtacyu6lH--QFXry_MPKps",
+      authDomain: "kaze-8836b.firebaseapp.com",
+      projectId: "kaze-8836b",
+      storageBucket: "kaze-8836b.firebasestorage.app",
+      messagingSenderId: "336054068300",
+      appId: "1:336054068300:web:6125e8eecc08d667fac0e9"
     };
 
-    const ref = doc(db, "clientes", clienteSelecionado);
-    const snap = await getDoc(ref);
-    const dados = snap.data();
-    const itens = dados.orcamentoAtivo?.itens || [];
-    itens.push(item);
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const auth = getAuth(app);
 
-    await updateDoc(ref, {
-      "orcamentoAtivo.itens": itens
+    const select = document.getElementById("cliente");
+    const dadosBox = document.getElementById("dados-cliente");
+    const tabelaItens = document.getElementById("tabela-itens");
+    const corpoItens = document.getElementById("lista-itens");
+    const span = (id) => document.getElementById(id);
+    const clientes = {};
+    let clienteSelecionado = null;
+
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        window.location.href = "index.html";
+        return;
+      }
+      const q = query(collection(db, "clientes"), orderBy("nome"));
+      const querySnapshot = await getDocs(q);
+      querySnapshot.forEach((doc) => {
+        const id = doc.id;
+        const data = doc.data();
+        clientes[id] = data;
+        const opt = document.createElement("option");
+        opt.value = id;
+        opt.textContent = data.nome || "(sem nome)";
+        select.appendChild(opt);
+      });
     });
 
-    mostrarItens(itens);
-    fecharJanelaItem();
-  };
-</script>
+    window.mostrarDadosCliente = async function () {
+      const id = select.value;
+      const c = clientes[id];
+      if (!c) {
+        dadosBox.style.display = "none";
+        tabelaItens.style.display = "none";
+        clienteSelecionado = null;
+        return;
+      }
+      span("nome").textContent = c.nome || "-";
+      span("telefone").textContent = c.telefone || "-";
+      span("cpf").textContent = c.cpfOuCnpj || "-";
+      span("endereco").textContent = c.endereco || "-";
+      span("bairro").textContent = c.bairro || "-";
+      span("cidade").textContent = c.cidade || "-";
+      span("email").textContent = c.email || "-";
+      dadosBox.style.display = "block";
+      clienteSelecionado = id;
 
+      const ref = doc(db, "clientes", id);
+      const snap = await getDoc(ref);
+      const dados = snap.data();
+
+      if (!dados.orcamentoAtivo) {
+        await updateDoc(ref, {
+          orcamentoAtivo: {
+            status: "aberto",
+            dataCriacao: serverTimestamp(),
+            itens: []
+          }
+        });
+      }
+      const snapAtualizado = await getDoc(ref);
+      const orc = snapAtualizado.data().orcamentoAtivo || { itens: [] };
+      mostrarItens(orc.itens);
+    };
+
+    function mostrarItens(itens) {
+      corpoItens.innerHTML = "";
+      if (!itens || itens.length === 0) {
+        tabelaItens.style.display = "none";
+        return;
+      }
+      itens.forEach(item => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${item.produto}</td>
+          <td>${item.largura}</td>
+          <td>${item.altura}</td>
+          <td>${item.qtd}</td>
+          <td>R$ ${parseFloat(item.unit).toFixed(2)}</td>
+          <td>R$ ${parseFloat(item.total).toFixed(2)}</td>
+        `;
+        corpoItens.appendChild(tr);
+      });
+      tabelaItens.style.display = "table";
+    }
+
+    window.abrirJanelaPersiana = async function () {
+      const modal = document.getElementById("janelaItem");
+      modal.style.display = "flex";
+      const select = document.getElementById("tipo");
+      if (select.options.length === 0) await carregarTipos(select);
+    };
+
+    window.fecharJanelaItem = function () {
+      document.getElementById("janelaItem").style.display = "none";
+      document.getElementById("resultado").innerHTML = "";
+    };
+
+    window.confirmarItemPersiana = async function () {
+      if (!clienteSelecionado) {
+        alert("Selecione um cliente primeiro.");
+        return;
+      }
+
+      const tipo = document.getElementById("tipo").value;
+      const largura = parseFloat(document.getElementById("largura").value);
+      const altura = parseFloat(document.getElementById("altura").value);
+      const ambiente = document.getElementById("ambiente").value;
+      const desconto = parseFloat(document.getElementById("desconto").value || 0);
+
+      if (!tipo || !largura || !altura || !ambiente) {
+        alert("Preencha todos os campos.");
+        return;
+      }
+
+      const resultado = calcularPersiana(largura, altura, tipo, desconto);
+      const item = {
+        produto: `Persiana - ${tipo} (${ambiente})`,
+        largura,
+        altura,
+        qtd: 1,
+        unit: resultado.valorUnitario,
+        total: resultado.total
+      };
+
+      const ref = doc(db, "clientes", clienteSelecionado);
+      const snap = await getDoc(ref);
+      const dados = snap.data();
+      const itens = dados.orcamentoAtivo?.itens || [];
+      itens.push(item);
+
+      await updateDoc(ref, {
+        "orcamentoAtivo.itens": itens
+      });
+
+      mostrarItens(itens);
+      fecharJanelaItem();
+    };
+  </script>
 </body>
 </html>
