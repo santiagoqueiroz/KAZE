@@ -310,6 +310,16 @@
       if (!clienteSelecionado) return alert("Selecione um cliente.");
       calcularCortina();
       let produto = document.querySelector("#resultado h2")?.textContent || "Cortina";
+const ambiente = document.getElementById("ambienteC").value.trim();
+
+// Remove ambiente do início, se houver
+if (ambiente && produto.startsWith(ambiente)) {
+  produto = produto.slice(ambiente.length).trim().replace(/^[-–]\s*/, "");
+}
+
+// Adiciona o ambiente no final
+if (ambiente) produto += ` (${ambiente})`;
+
       const ambiente = document.getElementById("ambienteC").value.trim();
       if (ambiente) produto += ` (${ambiente})`;
 
