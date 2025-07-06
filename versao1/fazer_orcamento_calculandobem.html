@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -107,10 +108,15 @@
           <th>Qtd</th>
           <th>V. Unit.</th>
           <th>Total</th>
+          <th></th>
         </tr>
       </thead>
       <tbody id="lista-itens"></tbody>
     </table>
+
+    <div id="total-geral" style="text-align:right; margin-top:10px; font-size:18px; display:none;">
+      Total geral: <strong id="soma-final">R\$ 0,00</strong>
+    </div>
 
     <div class="botoes">
       <button onclick="abrirJanelaPersiana()">+ Adicionar Persiana</button>
@@ -243,11 +249,17 @@
 
   function mostrarItens(itens) {
     corpoItens.innerHTML = "";
+    
     if (!itens || itens.length === 0) {
+      document.getElementById("tabela-itens").style.display = "none";
+      document.getElementById("total-geral").style.display = "none";
+      return;
+    }
+if (!itens || itens.length === 0) {
       document.getElementById("tabela-itens").style.display = "none";
       return;
     }
-    itens.forEach(item => {
+    itens.forEach((item, index) => {
       const tr = document.createElement("tr");
       tr.innerHTML = `
         <td>${item.produto}</td>
@@ -256,10 +268,16 @@
         <td>${parseInt(item.qtd)}</td>
         <td>${parseFloat(item.unit).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</td>
         <td>${parseFloat(item.total).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</td>
+        <td><button onclick="removerItem(${index})">🗑️</button></td>
       `;
       corpoItens.appendChild(tr);
     });
     document.getElementById("tabela-itens").style.display = "table";
+
+    const totalGeral = itens.reduce((soma, item) => soma + parseFloat(item.total), 0);
+    document.getElementById("soma-final").textContent = totalGeral.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+    document.getElementById("total-geral").style.display = "block";
+
   }
 
   window.abrirJanelaPersiana = async function () {
@@ -359,6 +377,20 @@
     mostrarItens(itens);
     fecharJanelaCortina();
   };
+
+  window.removerItem = async function (index) {
+  if (!clienteSelecionado) return;
+  const ref = doc(db, "clientes", clienteSelecionado);
+  const snap = await getDoc(ref);
+  const dados = snap.data();
+  const itens = dados.orcamentoAtivo?.itens || [];
+
+  if (index >= 0 && index < itens.length) {
+    itens.splice(index, 1); // remove o item
+    await updateDoc(ref, { "orcamentoAtivo.itens": itens });
+    mostrarItens(itens);
+  }
+};
 </script>
 
 </body>
