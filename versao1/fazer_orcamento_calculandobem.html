@@ -147,8 +147,8 @@
         <select id="tecido"></select>
         <label for="trilho">Trilho:</label>
         <select id="trilho"></select>
-        <label for="barraExtra">Barra Extra (m):</label>
-        <input id="barraExtra" type="number" step="0.01" value="0" />
+        <label for="barraExtra">Barra (m):</label>
+        <input id="barraExtra" type="number" step="0.01" value="0.40" />
         <label for="xBarraAlta">Multiplicador barra alta:</label>
         <input id="xBarraAlta" type="number" step="0.01" value="1.4" />
         <label for="ambienteC">Ambiente:</label>
@@ -246,14 +246,15 @@
       }
       itens.forEach(item => {
         const tr = document.createElement("tr");
-        tr.innerHTML = `
-          <td>${item.produto}</td>
-          <td>${item.largura}</td>
-          <td>${item.altura}</td>
-          <td>${item.qtd}</td>
-          <td>R$ ${parseFloat(item.unit).toFixed(2)}</td>
-          <td>R$ ${parseFloat(item.total).toFixed(2)}</td>
-        `;
+      tr.innerHTML = `
+        <td>${item.produto}</td>
+        <td>${parseFloat(item.largura).toFixed(2)}</td>
+        <td>${parseFloat(item.altura).toFixed(2)}</td>
+        <td>${parseInt(item.qtd)}</td>
+        <td>${parseFloat(item.unit).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</td>
+        <td>${parseFloat(item.total).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</td>
+
+      `;
         corpoItens.appendChild(tr);
       });
       document.getElementById("tabela-itens").style.display = "table";
@@ -308,11 +309,22 @@
     window.confirmarItemCortina = async function () {
       if (!clienteSelecionado) return alert("Selecione um cliente.");
       calcularCortina();
-      const produto = document.querySelector("#resultado h2")?.textContent || "Cortina";
+      let produto = document.querySelector("#resultado h2")?.textContent || "Cortina";
+      const ambiente = document.getElementById("ambienteC").value.trim();
+      if (ambiente) produto += ` (${ambiente})`;
+
       const largura = parseFloat(document.getElementById("larguraC").value || 0);
       const altura = parseFloat(document.getElementById("alturaC").value || 0);
       const totalTexto = document.querySelector("#resultado tr:last-child td:last-child")?.textContent || "0";
-      const total = parseFloat(totalTexto.replace("R$", "").replace(",", ".").trim()) || 0;
+
+// Remove milhar e converte vírgula para ponto
+const valorLimpo = totalTexto
+  .replace("R$", "")
+  .replace(/\./g, "")   // remove pontos de milhar
+  .replace(",", ".")    // converte vírgula decimal para ponto
+  .trim();
+
+const total = parseFloat(valorLimpo) || 0;
 
       const item = {
         produto,
