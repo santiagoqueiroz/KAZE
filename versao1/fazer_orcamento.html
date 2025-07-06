@@ -318,9 +318,13 @@
     const ambiente = document.getElementById("ambienteC").value.trim();
 
     // Remove o ambiente do início se já vier no título
+    if (produto.startsWith("Ambiente")) {
+      produto = produto.slice("Ambiente".length).trim().replace(/^[-–]\s*/, "");
+    }
     if (ambiente && produto.startsWith(ambiente)) {
       produto = produto.slice(ambiente.length).trim().replace(/^[-–]\s*/, "");
     }
+
 
     // Adiciona o ambiente no final entre parênteses
     if (ambiente) produto += ` (${ambiente})`;
