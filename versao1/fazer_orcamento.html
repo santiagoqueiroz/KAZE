@@ -139,24 +139,8 @@
     <div id="janelaCortina" class="modal">
       <div class="conteudo">
         <h3>Adicionar Cortina</h3>
-        <label for="larguraC">Largura (m):</label>
-        <input id="larguraC" type="number" step="0.01" />
-        <label for="alturaC">Altura (m):</label>
-        <input id="alturaC" type="number" step="0.01" />
-        <label for="tecido">Tecido:</label>
-        <select id="tecido"></select>
-        <label for="trilho">Trilho:</label>
-        <select id="trilho"></select>
-        <label for="ambienteC">Ambiente:</label>
-        <input id="ambienteC" type="text" />
-        <label for="descontoC">Desconto (R$):</label>
-        <input id="descontoC" type="number" step="0.01" value="0" />
-        <label for="barraExtra">Barra extra (m):</label>
-        <input id="barraExtra" type="number" step="0.01" value="0" />
-        <label for="xBarraAlta">Multiplicador de barra alta:</label>
-        <input id="xBarraAlta" type="number" step="0.01" value="1.4" />
-        <div id="resultado" style="margin-top:15px;"></div>
-        <button onclick="confirmarItemCortina()">Adicionar ao orçamento</button>
+        <div id="formulario-cortina"></div>
+        <div id="resultado-cortina"></div>
         <button onclick="fecharJanelaCortina()">Fechar</button>
       </div>
     </div>
@@ -164,192 +148,127 @@
 
   <script type="module">
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
-import { getFirestore, collection, getDocs, query, orderBy, doc, getDoc, updateDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
-import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
-import { carregarTipos, calcularPersiana } from './persianas.js';
-import { preencherSelects, calcularCortina } from './cortina.js';
+    import { getFirestore, collection, getDocs, query, orderBy, doc, getDoc, updateDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+    import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
+    import { carregarTipos, calcularPersiana } from './persianas.js';
+    import { preencherSelects, calcularCortina } from './cortina.js';
 
-const firebaseConfig = {
-  apiKey: "AIzaSyD5kVoWRWZB6xtacyu6lH--QFXry_MPKps",
-  authDomain: "kaze-8836b.firebaseapp.com",
-  projectId: "kaze-8836b",
-  storageBucket: "kaze-8836b.firebasestorage.app",
-  messagingSenderId: "336054068300",
-  appId: "1:336054068300:web:6125e8eecc08d667fac0e9"
-};
+    const firebaseConfig = {
+      apiKey: "AIzaSyD5kVoWRWZB6xtacyu6lH--QFXry_MPKps",
+      authDomain: "kaze-8836b.firebaseapp.com",
+      projectId: "kaze-8836b",
+      storageBucket: "kaze-8836b.firebasestorage.app",
+      messagingSenderId: "336054068300",
+      appId: "1:336054068300:web:6125e8eecc08d667fac0e9"
+    };
 
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-const auth = getAuth(app);
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const auth = getAuth(app);
 
-const select = document.getElementById("cliente");
-const dadosBox = document.getElementById("dados-cliente");
-const tabelaItens = document.getElementById("tabela-itens");
-const corpoItens = document.getElementById("lista-itens");
-const span = (id) => document.getElementById(id);
-const clientes = {};
+    const select = document.getElementById("cliente");
+    const dadosBox = document.getElementById("dados-cliente");
+    const tabelaItens = document.getElementById("tabela-itens");
+    const corpoItens = document.getElementById("lista-itens");
+    const span = (id) => document.getElementById(id);
+    const clientes = {};
 
-onAuthStateChanged(auth, async (user) => {
-  if (!user) {
-    window.location.href = "index.html";
-    return;
-  }
-  const q = query(collection(db, "clientes"), orderBy("nome"));
-  const querySnapshot = await getDocs(q);
-  querySnapshot.forEach((doc) => {
-    const id = doc.id;
-    const data = doc.data();
-    clientes[id] = data;
-    const opt = document.createElement("option");
-    opt.value = id;
-    opt.textContent = data.nome || "(sem nome)";
-    select.appendChild(opt);
-  });
-});
-
-window.mostrarDadosCliente = async function () {
-  const id = select.value;
-  const c = clientes[id];
-  if (!c) {
-    dadosBox.style.display = "none";
-    tabelaItens.style.display = "none";
-    return;
-  }
-  span("nome").textContent = c.nome || "-";
-  span("telefone").textContent = c.telefone || "-";
-  span("cpf").textContent = c.cpfOuCnpj || "-";
-  span("endereco").textContent = c.endereco || "-";
-  span("bairro").textContent = c.bairro || "-";
-  span("cidade").textContent = c.cidade || "-";
-  span("email").textContent = c.email || "-";
-  dadosBox.style.display = "block";
-
-  const ref = doc(db, "clientes", id);
-  const snap = await getDoc(ref);
-  const dados = snap.data();
-
-  if (!dados.orcamentoAtivo) {
-    await updateDoc(ref, {
-      orcamentoAtivo: {
-        status: "aberto",
-        dataCriacao: serverTimestamp(),
-        itens: []
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        window.location.href = "index.html";
+        return;
       }
+      const q = query(collection(db, "clientes"), orderBy("nome"));
+      const querySnapshot = await getDocs(q);
+      querySnapshot.forEach((doc) => {
+        const id = doc.id;
+        const data = doc.data();
+        clientes[id] = data;
+        const opt = document.createElement("option");
+        opt.value = id;
+        opt.textContent = data.nome || "(sem nome)";
+        select.appendChild(opt);
+      });
     });
-  }
-  const snapAtualizado = await getDoc(ref);
-  const orc = snapAtualizado.data().orcamentoAtivo || { itens: [] };
-  mostrarItens(orc.itens);
-};
 
-window.abrirJanelaPersiana = async function () {
-  const modal = document.getElementById("janelaItem");
-  modal.style.display = "flex";
-  const select = document.getElementById("tipo");
-  if (select.options.length === 0) await carregarTipos(select);
-};
+    window.mostrarDadosCliente = async function () {
+      const id = select.value;
+      const c = clientes[id];
+      if (!c) {
+        dadosBox.style.display = "none";
+        tabelaItens.style.display = "none";
+        return;
+      }
+      span("nome").textContent = c.nome || "-";
+      span("telefone").textContent = c.telefone || "-";
+      span("cpf").textContent = c.cpfOuCnpj || "-";
+      span("endereco").textContent = c.endereco || "-";
+      span("bairro").textContent = c.bairro || "-";
+      span("cidade").textContent = c.cidade || "-";
+      span("email").textContent = c.email || "-";
+      dadosBox.style.display = "block";
 
-window.fecharJanelaItem = function () {
-  document.getElementById("janelaItem").style.display = "none";
-  document.getElementById("resultado").innerHTML = "";
-};
+      const ref = doc(db, "clientes", id);
+      const snap = await getDoc(ref);
+      const dados = snap.data();
 
-window.abrirJanelaCortina = function () {
-  const modal = document.getElementById("janelaCortina");
-  modal.style.display = "flex";
-  preencherSelects();
-};
+      if (!dados.orcamentoAtivo) {
+        await updateDoc(ref, {
+          orcamentoAtivo: {
+            status: "aberto",
+            dataCriacao: serverTimestamp(),
+            itens: []
+          }
+        });
+      }
+      const snapAtualizado = await getDoc(ref);
+      const orc = snapAtualizado.data().orcamentoAtivo || { itens: [] };
+      mostrarItens(orc.itens);
+    };
 
-window.fecharJanelaCortina = function () {
-  document.getElementById("janelaCortina").style.display = "none";
-  document.getElementById("resultado-cortina").innerHTML = "";
-};
+    window.abrirJanelaPersiana = async function () {
+      const modal = document.getElementById("janelaItem");
+      modal.style.display = "flex";
+      const select = document.getElementById("tipo");
+      if (select.options.length === 0) await carregarTipos(select);
+    };
 
-function mostrarItens(itens) {
-  corpoItens.innerHTML = "";
-  if (!itens || itens.length === 0) {
-    tabelaItens.style.display = "none";
-    return;
-  }
-  itens.forEach(item => {
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
-      <td>${item.produto}</td>
-      <td>${item.largura}</td>
-      <td>${item.altura}</td>
-      <td>${item.qtd}</td>
-      <td>R$ ${parseFloat(item.unit).toFixed(2)}</td>
-      <td>R$ ${parseFloat(item.total).toFixed(2)}</td>
-    `;
-    corpoItens.appendChild(tr);
-  });
-  tabelaItens.style.display = "table";
-}
+    window.fecharJanelaItem = function () {
+      document.getElementById("janelaItem").style.display = "none";
+      document.getElementById("resultado").innerHTML = "";
+    };
 
-window.confirmarItemPersiana = async function () {
-  const tipo = document.getElementById("tipo").value;
-  const largura = parseFloat(document.getElementById("largura").value);
-  const altura = parseFloat(document.getElementById("altura").value);
-  const ambiente = document.getElementById("ambiente").value;
-  const desconto = parseFloat(document.getElementById("desconto").value) || 0;
-  const clienteId = document.getElementById("cliente").value;
+    window.abrirJanelaCortina = function () {
+      const modal = document.getElementById("janelaCortina");
+      modal.style.display = "flex";
+      preencherSelects();
+    };
 
-  if (!tipo || !largura || !altura || !ambiente || !clienteId) {
-    alert("Preencha todos os campos.");
-    return;
-  }
+    window.fecharJanelaCortina = function () {
+      document.getElementById("janelaCortina").style.display = "none";
+      document.getElementById("resultado-cortina").innerHTML = "";
+    };
 
-  const resultado = calcularPersiana(largura, altura, tipo, desconto);
-  const produto = `Persiana ${tipo} - ${ambiente}`;
-  const unit = parseFloat(resultado.total);
-  const total = unit;
-
-  const item = { produto, largura, altura, qtd: 1, unit, total };
-  const ref = doc(db, "clientes", clienteId);
-  const snap = await getDoc(ref);
-  const dados = snap.data();
-  const itensAtualizados = [...(dados.orcamentoAtivo?.itens || []), item];
-
-  await updateDoc(ref, { "orcamentoAtivo.itens": itensAtualizados });
-  mostrarItens(itensAtualizados);
-  fecharJanelaItem();
-};
-
-window.confirmarItemCortina = async function () {
-  const clienteId = document.getElementById("cliente").value;
-  if (!clienteId) return alert("Selecione um cliente primeiro.");
-
-  calcularCortina();
-
-  setTimeout(async () => {
-    const produto = document.querySelector("#resultado-cortina h2")?.textContent;
-    const total = parseFloat(document.querySelector("#resultado-cortina tr:last-child td:last-child")?.textContent?.replace("R$", "").replace(",", ".") || "0");
-    const largura = parseFloat(document.getElementById("larguraC").value || "0");
-    const altura = parseFloat(document.getElementById("alturaC").value || "0");
-
-    if (!produto || isNaN(total)) {
-      alert("Erro ao calcular a cortina.");
-      return;
+    function mostrarItens(itens) {
+      corpoItens.innerHTML = "";
+      if (!itens || itens.length === 0) {
+        tabelaItens.style.display = "none";
+        return;
+      }
+      itens.forEach(item => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${item.produto}</td>
+          <td>${item.largura}</td>
+          <td>${item.altura}</td>
+          <td>${item.qtd}</td>
+          <td>R$ ${parseFloat(item.unit).toFixed(2)}</td>
+          <td>R$ ${parseFloat(item.total).toFixed(2)}</td>
+        `;
+        corpoItens.appendChild(tr);
+      });
+      tabelaItens.style.display = "table";
     }
-
-    const item = { produto, largura, altura, qtd: 1, unit: total, total };
-    const ref = doc(db, "clientes", clienteId);
-    const snap = await getDoc(ref);
-    const dados = snap.data();
-    const itensAtualizados = [...(dados.orcamentoAtivo?.itens || []), item];
-    await updateDoc(ref, { "orcamentoAtivo.itens": itensAtualizados });
-    mostrarItens(itensAtualizados);
-    fecharJanelaCortina();
-  }, 100);
-};
-  const ref = doc(db, "clientes", clienteId);
-  const snap = await getDoc(ref);
-  const dados = snap.data();
-  const itensAtualizados = [...(dados.orcamentoAtivo?.itens || []), item];
-  await updateDoc(ref, { "orcamentoAtivo.itens": itensAtualizados });
-  mostrarItens(itensAtualizados);
-  fecharJanelaCortina();
-};
   </script>
 </body>
 </html>
