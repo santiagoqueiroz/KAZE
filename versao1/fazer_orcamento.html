@@ -43,11 +43,26 @@
     .info-box p {
       margin: 5px 0;
     }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+      display: none;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 8px;
+      text-align: center;
+    }
+    th {
+      background-color: #eee;
+    }
   </style>
 </head>
 <body>
   <div class="container">
     <h2>Selecionar Cliente</h2>
+
     <label for="cliente">Cliente:</label>
     <select id="cliente" onchange="mostrarDadosCliente()">
       <option value="">Selecione...</option>
@@ -62,15 +77,34 @@
       <p><strong>Cidade:</strong> <span id="cidade"></span></p>
       <p><strong>Email:</strong> <span id="email"></span></p>
     </div>
+
+    <table id="tabela-itens">
+      <thead>
+        <tr>
+          <th>Produto</th>
+          <th>Largura</th>
+          <th>Altura</th>
+          <th>Qtd</th>
+          <th>V. Unit.</th>
+          <th>Total</th>
+        </tr>
+      </thead>
+      <tbody id="lista-itens"></tbody>
+    </table>
   </div>
 
   <script type="module">
-    import { getFirestore, collection, getDocs, query, orderBy, doc, getDoc, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import {
+      getFirestore, collection, getDocs, query, orderBy,
+      doc, getDoc, updateDoc, serverTimestamp
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
     import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
     import { auth, db } from "./scripts/firebase.js";
 
     const select = document.getElementById("cliente");
     const dadosBox = document.getElementById("dados-cliente");
+    const tabelaItens = document.getElementById("tabela-itens");
+    const corpoItens = document.getElementById("lista-itens");
     const span = (id) => document.getElementById(id);
     const clientes = {};
 
@@ -100,6 +134,7 @@
       const c = clientes[id];
       if (!c) {
         dadosBox.style.display = "none";
+        tabelaItens.style.display = "none";
         return;
       }
 
@@ -112,7 +147,6 @@
       span("email").textContent = c.email || "-";
       dadosBox.style.display = "block";
 
-      // Verificar ou criar orçamento ativo
       const ref = doc(db, "clientes", id);
       const snap = await getDoc(ref);
       const dados = snap.data();
@@ -129,7 +163,35 @@
       } else {
         console.log("Orçamento já existe.");
       }
+
+      const snapAtualizado = await getDoc(ref);
+      const orc = snapAtualizado.data().orcamentoAtivo || { itens: [] };
+      mostrarItens(orc.itens);
     };
+
+    function mostrarItens(itens) {
+      corpoItens.innerHTML = "";
+
+      if (!itens || itens.length === 0) {
+        tabelaItens.style.display = "none";
+        return;
+      }
+
+      itens.forEach(item => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${item.produto}</td>
+          <td>${item.largura}</td>
+          <td>${item.altura}</td>
+          <td>${item.qtd}</td>
+          <td>R$ ${parseFloat(item.unit).toFixed(2)}</td>
+          <td>R$ ${parseFloat(item.total).toFixed(2)}</td>
+        `;
+        corpoItens.appendChild(tr);
+      });
+
+      tabelaItens.style.display = "table";
+    }
   </script>
 </body>
 </html>
