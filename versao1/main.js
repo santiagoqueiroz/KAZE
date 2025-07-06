@@ -234,7 +234,7 @@ document.getElementById("total-vista").textContent = totalVista.toLocaleString('
     fecharJanelaCortina();
   };
 
-// ❌ Remove item do orçamento
+
   window.removerItem = async function (index) {
   if (!clienteSelecionado) return;
   const ref = doc(db, "clientes", clienteSelecionado);
