@@ -312,7 +312,15 @@
       const largura = parseFloat(document.getElementById("larguraC").value || 0);
       const altura = parseFloat(document.getElementById("alturaC").value || 0);
       const totalTexto = document.querySelector("#resultado tr:last-child td:last-child")?.textContent || "0";
-      const total = parseFloat(totalTexto.replace("R$", "").replace(",", ".").trim()) || 0;
+
+// Remove milhar e converte vírgula para ponto
+const valorLimpo = totalTexto
+  .replace("R$", "")
+  .replace(/\./g, "")   // remove pontos de milhar
+  .replace(",", ".")    // converte vírgula decimal para ponto
+  .trim();
+
+const total = parseFloat(valorLimpo) || 0;
 
       const item = {
         produto,
