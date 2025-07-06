@@ -85,6 +85,18 @@
       margin-top: 10px;
       margin-bottom: 30px;
     }
+    .info-box {
+      background: #f1f1f1;
+      padding: 15px;
+      margin-top: 10px;
+      border-radius: 6px;
+      display: none;
+      text-transform: uppercase;
+      font-size: 14px;
+    }
+    .info-box p {
+      margin: 4px 0;
+    }
   </style>
 </head>
 <body>
@@ -106,6 +118,8 @@
     <select id="cliente" onchange="carregarOrcamento()">
       <option value="">Selecione...</option>
     </select>
+
+    <div class="info-box" id="dados-cliente"></div>
 
     <table class="tabela" id="tabela-itens" style="display:none;">
       <thead>
@@ -155,6 +169,7 @@
 
     const select = document.getElementById("cliente");
     const corpo = document.getElementById("lista-itens");
+    const infoBox = document.getElementById("dados-cliente");
 
     onAuthStateChanged(auth, async (user) => {
       if (!user) return window.location.href = "index.html";
@@ -174,7 +189,23 @@
 
       const ref = doc(db, "clientes", id);
       const snap = await getDoc(ref);
-      const itens = snap.data().orcamentoAtivo?.itens || [];
+      const data = snap.data();
+      const itens = data.orcamentoAtivo?.itens || [];
+
+      // Exibir dados do cliente
+      const cliente = [
+        { label: "Nome", valor: data.nome },
+        { label: "Telefone", valor: data.telefone },
+        { label: "CPF/CNPJ", valor: data.cpfOuCnpj },
+        { label: "Endereço", valor: data.endereco },
+        { label: "Bairro", valor: data.bairro },
+        { label: "Cidade", valor: data.cidade },
+      ];
+      infoBox.innerHTML = cliente
+        .filter(c => c.valor && c.valor.trim())
+        .map(c => `<p><strong>${c.label}:</strong> ${c.valor}</p>`) 
+        .join("");
+      infoBox.style.display = "block";
 
       corpo.innerHTML = "";
       if (!itens.length) {
