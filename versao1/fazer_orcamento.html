@@ -94,12 +94,36 @@
   </div>
 
   <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
     import {
-      getFirestore, collection, getDocs, query, orderBy,
-      doc, getDoc, updateDoc, serverTimestamp
+      getFirestore,
+      collection,
+      getDocs,
+      query,
+      orderBy,
+      doc,
+      getDoc,
+      updateDoc,
+      serverTimestamp
     } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-    import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-    import { auth, db } from "./scripts/firebase.js";
+    import {
+      getAuth,
+      onAuthStateChanged
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+    // ✅ SUA CONFIGURAÇÃO REAL
+    const firebaseConfig = {
+      apiKey: "AIzaSyD5kVoWRWZB6xtacyu6lH--QFXry_MPKps",
+      authDomain: "kaze-8836b.firebaseapp.com",
+      projectId: "kaze-8836b",
+      storageBucket: "kaze-8836b.firebasestorage.app",
+      messagingSenderId: "336054068300",
+      appId: "1:336054068300:web:6125e8eecc08d667fac0e9"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const auth = getAuth(app);
 
     const select = document.getElementById("cliente");
     const dadosBox = document.getElementById("dados-cliente");
