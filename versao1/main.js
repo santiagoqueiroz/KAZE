@@ -114,7 +114,6 @@ if (!itens || itens.length === 0) {
         <td>${parseInt(item.qtd)}</td>
         <td>${parseFloat(item.unit).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</td>
         <td>${parseFloat(item.total).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</td>
-// ❌ Remove item do orçamento
         <td><button onclick="removerItem(${index})">🗑️</button></td>
       `;
       corpoItens.appendChild(tr);
