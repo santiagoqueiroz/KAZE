@@ -108,6 +108,7 @@
           <th>Qtd</th>
           <th>V. Unit.</th>
           <th>Total</th>
+          <th></th>
         </tr>
       </thead>
       <tbody id="lista-itens"></tbody>
@@ -258,7 +259,7 @@ if (!itens || itens.length === 0) {
       document.getElementById("tabela-itens").style.display = "none";
       return;
     }
-    itens.forEach(item => {
+    itens.forEach((item, index) => {
       const tr = document.createElement("tr");
       tr.innerHTML = `
         <td>${item.produto}</td>
@@ -267,6 +268,7 @@ if (!itens || itens.length === 0) {
         <td>${parseInt(item.qtd)}</td>
         <td>${parseFloat(item.unit).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</td>
         <td>${parseFloat(item.total).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</td>
+        <td><button onclick="removerItem(${index})">🗑️</button></td>
       `;
       corpoItens.appendChild(tr);
     });
@@ -375,6 +377,20 @@ if (!itens || itens.length === 0) {
     mostrarItens(itens);
     fecharJanelaCortina();
   };
+
+  window.removerItem = async function (index) {
+  if (!clienteSelecionado) return;
+  const ref = doc(db, "clientes", clienteSelecionado);
+  const snap = await getDoc(ref);
+  const dados = snap.data();
+  const itens = dados.orcamentoAtivo?.itens || [];
+
+  if (index >= 0 && index < itens.length) {
+    itens.splice(index, 1); // remove o item
+    await updateDoc(ref, { "orcamentoAtivo.itens": itens });
+    mostrarItens(itens);
+  }
+};
 </script>
 
 </body>
