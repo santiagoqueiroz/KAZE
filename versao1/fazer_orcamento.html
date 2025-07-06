@@ -1,403 +1,212 @@
 
-
 <!DOCTYPE html>
 <html lang="pt-BR">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Orçamento de Persianas e Cortinas - KAZE</title>
-  <style>
-    body {
-      font-family: sans-serif;
-      background: #f9f9f9;
-      padding: 20px;
-    }
-    .container {
-      max-width: 700px;
-      margin: auto;
-      background: white;
-      padding: 20px;
-      border-radius: 12px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
-    }
-    h2 {
-      margin-top: 0;
-      text-align: center;
-    }
-    label {
-      font-weight: bold;
-      display: block;
-      margin-top: 20px;
-    }
-    select, input {
-      width: 100%;
-      padding: 10px;
-      margin-top: 5px;
-      border-radius: 6px;
-      border: 1px solid #ccc;
-    }
-    .info-box {
-      background: #f1f1f1;
-      padding: 15px;
-      margin-top: 20px;
-      border-radius: 6px;
-    }
-    .info-box p {
-      margin: 5px 0;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 20px;
-      display: none;
-    }
-    th, td {
-      border: 1px solid #ccc;
-      padding: 8px;
-      text-align: center;
-    }
-    th {
-      background-color: #eee;
-    }
-    .botoes {
-      margin-top: 20px;
-      display: flex;
-      gap: 10px;
-    }
-    .modal {
-      display: none;
-      position: fixed;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(0,0,0,0.6);
-      z-index: 999;
-      justify-content: center;
-      align-items: center;
-    }
-    .modal .conteudo {
-      background: white;
-      padding: 20px;
-      border-radius: 10px;
-      max-width: 400px;
-      width: 90%;
-    }
-  </style>
-</head>
-<body>
+ <head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1" name="viewport"/>
+  <title>
+   Orçamento de Persianas e Cortinas - KAZE
+  </title>
+  <link href="style.css" rel="stylesheet"/>
+ </head>
+ <body>
   <div class="container">
-    <h2>Selecionar Cliente</h2>
-    <label for="cliente">Cliente:</label>
-    <select id="cliente" onchange="mostrarDadosCliente()">
-      <option value="">Selecione...</option>
-    </select>
-
-    <div class="info-box" id="dados-cliente" style="display:none;">
-      <p><strong>Nome:</strong> <span id="nome"></span></p>
-      <p><strong>Telefone:</strong> <span id="telefone"></span></p>
-      <p><strong>CPF/CNPJ:</strong> <span id="cpf"></span></p>
-      <p><strong>Endereço:</strong> <span id="endereco"></span></p>
-      <p><strong>Bairro:</strong> <span id="bairro"></span></p>
-      <p><strong>Cidade:</strong> <span id="cidade"></span></p>
-      <p><strong>Email:</strong> <span id="email"></span></p>
+   <h2>
+    Selecionar Cliente
+   </h2>
+   <label for="cliente">
+    Cliente:
+   </label>
+   <select id="cliente" onchange="mostrarDadosCliente()">
+    <option value="">
+     Selecione...
+    </option>
+   </select>
+   <div class="info-box" id="dados-cliente" style="display:none;">
+    <p>
+     <strong>
+      Nome:
+     </strong>
+     <span id="nome">
+     </span>
+    </p>
+    <p>
+     <strong>
+      Telefone:
+     </strong>
+     <span id="telefone">
+     </span>
+    </p>
+    <p>
+     <strong>
+      CPF/CNPJ:
+     </strong>
+     <span id="cpf">
+     </span>
+    </p>
+    <p>
+     <strong>
+      Endereço:
+     </strong>
+     <span id="endereco">
+     </span>
+    </p>
+    <p>
+     <strong>
+      Bairro:
+     </strong>
+     <span id="bairro">
+     </span>
+    </p>
+    <p>
+     <strong>
+      Cidade:
+     </strong>
+     <span id="cidade">
+     </span>
+    </p>
+    <p>
+     <strong>
+      Email:
+     </strong>
+     <span id="email">
+     </span>
+    </p>
+   </div>
+   <table id="tabela-itens">
+    <thead>
+     <tr>
+      <th>
+       Produto
+      </th>
+      <th>
+       Largura
+      </th>
+      <th>
+       Altura
+      </th>
+      <th>
+       Qtd
+      </th>
+      <th>
+       V. Unit.
+      </th>
+      <th>
+       Total
+      </th>
+      <th>
+      </th>
+     </tr>
+    </thead>
+    <tbody id="lista-itens">
+    </tbody>
+   </table>
+   <div id="total-geral" style="text-align:right; margin-top:10px; font-size:18px; display:none;">
+    Total geral:
+    <strong id="soma-final">
+     R$ 0,00
+    </strong>
+    <br/>
+    Total à vista:
+    <strong id="total-vista">
+     R$ 0,00
+    </strong>
+   </div>
+   <div class="botoes">
+    <button onclick="abrirJanelaPersiana()">
+     + Adicionar Persiana
+    </button>
+    <button onclick="abrirJanelaCortina()">
+     + Adicionar Cortina
+    </button>
+   </div>
+   <div class="modal" id="janelaItem">
+    <div class="conteudo">
+     <h3>
+      Adicionar Persiana
+     </h3>
+     <label for="tipo">
+      Tipo:
+     </label>
+     <select id="tipo">
+     </select>
+     <label for="largura">
+      Largura (m):
+     </label>
+     <input id="largura" step="0.01" type="number"/>
+     <label for="altura">
+      Altura (m):
+     </label>
+     <input id="altura" step="0.01" type="number"/>
+     <label for="ambiente">
+      Ambiente:
+     </label>
+     <input id="ambiente" type="text"/>
+     <label for="desconto">
+      Desconto (R$):
+     </label>
+     <input id="desconto" step="0.01" type="number" value="0"/>
+     <div id="resultado" style="margin-top:15px;">
+     </div>
+     <button onclick="confirmarItemPersiana()">
+      Adicionar ao orçamento
+     </button>
+     <button onclick="fecharJanelaItem()">
+      Fechar
+     </button>
     </div>
-
-    <table id="tabela-itens">
-      <thead>
-        <tr>
-          <th>Produto</th>
-          <th>Largura</th>
-          <th>Altura</th>
-          <th>Qtd</th>
-          <th>V. Unit.</th>
-          <th>Total</th>
-          <th></th>
-        </tr>
-      </thead>
-      <tbody id="lista-itens"></tbody>
-    </table>
-
-      <div id="total-geral" style="text-align:right; margin-top:10px; font-size:18px; display:none;">
-        Total geral: <strong id="soma-final">R$ 0,00</strong><br>
-        Total à vista: <strong id="total-vista">R$ 0,00</strong>
-      </div>
-
-
-    <div class="botoes">
-      <button onclick="abrirJanelaPersiana()">+ Adicionar Persiana</button>
-      <button onclick="abrirJanelaCortina()">+ Adicionar Cortina</button>
+   </div>
+   <div class="modal" id="janelaCortina">
+    <div class="conteudo">
+     <h3>
+      Adicionar Cortina
+     </h3>
+     <label for="larguraC">
+      Largura (m):
+     </label>
+     <input id="larguraC" step="0.01" type="number"/>
+     <label for="alturaC">
+      Altura (m):
+     </label>
+     <input id="alturaC" step="0.01" type="number"/>
+     <label for="tecido">
+      Tecido:
+     </label>
+     <select id="tecido">
+     </select>
+     <label for="trilho">
+      Trilho:
+     </label>
+     <select id="trilho">
+     </select>
+     <label for="barraExtra">
+      Barra (m):
+     </label>
+     <input id="barraExtra" step="0.01" type="number" value="0.40"/>
+     <label for="xBarraAlta">
+      Multiplicador barra alta:
+     </label>
+     <input id="xBarraAlta" step="0.01" type="number" value="1.4"/>
+     <label for="ambienteC">
+      Ambiente:
+     </label>
+     <input id="ambienteC" type="text"/>
+     <label for="descontoC">
+      Desconto (R$):
+     </label>
+     <input id="descontoC" step="0.01" type="number" value="0"/>
+     <div id="resultado" style="margin-top:15px;">
+     </div>
+     <button onclick="confirmarItemCortina()">
+      Adicionar ao orçamento
+     </button>
+     <button onclick="fecharJanelaCortina()">
+      Fechar
+     </button>
     </div>
-
-    <div id="janelaItem" class="modal">
-      <div class="conteudo">
-        <h3>Adicionar Persiana</h3>
-        <label for="tipo">Tipo:</label>
-        <select id="tipo"></select>
-        <label for="largura">Largura (m):</label>
-        <input id="largura" type="number" step="0.01" />
-        <label for="altura">Altura (m):</label>
-        <input id="altura" type="number" step="0.01" />
-        <label for="ambiente">Ambiente:</label>
-        <input id="ambiente" type="text" />
-        <label for="desconto">Desconto (R$):</label>
-        <input id="desconto" type="number" step="0.01" value="0" />
-        <div id="resultado" style="margin-top:15px;"></div>
-        <button onclick="confirmarItemPersiana()">Adicionar ao orçamento</button>
-        <button onclick="fecharJanelaItem()">Fechar</button>
-      </div>
-    </div>
-
-    <div id="janelaCortina" class="modal">
-      <div class="conteudo">
-        <h3>Adicionar Cortina</h3>
-        <label for="larguraC">Largura (m):</label>
-        <input id="larguraC" type="number" step="0.01" />
-        <label for="alturaC">Altura (m):</label>
-        <input id="alturaC" type="number" step="0.01" />
-        <label for="tecido">Tecido:</label>
-        <select id="tecido"></select>
-        <label for="trilho">Trilho:</label>
-        <select id="trilho"></select>
-        <label for="barraExtra">Barra (m):</label>
-        <input id="barraExtra" type="number" step="0.01" value="0.40" />
-        <label for="xBarraAlta">Multiplicador barra alta:</label>
-        <input id="xBarraAlta" type="number" step="0.01" value="1.4" />
-        <label for="ambienteC">Ambiente:</label>
-        <input id="ambienteC" type="text" />
-        <label for="descontoC">Desconto (R$):</label>
-        <input id="descontoC" type="number" step="0.01" value="0" />
-        <div id="resultado" style="margin-top:15px;"></div>
-        <button onclick="confirmarItemCortina()">Adicionar ao orçamento</button>
-        <button onclick="fecharJanelaCortina()">Fechar</button>
-      </div>
-    </div>
+   </div>
   </div>
-
-<script type="module">
-  import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
-  import {
-    getFirestore, collection, getDocs, query, orderBy,
-    doc, getDoc, updateDoc, serverTimestamp
-  } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
-  import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
-  import { carregarTipos, calcularPersiana } from './persianas.js';
-  import { preencherSelects, calcularCortina } from './cortina.js';
-
-  const firebaseConfig = {
-    apiKey: "AIzaSyD5kVoWRWZB6xtacyu6lH--QFXry_MPKps",
-    authDomain: "kaze-8836b.firebaseapp.com",
-    projectId: "kaze-8836b",
-    storageBucket: "kaze-8836b.firebasestorage.app",
-    messagingSenderId: "336054068300",
-    appId: "1:336054068300:web:6125e8eecc08d667fac0e9"
-  };
-
-  const app = initializeApp(firebaseConfig);
-  const db = getFirestore(app);
-  const auth = getAuth(app);
-
-  const clientes = {};
-  let clienteSelecionado = null;
-
-  const select = document.getElementById("cliente");
-  const corpoItens = document.getElementById("lista-itens");
-
-  onAuthStateChanged(auth, async (user) => {
-    if (!user) return window.location.href = "index.html";
-    const q = query(collection(db, "clientes"), orderBy("nome"));
-    const snapshot = await getDocs(q);
-    snapshot.forEach((doc) => {
-      clientes[doc.id] = doc.data();
-      const opt = document.createElement("option");
-      opt.value = doc.id;
-      opt.textContent = clientes[doc.id].nome || "(sem nome)";
-      select.appendChild(opt);
-    });
-  });
-
-  window.mostrarDadosCliente = async function () {
-    const id = select.value;
-    if (!clientes[id]) return esconderTudo();
-    clienteSelecionado = id;
-
-    const span = (id) => document.getElementById(id);
-    const c = clientes[id];
-    span("nome").textContent = c.nome || "-";
-    span("telefone").textContent = c.telefone || "-";
-    span("cpf").textContent = c.cpfOuCnpj || "-";
-    span("endereco").textContent = c.endereco || "-";
-    span("bairro").textContent = c.bairro || "-";
-    span("cidade").textContent = c.cidade || "-";
-    span("email").textContent = c.email || "-";
-    document.getElementById("dados-cliente").style.display = "block";
-
-    const ref = doc(db, "clientes", id);
-    const snap = await getDoc(ref);
-    if (!snap.data().orcamentoAtivo) {
-      await updateDoc(ref, {
-        orcamentoAtivo: {
-          status: "aberto",
-          dataCriacao: serverTimestamp(),
-          itens: []
-        }
-      });
-    }
-    const atualizado = await getDoc(ref);
-    mostrarItens(atualizado.data().orcamentoAtivo?.itens || []);
-  };
-
-  function esconderTudo() {
-    document.getElementById("dados-cliente").style.display = "none";
-    document.getElementById("tabela-itens").style.display = "none";
-    clienteSelecionado = null;
-  }
-
-  function mostrarItens(itens) {
-    corpoItens.innerHTML = "";
-    
-    if (!itens || itens.length === 0) {
-      document.getElementById("tabela-itens").style.display = "none";
-      document.getElementById("total-geral").style.display = "none";
-      return;
-    }
-if (!itens || itens.length === 0) {
-      document.getElementById("tabela-itens").style.display = "none";
-      return;
-    }
-    itens.forEach((item, index) => {
-      const tr = document.createElement("tr");
-      tr.innerHTML = `
-        <td>${item.produto}</td>
-        <td>${parseFloat(item.largura).toFixed(2)}</td>
-        <td>${parseFloat(item.altura).toFixed(2)}</td>
-        <td>${parseInt(item.qtd)}</td>
-        <td>${parseFloat(item.unit).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</td>
-        <td>${parseFloat(item.total).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</td>
-        <td><button onclick="removerItem(${index})">🗑️</button></td>
-      `;
-      corpoItens.appendChild(tr);
-    });
-    document.getElementById("tabela-itens").style.display = "table";
-
-    const totalGeral = itens.reduce((soma, item) => soma + parseFloat(item.total), 0);
-    document.getElementById("soma-final").textContent = totalGeral.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-    document.getElementById("total-geral").style.display = "block";
-    const totalVista = totalGeral * 0.879;
-document.getElementById("total-vista").textContent = totalVista.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-
-
-  }
-
-  window.abrirJanelaPersiana = async function () {
-    document.getElementById("janelaItem").style.display = "flex";
-    const select = document.getElementById("tipo");
-    if (select.options.length === 0) await carregarTipos(select);
-  };
-
-  window.fecharJanelaItem = function () {
-    document.getElementById("janelaItem").style.display = "none";
-    document.getElementById("resultado").innerHTML = "";
-  };
-
-  window.confirmarItemPersiana = async function () {
-    if (!clienteSelecionado) return alert("Selecione um cliente.");
-    const tipo = document.getElementById("tipo").value;
-    const largura = parseFloat(document.getElementById("largura").value);
-    const altura = parseFloat(document.getElementById("altura").value);
-    const ambiente = document.getElementById("ambiente").value;
-    const desconto = parseFloat(document.getElementById("desconto").value || 0);
-    if (!tipo || !largura || !altura || !ambiente) return alert("Preencha todos os campos.");
-
-    const r = calcularPersiana(largura, altura, tipo, desconto);
-    const item = {
-      produto: `Persiana - ${tipo} (${ambiente})`,
-      largura, altura, qtd: 1,
-      unit: r.valorUnitario,
-      total: r.total
-    };
-    const ref = doc(db, "clientes", clienteSelecionado);
-    const snap = await getDoc(ref);
-    const itens = snap.data().orcamentoAtivo?.itens || [];
-    itens.push(item);
-    await updateDoc(ref, { "orcamentoAtivo.itens": itens });
-    mostrarItens(itens);
-    fecharJanelaItem();
-  };
-
-  window.abrirJanelaCortina = async function () {
-    document.getElementById("janelaCortina").style.display = "flex";
-    preencherSelects();
-  };
-
-  window.fecharJanelaCortina = function () {
-    document.getElementById("janelaCortina").style.display = "none";
-    document.getElementById("resultado").innerHTML = "";
-  };
-
-  window.confirmarItemCortina = async function () {
-    if (!clienteSelecionado) return alert("Selecione um cliente.");
-
-    calcularCortina();
-
-    // Pega o nome base do produto gerado
-    let produto = document.querySelector("#resultado h2")?.textContent || "Cortina";
-    const ambiente = document.getElementById("ambienteC").value.trim();
-
-    // Remove o ambiente do início se já vier no título
-    if (produto.startsWith("Ambiente")) {
-      produto = produto.slice("Ambiente".length).trim().replace(/^[-–]\s*/, "");
-    }
-    if (ambiente && produto.startsWith(ambiente)) {
-      produto = produto.slice(ambiente.length).trim().replace(/^[-–]\s*/, "");
-    }
-
-
-    // Adiciona o ambiente no final entre parênteses
-    if (ambiente) produto += ` (${ambiente})`;
-
-    const largura = parseFloat(document.getElementById("larguraC").value || 0);
-    const altura = parseFloat(document.getElementById("alturaC").value || 0);
-    const totalTexto = document.querySelector("#resultado tr:last-child td:last-child")?.textContent || "0";
-
-    // Converte R$ 1.234,56 → 1234.56
-    const valorLimpo = totalTexto
-      .replace("R$", "")
-      .replace(/\./g, "")
-      .replace(",", ".")
-      .trim();
-
-    const total = parseFloat(valorLimpo) || 0;
-
-    const item = {
-      produto,
-      largura,
-      altura,
-      qtd: 1,
-      unit: total,
-      total: total
-    };
-
-    const ref = doc(db, "clientes", clienteSelecionado);
-    const snap = await getDoc(ref);
-    const itens = snap.data().orcamentoAtivo?.itens || [];
-    itens.push(item);
-    await updateDoc(ref, { "orcamentoAtivo.itens": itens });
-    mostrarItens(itens);
-    fecharJanelaCortina();
-  };
-
-  window.removerItem = async function (index) {
-  if (!clienteSelecionado) return;
-  const ref = doc(db, "clientes", clienteSelecionado);
-  const snap = await getDoc(ref);
-  const dados = snap.data();
-  const itens = dados.orcamentoAtivo?.itens || [];
-
-  if (index >= 0 && index < itens.length) {
-    itens.splice(index, 1); // remove o item
-    await updateDoc(ref, { "orcamentoAtivo.itens": itens });
-    mostrarItens(itens);
-  }
-};
-</script>
-
-</body>
+  <script src="main.js" type="module">
+  </script>
+ </body>
 </html>
