@@ -319,7 +319,7 @@ window.confirmarItemCortina = async function () {
   const clienteId = document.getElementById("cliente").value;
   if (!clienteId) return alert("Selecione um cliente primeiro.");
   calcularCortina();
-  const produto = document.querySelector("#resultado-cortina h2")?.textContent;
+  const produto = document.querySelector("#resultado-cortina h2")?.textContent || "Cortina personalizada";
   const total = parseFloat(document.querySelector("#resultado-cortina tr:last-child td:last-child")?.textContent?.replace("R$", "").replace(",", ".") || "0");
   const largura = parseFloat(document.getElementById("larguraC").value || "0");
   const altura = parseFloat(document.getElementById("alturaC").value || "0");
