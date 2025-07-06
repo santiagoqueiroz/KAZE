@@ -43,7 +43,7 @@ function formatarReais(valor) {
   return valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 }
 
-window.preencherSelects = function () {
+export function preencherSelects() {
   const tecidoSelect = document.getElementById("tecido");
   const trilhoSelect = document.getElementById("trilho");
 
@@ -64,7 +64,7 @@ window.preencherSelects = function () {
   }
 };
 
-window.calcular = function () {
+export function calcularCortina() {
   const largura = parseFloat(document.getElementById('largura')?.value.replace(',', '.') || 0);
   const altura = parseFloat(document.getElementById('altura')?.value.replace(',', '.') || 0);
   const precoTecido = parseFloat(document.getElementById('tecido')?.value || 0);
