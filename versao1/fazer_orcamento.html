@@ -1,6 +1,7 @@
 
 <!DOCTYPE html>
 <html lang="pt-BR">
+<script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -62,6 +63,10 @@
       margin-top: 20px;
       display: flex;
       gap: 10px;
+      <button onclick="exportarComoImagem()" style="width: 100%; padding: 10px; background: #007bff; color: white; border: none; border-radius: 6px; cursor: pointer;">
+  📸 Exportar como imagem
+</button>
+
     }
     .modal {
       display: none;
@@ -391,7 +396,88 @@ if (!itens || itens.length === 0) {
     mostrarItens(itens);
   }
 };
+
+
+<script>
+  function exportarComoImagem() {
+    // Pega dados visíveis da tela
+    const nome = document.getElementById("nome").textContent;
+    const telefone = document.getElementById("telefone").textContent;
+    const cpf = document.getElementById("cpf").textContent;
+    const endereco = document.getElementById("endereco").textContent;
+    const bairro = document.getElementById("bairro").textContent;
+    const cidade = document.getElementById("cidade").textContent;
+    const email = document.getElementById("email").textContent;
+
+    // Preenche os dados do cliente no layout exportável
+    const dadosHTML = `
+      <p><strong>Nome:</strong> ${nome}</p>
+      <p><strong>Telefone:</strong> ${telefone}</p>
+      <p><strong>CPF/CNPJ:</strong> ${cpf}</p>
+      <p><strong>Endereço:</strong> ${endereco}, ${bairro}, ${cidade}</p>
+      <p><strong>Email:</strong> ${email}</p>
+    `;
+    document.getElementById("export-dados-cliente").innerHTML = dadosHTML;
+
+    // Copia os itens da tabela
+    const tbody = document.getElementById("lista-itens");
+    const exportTbody = document.getElementById("export-itens");
+    exportTbody.innerHTML = "";
+
+    let total = 0;
+
+    for (const row of tbody.children) {
+      const produto = row.children[0].textContent;
+      const qtd = row.children[3].textContent;
+      const valor = row.children[5].textContent;
+      total += parseFloat(valor.replace(/[R$.\s]/g, '').replace(',', '.'));
+
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td style="border:1px solid black; padding:8px; text-align:left;">${produto}</td>
+        <td style="border:1px solid black; padding:8px;">${qtd}</td>
+        <td style="border:1px solid black; padding:8px;">${valor}</td>
+      `;
+      exportTbody.appendChild(tr);
+    }
+
+    document.getElementById("export-total").textContent = total.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+
+    // Torna o bloco visível só para captura
+    const el = document.getElementById("export-layout");
+    el.style.display = "block";
+
+    html2canvas(el).then(canvas => {
+      const link = document.createElement("a");
+      link.download = "orcamento_kaze.png";
+      link.href = canvas.toDataURL();
+      link.click();
+      el.style.display = "none"; // esconde de novo
+    });
+  }
 </script>
+  
+  
+</script>
+<div id="export-layout" style="display: none; padding: 40px; font-family: sans-serif; background: white; border: 2px solid black; max-width: 800px; margin: auto;">
+  <div style="text-align: center; margin-bottom: 30px;">
+    <img src="f1abe3dd-61c3-4708-8609-000fa5698b4e.png" alt="Logo KAZE" style="max-width: 250px;">
+  </div>
+  <div id="export-dados-cliente" style="font-size: 14px; margin-bottom: 20px;"></div>
+  <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
+    <thead>
+      <tr>
+        <th style="border: 1px solid black; padding: 8px; text-align: left;">DISCRIMINAÇÃO</th>
+        <th style="border: 1px solid black; padding: 8px;">QNT</th>
+        <th style="border: 1px solid black; padding: 8px;">VALOR</th>
+      </tr>
+    </thead>
+    <tbody id="export-itens"></tbody>
+  </table>
+  <div style="text-align: right; font-size: 16px; margin-top: 15px;">
+    Total: <strong id="export-total"></strong>
+  </div>
+</div>
 
 </body>
 </html>
