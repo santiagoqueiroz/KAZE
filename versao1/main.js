@@ -58,16 +58,24 @@
     if (!clientes[id]) return esconderTudo();
     clienteSelecionado = id;
 
-    const span = (id) => document.getElementById(id);
-    const c = clientes[id];
-    span("nome").textContent = c.nome || "-";
-    span("telefone").textContent = c.telefone || "-";
-    span("cpf").textContent = c.cpfOuCnpj || "-";
-    span("endereco").textContent = c.endereco || "-";
-    span("bairro").textContent = c.bairro || "-";
-    span("cidade").textContent = c.cidade || "-";
-    span("email").textContent = c.email || "-";
-    document.getElementById("dados-cliente").style.display = "block";
+const campos = ["nome", "telefone", "cpf", "endereco", "bairro", "cidade", "email"];
+const c = clientes[id];
+
+campos.forEach((campo) => {
+  const spanEl = document.getElementById(campo);
+  const pEl = spanEl.closest("p");
+  const valor = (campo === "cpf") ? c.cpfOuCnpj : c[campo];
+
+  if (valor && valor.trim() !== "") {
+    spanEl.textContent = valor;
+    pEl.style.display = "block";
+  } else {
+    pEl.style.display = "none";
+  }
+});
+
+document.getElementById("dados-cliente").style.display = "block";
+
 
     const ref = doc(db, "clientes", id);
     const snap = await getDoc(ref);
