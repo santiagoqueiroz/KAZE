@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Consultar Orçamento - Kazê</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: white;
+    }
+    .container {
+      max-width: 800px;
+      margin: 20px auto;
+      border: 10px solid black;
+      padding: 40px;
+    }
+    .topo {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+    }
+    .logo {
+      height: 90px;
+    }
+    .empresa {
+      text-align: right;
+      font-size: 14px;
+    }
+    h2.titulo {
+      color: #6d2752;
+      text-align: center;
+      border-top: 4px solid #6d2752;
+      border-bottom: 4px solid #6d2752;
+      padding: 8px 0;
+      margin-top: 30px;
+    }
+    .tabela {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+    .tabela th {
+      background: #6d2752;
+      color: white;
+      padding: 8px;
+      font-size: 14px;
+    }
+    .tabela td {
+      border: 1px solid #6d2752;
+      padding: 8px;
+      text-align: center;
+    }
+    .total-box {
+      margin-top: 30px;
+      text-align: right;
+      font-size: 16px;
+    }
+    .linha-total {
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      margin-top: 10px;
+    }
+    .linha-total span {
+      background: #6d2752;
+      color: white;
+      padding: 5px 10px;
+      font-weight: bold;
+    }
+    .linha-total strong {
+      background: #eee;
+      padding: 5px 15px;
+      border: 1px solid #6d2752;
+      margin-left: 5px;
+      min-width: 120px;
+      text-align: right;
+      display: inline-block;
+    }
+    select {
+      width: 100%;
+      padding: 10px;
+      font-size: 16px;
+      margin-top: 10px;
+      margin-bottom: 30px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="topo">
+      <img src="logo_kaze.jpg" class="logo" alt="Kazê" />
+      <div class="empresa">
+        <strong>Kazê Cortinas e Persianas</strong><br/>
+        Rua Quintino Bocaiúva, 1434 – Bosque<br/>
+        (68) 99969-8220<br/>
+        CNPJ 15.051.769/0001-06<br/>
+        Rio Branco - Acre
+      </div>
+    </div>
+
+    <h2 class="titulo">ORÇAMENTO</h2>
+
+    <label for="cliente">Selecionar Cliente:</label>
+    <select id="cliente" onchange="carregarOrcamento()">
+      <option value="">Selecione...</option>
+    </select>
+
+    <table class="tabela" id="tabela-itens" style="display:none;">
+      <thead>
+        <tr>
+          <th>DISCRIMINAÇÃO</th>
+          <th>QNT</th>
+          <th>VALOR</th>
+        </tr>
+      </thead>
+      <tbody id="lista-itens"></tbody>
+    </table>
+
+    <div class="total-box" id="box-totais" style="display:none;">
+      <div class="linha-total">
+        <span>R$</span>
+        <strong id="total-parcelado">-</strong>
+      </div>
+      <div style="text-align: right; font-size: 12px; color: #333;">EM ATÉ 12X SEM JUROS</div>
+
+      <div class="linha-total">
+        <span>R$</span>
+        <strong id="total-vista">-</strong>
+      </div>
+      <div style="text-align: right; font-size: 12px; color: #333;">A VISTA<br/>PIX OU DEBITO</div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
+    import {
+      getFirestore, collection, getDocs, doc, getDoc, query, orderBy
+    } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+    import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyD5kVoWRWZB6xtacyu6lH--QFXry_MPKps",
+      authDomain: "kaze-8836b.firebaseapp.com",
+      projectId: "kaze-8836b",
+      storageBucket: "kaze-8836b.appspot.com",
+      messagingSenderId: "336054068300",
+      appId: "1:336054068300:web:6125e8eecc08d667fac0e9"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const auth = getAuth(app);
+
+    const select = document.getElementById("cliente");
+    const corpo = document.getElementById("lista-itens");
+
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) return window.location.href = "index.html";
+      const q = query(collection(db, "clientes"), orderBy("nome"));
+      const snap = await getDocs(q);
+      snap.forEach((doc) => {
+        const opt = document.createElement("option");
+        opt.value = doc.id;
+        opt.textContent = doc.data().nome || "(sem nome)";
+        select.appendChild(opt);
+      });
+    });
+
+    window.carregarOrcamento = async function () {
+      const id = select.value;
+      if (!id) return;
+
+      const ref = doc(db, "clientes", id);
+      const snap = await getDoc(ref);
+      const itens = snap.data().orcamentoAtivo?.itens || [];
+
+      corpo.innerHTML = "";
+      if (!itens.length) {
+        document.getElementById("tabela-itens").style.display = "none";
+        document.getElementById("box-totais").style.display = "none";
+        return;
+      }
+
+      let total = 0;
+      itens.forEach((item) => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td style="text-align:left;">${item.produto}</td>
+          <td>${item.qtd}</td>
+          <td>${parseFloat(item.total).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</td>
+        `;
+        corpo.appendChild(tr);
+        total += parseFloat(item.total);
+      });
+
+      document.getElementById("tabela-itens").style.display = "table";
+      document.getElementById("box-totais").style.display = "block";
+      document.getElementById("total-parcelado").textContent = total.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+      document.getElementById("total-vista").textContent = (total * 0.879).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+    }
+  </script>
+</body>
+</html>
