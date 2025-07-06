@@ -16,14 +16,10 @@ const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 const db = getFirestore(app);
 
-console.log("✅ Firebase inicializado");
-console.log("db:", db);
-
 const precos = {};
 
 // 🔍 Carrega os tipos de persiana no <select>
 export async function carregarTipos(selectElement) {
-  console.log("🔍 Buscando dados no Firestore...");
   const querySnapshot = await getDocs(collection(db, "persianas"));
   const lista = [];
 
@@ -42,8 +38,6 @@ export async function carregarTipos(selectElement) {
     option.textContent = item.nome;
     selectElement.appendChild(option);
   });
-
-  console.log("✅ Persianas carregadas:", precos);
 }
 
 // 🧮 Cálculo da persiana
@@ -62,7 +56,7 @@ export function calcularPersiana(largura, altura, tipo, desconto = 0) {
   };
 }
 
-// 🔓 Função global (opcional)
+// 🔓 Função global opcional
 window.abrirJanelaItem = function () {
   const modal = document.getElementById("janelaItem");
   if (modal) modal.style.display = "flex";
