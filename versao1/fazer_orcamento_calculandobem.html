@@ -1,4 +1,5 @@
 
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -114,9 +115,11 @@
       <tbody id="lista-itens"></tbody>
     </table>
 
-    <div id="total-geral" style="text-align:right; margin-top:10px; font-size:18px; display:none;">
-      Total geral: <strong id="soma-final">R\$ 0,00</strong>
-    </div>
+      <div id="total-geral" style="text-align:right; margin-top:10px; font-size:18px; display:none;">
+        Total geral: <strong id="soma-final">R$ 0,00</strong><br>
+        Total à vista: <strong id="total-vista">R$ 0,00</strong>
+      </div>
+
 
     <div class="botoes">
       <button onclick="abrirJanelaPersiana()">+ Adicionar Persiana</button>
@@ -277,6 +280,9 @@ if (!itens || itens.length === 0) {
     const totalGeral = itens.reduce((soma, item) => soma + parseFloat(item.total), 0);
     document.getElementById("soma-final").textContent = totalGeral.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
     document.getElementById("total-geral").style.display = "block";
+    const totalVista = totalGeral * 0.879;
+document.getElementById("total-vista").textContent = totalVista.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+
 
   }
 
