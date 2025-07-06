@@ -424,6 +424,7 @@ if (!itens || itens.length === 0) {
 <!-- FUNÇÃO DE EXPORTAÇÃO -->
 <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
 <script>
+ <script>
   function exportarComoImagem() {
     const nome = document.getElementById("nome").textContent;
     const telefone = document.getElementById("telefone").textContent;
@@ -448,11 +449,16 @@ if (!itens || itens.length === 0) {
 
     let total = 0;
 
-    for (const row of tbody.children) {
-      const produto = row.children[0].textContent;
-      const qtd = row.children[3].textContent;
-      const valor = row.children[5].textContent;
-      total += parseFloat(valor.replace(/[R$.\s]/g, '').replace(',', '.'));
+    for (const row of tbody.querySelectorAll("tr")) {
+      const cols = row.querySelectorAll("td");
+      if (cols.length < 6) continue;
+
+      const produto = cols[0].textContent;
+      const qtd = cols[3].textContent;
+      const valor = cols[5].textContent;
+
+      const valorNumerico = parseFloat(valor.replace(/[R$.\s]/g, '').replace(',', '.'));
+      if (!isNaN(valorNumerico)) total += valorNumerico;
 
       const tr = document.createElement("tr");
       tr.innerHTML = `
@@ -476,6 +482,8 @@ if (!itens || itens.length === 0) {
       el.style.display = "none";
     });
   }
+</script>
+
 </script>
 
 </body>
