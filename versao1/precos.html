@@ -2,36 +2,14 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <title>Editar Preços</title>
+  <title>Inserir Preços no Firestore</title>
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
-  <style>
-    body { font-family: Arial, sans-serif; margin: 20px; background: #f7f7f7; }
-    h2 { background: #333; color: #fff; padding: 10px; }
-    .categoria { margin-bottom: 30px; }
-    label { display: flex; justify-content: space-between; padding: 4px 0; }
-    input[type="number"] { width: 100px; }
-    button { margin-top: 10px; padding: 8px 15px; }
-    #login { max-width: 300px; margin: auto; }
-  </style>
 </head>
 <body>
-
-  <div id="login">
-    <h2>Login</h2>
-    <input id="email" type="email" placeholder="Email"><br><br>
-    <input id="senha" type="password" placeholder="Senha"><br><br>
-    <button onclick="logar()">Entrar</button>
-    <p id="erro" style="color:red;"></p>
-  </div>
-
-  <div id="conteudo" style="display:none;">
-    <h1>Editar Preços</h1>
-    <div id="categorias"></div>
-    <button onclick="salvarPrecos()">Salvar Tudo</button>
-    <button onclick="logout()">Sair</button>
-  </div>
+  <h2>Inserir preços automaticamente</h2>
+  <button onclick="inserirPrecos()">Rodar agora</button>
+  <p id="status"></p>
 
   <script>
     const firebaseConfig = {
@@ -44,71 +22,67 @@
     };
 
     firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
     const db = firebase.firestore();
 
-    const categorias = ["tecidos", "tecidos_bk", "parametros", "trilhos"];
-    const precos = {};
+    async function inserirPrecos() {
+      document.getElementById("status").innerText = "Enviando dados...";
 
-    function logar() {
-      const email = document.getElementById("email").value;
-      const senha = document.getElementById("senha").value;
-      auth.signInWithEmailAndPassword(email, senha)
-        .then(() => {
-          document.getElementById("login").style.display = "none";
-          document.getElementById("conteudo").style.display = "block";
-          carregarPrecos();
-        })
-        .catch((error) => {
-          document.getElementById("erro").innerText = "Erro ao entrar: " + error.message;
-        });
-    }
+      const precos = {
+        tecidos: {
+          "CETIM": 11.00,
+          "MICROFIBRA": 6.70,
+          "GAZE DE LINHO": 12.00,
+          "LINHO DHL": 25.00,
+          "LINHO FLAME": 16.00,
+          "LINHO JEANS": 25.00,
+          "LINHO CTX": 16.50,
+          "LINHO POLLY": 18.00,
+          "LINHO ROMA": 23.00,
+          "OXFORD": 11.00,
+          "SHANTUNG": 28.00,
+          "TECIDO TELADO": 40.00,
+          "VELUDO 1,40": 17.00,
+          "VELUDO SILVER": 32.00,
+          "VOIL LISO": 8.50,
+          "VOIL TEXTURIZADO": 14.00
+        },
+        tecidos_bk: {
+          "BK 100% LAVÁVEL": 27.00,
+          "BK 100% LINHÃO": 40.00,
+          "BK 70% MESCLA": 38.00,
+          "BK 70%": 23.00
+        },
+        parametros: {
+          "ENTRETELA": 1.64,
+          "ENTRETELA BK": 1.00,
+          "DESLIZANTE": 0.15,
+          "TERMINAL": 0.66,
+          "COSTURA": 8.00,
+          "BARRA": 5.50,
+          "INSTALAÇÃO": 5.00,
+          "BUCHA E PARAFUSO": 4.00
+        },
+        trilhos: {
+          "TRILHO SUÍÇO SIMPLES": 8.50,
+          "TRILHO SUÍCO DUPLO": 11.00,
+          "TRILHO SUÍCO TRIPLO": 17.00,
+          "TRILHO SUÍÇO FLEXÍVEL": 15.00,
+          "SEM TRILHO": 0.00,
+          "VARÃO SUÍÇO": 17.00,
+          "VARÃO SUÍÇO DUPLO": 25.00,
+          "SUPORTE": 9.00,
+          "TAMPA": 2.00
+        }
+      };
 
-    function logout() {
-      auth.signOut().then(() => {
-        location.reload();
-      });
-    }
-
-    function carregarPrecos() {
-      const container = document.getElementById("categorias");
-      container.innerHTML = "";
-      categorias.forEach(async (cat) => {
-        const doc = await db.collection("precos").doc(cat).get();
-        const dados = doc.data();
-        precos[cat] = dados;
-
-        const div = document.createElement("div");
-        div.className = "categoria";
-        div.innerHTML = `<h2>${cat.toUpperCase()}</h2>`;
-        Object.entries(dados).forEach(([nome, valor]) => {
-          div.innerHTML += `
-            <label>
-              <span>${nome}</span>
-              <input type="number" step="0.01" value="${valor}" data-cat="${cat}" data-nome="${nome}">
-            </label>
-          `;
-        });
-        container.appendChild(div);
-      });
-    }
-
-    function salvarPrecos() {
-      const inputs = document.querySelectorAll("input[data-cat]");
-      inputs.forEach(input => {
-        const cat = input.dataset.cat;
-        const nome = input.dataset.nome;
-        const valor = parseFloat(input.value);
-        precos[cat][nome] = valor;
-      });
-
-      const promessas = categorias.map(cat => 
-        db.collection("precos").doc(cat).set(precos[cat])
-      );
-
-      Promise.all(promessas)
-        .then(() => alert("Preços salvos com sucesso!"))
-        .catch(err => alert("Erro ao salvar: " + err.message));
+      try {
+        for (const [doc, dados] of Object.entries(precos)) {
+          await db.collection("precos").doc(doc).set(dados);
+        }
+        document.getElementById("status").innerText = "✅ Dados enviados com sucesso.";
+      } catch (err) {
+        document.getElementById("status").innerText = "❌ Erro: " + err.message;
+      }
     }
   </script>
 </body>
