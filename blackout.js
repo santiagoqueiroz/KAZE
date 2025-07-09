@@ -82,8 +82,9 @@ export function calcularBlackout() {
   }
 
   const valorTecido = arred(qtdTecidoTotal * precoTecido);
-  const entrela = arred(qtdTecidoTotal * parametros["ENTRETELA"]);
-  const deslizante = arred(qtdTecidoTotal * parametros["DESLIZANTE"] * 30);
+  const entrela = arred(qtdTecidoTotal * parametros["ENTRETELA BK"]);
+  const qtdDeslizante = Math.ceil(tecidoBase / 0.08);
+  const deslizante = arred(qtdDeslizante * parametros["DESLIZANTE"]);
   const terminal = arred(2 * parametros["TERMINAL"]);
   const costura = arred(qtdTecidoTotal * parametros["COSTURA"]);
   const barra = arred(qtdTecidoTotal * parametros["BARRA"]);
@@ -119,14 +120,15 @@ export function calcularBlackout() {
   const linhas = [
     { label: `Tecido: ${qtdTecidoTotal} m x R$ ${precoTecido.toFixed(2)}`, valor: valorTecido },
     { label: `Trilho`, valor: trilho },
-    { label: `Entretela`, valor: entrela },
-    { label: `Deslizante`, valor: deslizante },
-    { label: `Terminal`, valor: terminal },
-    { label: `Costura`, valor: costura },
-    { label: `Barra`, valor: barra },
+    { label: `Entretela: ${qtdTecidoTotal} m x R$ ${parametros["ENTRETELA BK"].toFixed(2)}`, valor: entrela },
+    { label: `Deslizante: ${qtdDeslizante} x R$ ${parametros["DESLIZANTE"].toFixed(2)}`, valor: deslizante },
+    { label: `Terminal: 2 x R$ ${parametros["TERMINAL"].toFixed(2)}`, valor: terminal },
+    { label: `Costura: ${qtdTecidoTotal} m x R$ ${parametros["COSTURA"].toFixed(2)}`, valor: costura },
+    { label: `Barra: ${qtdTecidoTotal} m x R$ ${parametros["BARRA"].toFixed(2)}`, valor: barra },
     { label: `Instalação`, valor: instalacao },
-    { label: `Bucha e Parafuso`, valor: bucha },
+    { label: `Bucha e Parafuso: ${kitsBucha} x R$ ${parametros["BUCHA E PARAFUSO"].toFixed(2)}`, valor: bucha },
   ];
+
 
   const tabela = `
     <style>
