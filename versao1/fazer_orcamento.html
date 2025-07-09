@@ -119,6 +119,9 @@
     <button onclick="abrirJanelaCortina()">
      + Adicionar Cortina
     </button>
+    <button onclick="abrirJanelaBlackout()">
+     + Adicionar Blackout
+    </button>
    </div>
    <div class="modal" id="janelaItem">
     <div class="conteudo">
@@ -205,6 +208,33 @@
      </button>
     </div>
    </div>
+<div class="modal" id="janelaBlackout">
+  <div class="conteudo">
+    <h3>Adicionar Blackout</h3>
+    <label for="larguraBK">Largura (m):</label>
+    <input id="larguraBK" step="0.01" type="number"/>
+
+    <label for="alturaBK">Altura (m):</label>
+    <input id="alturaBK" step="0.01" type="number"/>
+
+    <label for="tecidoBK">Tecido:</label>
+    <select id="tecidoBK"></select>
+
+    <label for="trilhoBK">Trilho:</label>
+    <select id="trilhoBK"></select>
+
+    <label for="ambienteBK">Ambiente:</label>
+    <input id="ambienteBK" type="text"/>
+
+    <label for="descontoBK">Desconto (R$):</label>
+    <input id="descontoBK" step="0.01" type="number" value="0"/>
+
+    <div id="resultadoBK" style="margin-top:15px;"></div>
+
+    <button onclick="confirmarItemBlackout()">Adicionar ao orçamento</button>
+    <button onclick="fecharJanelaBlackout()">Fechar</button>
+  </div>
+
   </div>
   <script src="main.js" type="module">
   </script>
