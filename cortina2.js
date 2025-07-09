@@ -148,5 +148,32 @@ export function calcularCortina() {
     </table>
   `;
 
+  console.groupCollapsed(`🧮 Cálculo Detalhado - ${produto}`);
+console.log("🧵 Tecido:", `${qtdTecidoTotal} m x R$ ${precoTecido.toFixed(2)} = ${formatarReais(valorTecido)}`);
+if (nomeTrilho.includes("VARÃO SUÍÇO")) {
+  console.log("🪵 Trilho VARÃO SUÍÇO:");
+  console.log("   Tubo:", `ceiling(${largura}m, 0.5) = ${ceiling(largura, 0.5)} m`);
+  console.log("   Suportes:", `largura = ${largura}m → ${qtdSuporte} unidades`);
+  console.log("   Tampas: 2 unidades`);
+  console.log("   Preço total do trilho: " + formatarReais(trilho));
+} else {
+  console.log("🛤️ Trilho:", `ceiling(${largura}m, 0.5) x R$ ${precoTrilho.toFixed(2)} = ${formatarReais(trilho)}`);
+}
+console.log("📐 Entrela:", `${qtdTecidoBase} m x R$ ${parametros["ENTRETELA"].toFixed(2)} = ${formatarReais(entrela)}`);
+console.log("🧷 Deslizante:", `${qntDeslizante} x R$ ${parametros["DESLIZANTE"].toFixed(2)} = ${formatarReais(deslizante)}`);
+console.log("🔩 Terminal:", `2 x R$ ${parametros["TERMINAL"].toFixed(2)} = ${formatarReais(terminal)}`);
+console.log("🧵 Costura:", `${qtdTecidoTotal} m x R$ ${parametros["COSTURA"].toFixed(2)} = ${formatarReais(costura)}`);
+console.log("📏 Barra:", `${qtdTecidoBase} m x R$ ${parametros["BARRA"].toFixed(2)} x ${multiplicadorFinalBarra} = ${formatarReais(barra)}`);
+console.log("🛠️ Instalação:", formatarReais(instalacao));
+console.log("🔧 Bucha e Parafuso:", `${kitsBucha} x R$ ${parametros["BUCHA E PARAFUSO"].toFixed(2)} = ${formatarReais(bucha)}`);
+console.log("🧮 Subtotal:", formatarReais(subtotal));
+console.log("📊 Simples Nacional (6%):", formatarReais(simples));
+console.log("➕ Subtotal + Simples:", formatarReais(baseMaisSimples));
+console.log("📈 Markup (2,4x):", formatarReais(totalVista));
+console.log("💳 Ajuste Cartão (/0.879):", formatarReais(totalCorrigido));
+console.log("🏷️ Desconto:", formatarReais(desconto));
+console.log("💰 TOTAL FINAL:", formatarReais(totalFinal));
+console.groupEnd();
+
   document.getElementById('resultado').innerHTML = tabela;
 }
