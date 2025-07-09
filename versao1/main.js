@@ -287,7 +287,7 @@ window.confirmarItemBlackout = async function () {
   const altura = parseFloat(document.getElementById("alturaBK").value || 0);
   const totalTexto = document.querySelector("#resultadoBK tr:last-child td:last-child")?.textContent || "0";
 
-  const valorLimpo = totalTexto.replace("R$", "").replace(/\\./g, "").replace(",", ".").trim();
+  const valorLimpo = totalTexto.replace("R$", "").replace(/\./g, "").replace(",", ".").trim();
   const total = parseFloat(valorLimpo) || 0;
 
   const item = {
