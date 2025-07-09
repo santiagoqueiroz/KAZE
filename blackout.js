@@ -164,7 +164,7 @@ export function calcularBlackout() {
     } else {
       console.log("🛤️ Trilho:", `ceiling(${largura}m, 0.5) x R$ ${precoTrilho.toFixed(2)} = ${formatarReais(trilho)}`);
     }
-    console.log("📐 Entretela:", `${qtdTecidoTotal} m x R$ ${parametros["ENTRETELA"].toFixed(2)} = ${formatarReais(entrela)}`);
+    console.log("📐 Entretela:", `${qtdTecidoTotal} m x R$ ${parametros["ENTRETELA BK"].toFixed(2)} = ${formatarReais(entrela)}`);
     console.log("🧷 Deslizante:", `${qtdTecidoTotal * 30} x R$ ${parametros["DESLIZANTE"].toFixed(2)} = ${formatarReais(deslizante)}`);
     console.log("🔩 Terminal:", `2 x R$ ${parametros["TERMINAL"].toFixed(2)} = ${formatarReais(terminal)}`);
     console.log("🧵 Costura:", `${qtdTecidoTotal} m x R$ ${parametros["COSTURA"].toFixed(2)} = ${formatarReais(costura)}`);
