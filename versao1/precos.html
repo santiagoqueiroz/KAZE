@@ -48,6 +48,30 @@
   <button onclick="adicionarNovo()">➕ Adicionar</button>
   <p id="novo-status"></p>
 
+  <hr>
+
+  <h2>🗑️ Excluir item existente</h2>
+  <label>
+    Categoria:
+    <select id="del-categoria" onchange="atualizarListaExclusao()">
+      <option value="">-- selecione --</option>
+      <option value="tecidos">tecidos</option>
+      <option value="tecidos_bk">tecidos_bk</option>
+      <option value="parametros">parametros</option>
+      <option value="trilhos">trilhos</option>
+    </select>
+  </label>
+  <br>
+  <label>
+    Item:
+    <select id="del-item">
+      <option value="">-- selecione uma categoria --</option>
+    </select>
+  </label>
+  <br><br>
+  <button onclick="excluir()">❌ Confirmar exclusão</button>
+  <p id="excluir-status"></p>
+
   <script>
     const firebaseConfig = {
       apiKey: "AIzaSyD5kVoWRWZB6xtacyu6lH--QFXry_MPKps",
@@ -130,7 +154,7 @@
         const docRef = db.collection("precos").doc(cat);
         await docRef.update({ [nome]: valor });
         document.getElementById("novo-status").innerText = "✅ Item adicionado!";
-        carregar(); // recarrega a tela com novo item
+        carregar();
         document.getElementById("novo-nome").value = "";
         document.getElementById("novo-valor").value = "";
       } catch (err) {
@@ -138,8 +162,50 @@
       }
     }
 
+    function atualizarListaExclusao() {
+      const cat = document.getElementById("del-categoria").value;
+      const select = document.getElementById("del-item");
+      select.innerHTML = "";
+
+      if (!cat || !precos[cat]) {
+        select.innerHTML = `<option value="">-- selecione uma categoria --</option>`;
+        return;
+      }
+
+      for (const nome of Object.keys(precos[cat])) {
+        const opt = document.createElement("option");
+        opt.value = nome;
+        opt.innerText = nome;
+        select.appendChild(opt);
+      }
+    }
+
+    async function excluir() {
+      const cat = document.getElementById("del-categoria").value;
+      const nome = document.getElementById("del-item").value;
+
+      if (!cat || !nome) {
+        document.getElementById("excluir-status").innerText = "❌ Selecione a categoria e o item.";
+        return;
+      }
+
+      if (!confirm(`Tem certeza que deseja excluir "${nome}" da categoria "${cat}"?`)) {
+        return;
+      }
+
+      try {
+        const docRef = db.collection("precos").doc(cat);
+        await docRef.update({ [nome]: firebase.firestore.FieldValue.delete() });
+        document.getElementById("excluir-status").innerText = "✅ Item excluído.";
+        carregar();
+      } catch (err) {
+        document.getElementById("excluir-status").innerText = "❌ Erro ao excluir: " + err.message;
+      }
+    }
+
     carregar();
   </script>
 </body>
+
 
 </html>
