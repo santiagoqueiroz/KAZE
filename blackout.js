@@ -79,7 +79,7 @@ export function calcularBlackout() {
     else if (decimal <= 0.5) qtdTiras = Math.floor(bruto) + 0.5;
     else qtdTiras = Math.ceil(bruto);
     qtdTecidoTotal = arred(alturaFinal * qtdTiras);
-    tecidoBase = qtdTecidoTotal; // ✅ define um valor para cálculo do deslizante
+    tecidoBase = arred(largura + 0.8); // ✅ define um valor para cálculo do deslizante, terminal e barra
   }
 
   const valorTecido = arred(qtdTecidoTotal * precoTecido);
