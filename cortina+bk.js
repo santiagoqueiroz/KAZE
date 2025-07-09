@@ -105,7 +105,7 @@ function calcularCortinaBK() {
   const linhasCortina = [];
   const linhasBK = [];
 
-  // Tecido cortina
+  // Parte da CORTINA
   const alturaTira = arred(altura + 0.12 + barraExtra);
   const qtdBase = arred((largura * 3.1) + 0.7);
   const qtdTiras = (qtdBase / 3) % 1 < 0.4 ? Math.floor(qtdBase / 3) : Math.ceil(qtdBase / 3);
@@ -121,14 +121,15 @@ function calcularCortinaBK() {
   linhasCortina.push({ label: `Instalação`, valor: parametros["INSTALAÇÃO"] });
   linhasCortina.push({ label: `Bucha e Parafuso`, valor: arred(Math.ceil(largura * 0.5) * parametros["BUCHA E PARAFUSO"]) });
 
-  // Subtotal cortina
   const subtotalC = somarLinhas(linhasCortina);
-  const totalC = arred(arred((subtotalC * 1.06) * 2.4) / 0.879);
+  const simplesC = arred(subtotalC * 0.06);
+  const baseC = arred(subtotalC + simplesC);
+  const totalC = arred(baseC * 2.4 / 0.879);
 
-  // Blackout (parcial)
+  // Parte do BLACKOUT
   const baseBK = arred(largura + 0.8);
   const alturaBK = arred(altura + 0.25);
-  const qtdBK = arred(baseBK); // simplificado
+  const qtdBK = arred(baseBK);
   const valorTecidoBK = arred(qtdBK * precoBK);
   linhasBK.push({ label: `Tecido BK: ${qtdBK} m`, valor: valorTecidoBK });
   linhasBK.push({ label: `Entretela`, valor: arred(baseBK * parametros["ENTRETELA BK"]) });
@@ -141,13 +142,34 @@ function calcularCortinaBK() {
 
   const linhasBKFiltradas = removerItensCompartilhados(linhasBK);
   const subtotalBK = somarLinhas(linhasBKFiltradas);
-  const totalBK = arred(arred((subtotalBK * 1.06) * 2.4) / 0.879);
+  const simplesBK = arred(subtotalBK * 0.06);
+  const baseBKfinal = arred(subtotalBK + simplesBK);
+  const totalBK = arred(baseBKfinal * 2.4 / 0.879);
 
   const totalFinal = arred(totalC + totalBK - desconto);
 
   const produto = `${ambiente} - Cortina ${nomeC} + BK ${nomeBK} - ${nomeTrilho}`;
   const linhasCombinadas = [...linhasCortina, ...linhasBKFiltradas];
   const tabelaHTML = gerarTabela(produto, linhasCombinadas, totalFinal);
+
+  console.groupCollapsed(`🧮 Cálculo Detalhado - ${produto}`);
+  console.log("CORTINA:");
+  linhasCortina.forEach(l => console.log(" -", l.label, "=", formatarReais(l.valor)));
+  console.log("Subtotal:", formatarReais(subtotalC));
+  console.log("+6%:", formatarReais(simplesC));
+  console.log("x2.4:", formatarReais(baseC * 2.4));
+  console.log("/0.879:", formatarReais(totalC));
+
+  console.log("BLACKOUT (sem trilho, barra, instalação, bucha):");
+  linhasBKFiltradas.forEach(l => console.log(" -", l.label, "=", formatarReais(l.valor)));
+  console.log("Subtotal:", formatarReais(subtotalBK));
+  console.log("+6%:", formatarReais(simplesBK));
+  console.log("x2.4:", formatarReais(baseBKfinal * 2.4));
+  console.log("/0.879:", formatarReais(totalBK));
+
+  console.log("DESCONTO FINAL:", formatarReais(desconto));
+  console.log("TOTAL FINAL:", formatarReais(totalFinal));
+  console.groupEnd();
 
   document.getElementById("resultado").innerHTML = tabelaHTML;
 }
@@ -171,4 +193,3 @@ onAuthStateChanged(auth, (user) => {
 });
 
 document.getElementById("btn-calcular").onclick = calcularCortinaBK;
-
