@@ -157,15 +157,20 @@ export function calcularBlackout() {
     console.groupCollapsed(`🧮 Cálculo Detalhado - ${produto}`);
     console.log("🧵 Tecido:", `${qtdTecidoTotal} m x R$ ${precoTecido.toFixed(2)} = ${formatarReais(valorTecido)}`);
     if (nomeTrilho.includes("VARÃO SUÍÇO")) {
-      const qtdTubo = ceiling(largura, 0.5);
-      console.log("🪵 Trilho VARÃO SUÍÇO:");
-      console.log("   Tubo:", `${qtdTubo} m`);
-      console.log("   Suportes:", `largura = ${largura}m → ${qtdSuporte} unidades`);
-      console.log("   Tampas: 2 unidades");
-      console.log("   Preço total do trilho: " + formatarReais(trilho));
-    } else {
-      console.log("🛤️ Trilho:", `ceiling(${largura}m, 0.5) x R$ ${precoTrilho.toFixed(2)} = ${formatarReais(trilho)}`);
-    }
+    const qtdTubo = ceiling(largura, 0.5);
+    let qtdSuporte = 2;
+    if (largura > 1.9 && largura <= 3.5) qtdSuporte = 3;
+    else if (largura > 3.5 && largura <= 4.8) qtdSuporte = 4;
+    else if (largura > 4.8) qtdSuporte = 4 + Math.ceil((largura - 4.8) / 1.5);
+  
+    console.log("🪵 Trilho VARÃO SUÍÇO:");
+    console.log("   Tubo:", `${qtdTubo} m`);
+    console.log("   Suportes:", `largura = ${largura}m → ${qtdSuporte} unidades`);
+    console.log("   Tampas: 2 unidades");
+    console.log("   Preço total do trilho: " + formatarReais(trilho));
+  } else {
+    console.log("🛤️ Trilho:", `ceiling(${largura}m, 0.5) x R$ ${precoTrilho.toFixed(2)} = ${formatarReais(trilho)}`);
+  }
     console.log("📐 Entretela:", `${tecidoBase} m x R$ ${parametros["ENTRETELA BK"].toFixed(2)} = ${formatarReais(entrela)}`);
     console.log("🧷 Deslizante:", `${qtdDeslizante} x R$ ${parametros["DESLIZANTE"].toFixed(2)} = ${formatarReais(deslizante)}`);
     console.log("🔩 Terminal:", `2 x R$ ${parametros["TERMINAL"].toFixed(2)} = ${formatarReais(terminal)}`);
