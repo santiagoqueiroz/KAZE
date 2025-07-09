@@ -1,3 +1,4 @@
+
 const tecidos = {
   "CETIM": 11.00,
   "MICROFIBRA": 6.70,
@@ -65,16 +66,16 @@ export function preencherSelects() {
 };
 
 export function calcularCortina() {
-  const largura = parseFloat(document.getElementById('largura')?.value.replace(',', '.') || 0);
-  const altura = parseFloat(document.getElementById('altura')?.value.replace(',', '.') || 0);
+  const largura = parseFloat(document.getElementById('larguraC')?.value.replace(',', '.') || 0);
+  const altura = parseFloat(document.getElementById('alturaC')?.value.replace(',', '.') || 0);
   const precoTecido = parseFloat(document.getElementById('tecido')?.value || 0);
   const tecidoSel = document.getElementById('tecido');
   const nomeTecido = tecidoSel?.options[tecidoSel.selectedIndex]?.text?.split(' - ')[0] || "";
   const trilhoSel = document.getElementById('trilho');
   const nomeTrilho = trilhoSel?.options[trilhoSel.selectedIndex]?.text?.split(' - ')[0] || "";
   const precoTrilho = parseFloat(trilhoSel?.value || 0);
-  const desconto = parseFloat((document.getElementById('desconto')?.value || "0").replace(',', '.'));
-  const ambiente = document.getElementById('ambiente')?.value || "Ambiente";
+  const desconto = parseFloat((document.getElementById('descontoC')?.value || "0").replace(',', '.'));
+  const ambiente = document.getElementById('ambienteC')?.value || "Ambiente";
   const barraExtra = parseFloat(document.getElementById('barraExtra')?.value.replace(',', '.') || 0);
   const xBarraAlta = parseFloat(document.getElementById('xBarraAlta')?.value.replace(',', '.') || 1.4);
   const multiplicadorFinalBarra = altura > 3.5 ? xBarraAlta : 1;
@@ -160,5 +161,6 @@ export function calcularCortina() {
     </table>
   `;
 
+  // Compatível com seu HTML
   document.getElementById('resultado').innerHTML = tabela;
 };
