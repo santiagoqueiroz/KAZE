@@ -34,8 +34,14 @@ async function carregarPrecos() {
   parametros = t4.exists() ? t4.data() : {};
 
   const selC = document.getElementById("tecidoC");
-  const selBK = document.getElementById("tecidoBK");
-  const selTrilho = document.getElementById("trilho");
+  const selBK = document.getElementById("tecidoBK_CBK");
+  const selTrilho = document.getElementById("trilhoCBK");
+
+  selC.innerHTML = "";
+  selBK.innerHTML = "";
+  selTrilho.innerHTML = "";
+
+
 
   for (const [nome, preco] of Object.entries(tecidos).sort()) {
     const o = document.createElement("option");
