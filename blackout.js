@@ -79,6 +79,7 @@ export function calcularBlackout() {
     else if (decimal <= 0.5) qtdTiras = Math.floor(bruto) + 0.5;
     else qtdTiras = Math.ceil(bruto);
     qtdTecidoTotal = arred(alturaFinal * qtdTiras);
+    tecidoBase = qtdTecidoTotal; // ✅ define um valor para cálculo do deslizante
   }
 
   const valorTecido = arred(qtdTecidoTotal * precoTecido);
@@ -165,7 +166,7 @@ export function calcularBlackout() {
       console.log("🛤️ Trilho:", `ceiling(${largura}m, 0.5) x R$ ${precoTrilho.toFixed(2)} = ${formatarReais(trilho)}`);
     }
     console.log("📐 Entretela:", `${qtdTecidoTotal} m x R$ ${parametros["ENTRETELA BK"].toFixed(2)} = ${formatarReais(entrela)}`);
-    console.log("🧷 Deslizante:", `${qtdTecidoTotal * 30} x R$ ${parametros["DESLIZANTE"].toFixed(2)} = ${formatarReais(deslizante)}`);
+    console.log("🧷 Deslizante:", `${qtdDeslizante} x R$ ${parametros["DESLIZANTE"].toFixed(2)} = ${formatarReais(deslizante)}`);
     console.log("🔩 Terminal:", `2 x R$ ${parametros["TERMINAL"].toFixed(2)} = ${formatarReais(terminal)}`);
     console.log("🧵 Costura:", `${qtdTecidoTotal} m x R$ ${parametros["COSTURA"].toFixed(2)} = ${formatarReais(costura)}`);
     console.log("📏 Barra:", `${qtdTecidoTotal} m x R$ ${parametros["BARRA"].toFixed(2)} = ${formatarReais(barra)}`);
