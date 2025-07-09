@@ -21,8 +21,8 @@ function formatarReais(valor) {
 }
 
 export async function preencherSelects() {
-  const tecidoSelect = document.getElementById("tecido");
-  const trilhoSelect = document.getElementById("trilho");
+  const tecidoSelect = document.getElementById("tecidoBK");
+  const trilhoSelect = document.getElementById("trilhoBK");
   if (!tecidoSelect || !trilhoSelect) return;
 
   const docTecidos = await getDoc(doc(db, "precos", "tecidos_bk"));
@@ -49,16 +49,16 @@ export async function preencherSelects() {
 }
 
 export function calcularBlackout() {
-  const largura = parseFloat(document.getElementById('larguraC')?.value.replace(',', '.') || 0);
-  const altura = parseFloat(document.getElementById('alturaC')?.value.replace(',', '.') || 0);
-  const precoTecido = parseFloat(document.getElementById('tecido')?.value || 0);
-  const tecidoSel = document.getElementById('tecido');
+  const largura = parseFloat(document.getElementById('larguraBK')?.value.replace(',', '.') || 0);
+  const altura = parseFloat(document.getElementById('alturaBK')?.value.replace(',', '.') || 0);
+  const precoTecido = parseFloat(document.getElementById('tecidoBK')?.value || 0);
+  const tecidoSel = document.getElementById('tecidoBK');
   const nomeTecido = tecidoSel?.options[tecidoSel.selectedIndex]?.text?.split(' - ')[0] || "";
-  const trilhoSel = document.getElementById('trilho');
+  const trilhoSel = document.getElementById('trilhoBK');
   const nomeTrilho = trilhoSel?.options[trilhoSel.selectedIndex]?.text?.split(' - ')[0] || "";
   const precoTrilho = parseFloat(trilhoSel?.value || 0);
-  const desconto = parseFloat((document.getElementById('descontoC')?.value || "0").replace(',', '.'));
-  const ambiente = document.getElementById('ambienteC')?.value || "Ambiente";
+  const desconto = parseFloat((document.getElementById('descontoBK')?.value || "0").replace(',', '.'));
+  const ambiente = document.getElementById('ambienteBK')?.value || "Ambiente";
 
   // Cálculo do tecido total conforme altura
   let tecidoBase = 0;
@@ -187,5 +187,5 @@ export function calcularBlackout() {
     console.log("💰 TOTAL FINAL:", formatarReais(totalFinal));
     console.groupEnd();
 
-  document.getElementById('resultado').innerHTML = tabela;
+  document.getElementById('resultadoBK').innerHTML = tabela;
 }
