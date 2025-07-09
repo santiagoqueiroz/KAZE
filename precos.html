@@ -85,8 +85,16 @@
   const categorias = ["tecidos", "tecidos_bk", "parametros", "trilhos"];
   const precos = {};
 
-  auth.onAuthStateChanged(user => {
+  auth.onAuthStateChanged(async user => {
     if (user) {
+      const doc = await db.collection("permissoes").doc(user.email).get();
+      const dados = doc.data();
+      if (!doc.exists || !dados?.acessoPrecos) {
+        alert("Acesso negado. Este usuário não tem permissão.");
+        auth.signOut();
+        return;
+      }
+
       document.getElementById("login").style.display = "none";
       document.getElementById("conteudo").style.display = "block";
       carregar();
