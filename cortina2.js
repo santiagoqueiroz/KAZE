@@ -99,7 +99,7 @@ export function calcularCortina() {
     if (largura > 1.9 && largura <= 3.5) qtdSuporte = 3;
     else if (largura > 3.5 && largura <= 4.8) qtdSuporte = 4;
     else if (largura > 4.8) qtdSuporte = 4 + Math.ceil((largura - 4.8) / 1.5);
-    const precoTubo = trilhos[nomeTrilho];
+    const precoTubo = trilhos[nomeTrilho.trim()];
     trilho = arred((qtdTubo * precoTubo) + (qtdSuporte * precoSuporte) + (2 * precoTampa));
   } else {
     trilho = arred(ceiling(largura, 0.5) * precoTrilho);
