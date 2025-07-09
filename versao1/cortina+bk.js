@@ -80,18 +80,24 @@ function gerarTabela(produto, linhas, totalFinal) {
 }
 
 function calcularCortinaBK() {
-  const largura = parseFloat(document.getElementById("largura").value || 0);
-  const altura = parseFloat(document.getElementById("altura").value || 0);
+  const largura = parseFloat(document.getElementById("larguraCBK").value || 0);
+  const altura = parseFloat(document.getElementById("alturaCBK").value || 0);
   const precoC = parseFloat(document.getElementById("tecidoC").value || 0);
-  const precoBK = parseFloat(document.getElementById("tecidoBK").value || 0);
+
+  const selBK = document.getElementById("tecidoBK_CBK");
+  const selTrilho = document.getElementById("trilhoCBK");
+
+  const precoBK = parseFloat(selBK.value || 0);
   const nomeC = document.getElementById("tecidoC").selectedOptions[0].text.split(" - ")[0];
-  const nomeBK = document.getElementById("tecidoBK").selectedOptions[0].text.split(" - ")[0];
-  const nomeTrilho = document.getElementById("trilho").selectedOptions[0].text.split(" - ")[0];
-  const precoTrilho = parseFloat(document.getElementById("trilho").value || 0);
+  const nomeBK = selBK.selectedOptions[0].text.split(" - ")[0];
+  const nomeTrilho = selTrilho.selectedOptions[0].text.split(" - ")[0];
+  const precoTrilho = parseFloat(selTrilho.value || 0);
+
   const barraExtra = parseFloat(document.getElementById("barraExtra").value || 0);
   const xBarraAlta = parseFloat(document.getElementById("xBarraAlta").value || 1.4);
-  const ambiente = document.getElementById("ambiente").value || "Ambiente";
-  const desconto = parseFloat(document.getElementById("desconto").value || 0);
+  const ambiente = document.getElementById("ambienteCBK").value || "Ambiente";
+  const desconto = parseFloat(document.getElementById("descontoCBK").value || 0);
+
 
   const linhasCortina = [];
   const linhasBK = [];
