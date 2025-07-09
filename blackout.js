@@ -70,7 +70,7 @@ export function calcularBlackout() {
     tecidoBase = arred(largura + 0.8);
     qtdTecidoTotal = tecidoBase;
   } else if (altura <= 3.0) {
-    tecidoBase = arred(largura + 0.8 + ((3.0 - altura) * 2));
+    tecidoBase = arred(largura + 0.8 + ((altura - 2.8) * 2));
     qtdTecidoTotal = tecidoBase;
   } else {
     const bruto = (largura + 0.8) / 2.8;
