@@ -1,0 +1,96 @@
+
+    body {
+      font-family: sans-serif;
+      background: #f9f9f9;
+      padding: 20px;
+    }
+    .container {
+      max-width: 700px;
+      margin: auto;
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    h2 {
+      margin-top: 0;
+      text-align: center;
+    }
+    label {
+      font-weight: bold;
+      display: block;
+      margin-top: 20px;
+    }
+    select, input {
+      width: 100%;
+      padding: 10px;
+      margin-top: 5px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
+    .info-box {
+      background: #f1f1f1;
+      padding: 15px;
+      margin-top: 20px;
+      border-radius: 6px;
+    }
+    .info-box p {
+      margin: 5px 0;
+    }
+
+    #dados-cliente span {
+      text-transform: uppercase;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+      display: none;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 8px;
+      text-align: center;
+    }
+    th {
+      background-color: #eee;
+    }
+    .botoes {
+      margin-top: 20px;
+      display: flex;
+      gap: 10px;
+    }
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.6);
+      z-index: 999;
+      justify-content: center;
+      align-items: center;
+    }
+    .modal .conteudo {
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      max-width: 400px;
+      width: 90%;
+    }
+  #resultadoBK {
+  overflow-x: auto;
+  word-break: break-word;
+  max-width: 100%;
+}
+
+.modal .conteudo {
+  max-width: 600px;
+}
+
+#resultadoBK table {
+  width: 100% !important;
+  table-layout: fixed;
+  word-break: break-word;
+  font-size: 14px;
+}
+
