@@ -108,8 +108,8 @@ function calcularCortinaBK() {
   // Parte da CORTINA
   const alturaTira = arred(altura + 0.12 + barraExtra);
   const qtdBase = arred((largura * 3.1) + 0.7);
-  const qtdTiras = (qtdBase / 3) % 1 < 0.4 ? Math.floor(qtdBase / 3) : Math.ceil(qtdBase / 3);
-  const qtdTotalC = altura > 2.6 ? arred(qtdTiras * alturaTira) : arred(qtdBase);
+  const qtdTirasBK = (qtdBase / 3) % 1 < 0.4 ? Math.floor(qtdBase / 3) : Math.ceil(qtdBase / 3);
+  const qtdTotalC = altura > 2.6 ? arred(qtdTirasBK * alturaTira) : arred(qtdBase);
   const valorTecidoC = arred(qtdTotalC * precoC);
   const entrela = arred(qtdBase * parametros["ENTRETELA"]);
   const qntDeslizante = Math.ceil(((largura / 0.1) + 1) * 2);
@@ -152,9 +152,9 @@ function calcularCortinaBK() {
   } else {
     const bruto = (largura + 0.8) / 2.8;
     const decimal = bruto % 1;
-    if (decimal <= 0.14) qtdTiras = Math.floor(bruto);
-    else if (decimal <= 0.5) qtdTiras = Math.floor(bruto) + 0.5;
-    else qtdTiras = Math.ceil(bruto);
+    if (decimal <= 0.14) qtdTirasBK = Math.floor(bruto);
+    else if (decimal <= 0.5) qtdTirasBK = Math.floor(bruto) + 0.5;
+    else qtdTirasBK = Math.ceil(bruto);
     qtdBK = arred(alturaFinal * qtdTirasBK);
     tecidoBase = arred(largura + 0.8); // usado em barra, entretela, etc.
   }
