@@ -195,22 +195,6 @@ function calcularCortinaBK() {
   document.getElementById("resultado").innerHTML = tabelaHTML;
 }
 
-document.getElementById("btn-login").onclick = async () => {
-  const email = document.getElementById("email").value;
-  const senha = document.getElementById("senha").value;
-  try {
-    await signInWithEmailAndPassword(auth, email, senha);
-  } catch (e) {
-    document.getElementById("erro-login").textContent = "Erro: " + e.message;
-  }
-};
 
-onAuthStateChanged(auth, (user) => {
-  if (user) {
-    document.getElementById("login-box").style.display = "none";
-    document.getElementById("formulario").style.display = "block";
-    carregarPrecos();
-  }
-});
 
 export { carregarPrecos as preencherSelects, calcularCortinaBK };
