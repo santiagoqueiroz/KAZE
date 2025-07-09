@@ -154,7 +154,7 @@ if (nomeTrilho.includes("VARÃO SUÍÇO")) {
   console.log("🪵 Trilho VARÃO SUÍÇO:");
   console.log("   Tubo:", `ceiling(${largura}m, 0.5) = ${ceiling(largura, 0.5)} m`);
   console.log("   Suportes:", `largura = ${largura}m → ${qtdSuporte} unidades`);
-  console.log("   Tampas: 2 unidades`);
+  console.log("   Tampas: 2 unidades");
   console.log("   Preço total do trilho: " + formatarReais(trilho));
 } else {
   console.log("🛤️ Trilho:", `ceiling(${largura}m, 0.5) x R$ ${precoTrilho.toFixed(2)} = ${formatarReais(trilho)}`);
