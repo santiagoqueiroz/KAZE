@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Consultar Clientes</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body {
+      font-family: sans-serif;
+      padding: 40px;
+      background-color: #f2f2f2;
+      visibility: hidden; /* Evita flash antes do login */
+    }
+    h1 {
+      margin-bottom: 20px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background-color: white;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 10px;
+      text-align: left;
+    }
+    th {
+      background-color: #eee;
+    }
+    #voltar {
+      margin-top: 20px;
+      display: inline-block;
+      background-color: #333;
+      color: white;
+      padding: 10px 20px;
+      text-decoration: none;
+      border-radius: 5px;
+    }
+    #voltar:hover {
+      background-color: #555;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Clientes Cadastrados</h1>
+  <table id="tabelaClientes">
+    <thead>
+      <tr>
+        <th>Nome</th>
+        <th>Telefone</th>
+        <th>CPF/CNPJ</th>
+        <th>Endereço</th>
+        <th>Bairro</th>
+        <th>Cidade</th>
+        <th>E-mail</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <a id="voltar" href="painel.html">Voltar ao Painel</a>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import {
+      getFirestore, collection, getDocs, query, orderBy
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import {
+      getAuth, onAuthStateChanged
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyD5kVoWRWZB6xtacyu6lH--QFXry_MPKps",
+      authDomain: "kaze-8836b.firebaseapp.com",
+      projectId: "kaze-8836b",
+      storageBucket: "kaze-8836b.firebasestorage.app",
+      messagingSenderId: "336054068300",
+      appId: "1:336054068300:web:6125e8eecc08d667fac0e9"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const auth = getAuth(app);
+
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        window.location.href = "index.html";
+        return;
+      }
+
+      document.body.style.visibility = 'visible'; // Mostra o conteúdo apenas se logado
+
+      const tabela = document.querySelector("#tabelaClientes tbody");
+
+      try {
+        const q = query(collection(db, "clientes"), orderBy("nome"));
+        const querySnapshot = await getDocs(q);
+        console.log("Total de clientes:", querySnapshot.size);
+
+        querySnapshot.forEach((doc) => {
+          const c = doc.data();
+          const linha = document.createElement("tr");
+          linha.innerHTML = `
+            <td>${c.nome || ""}</td>
+            <td>${c.telefone || ""}</td>
+            <td>${c.cpfOuCnpj || ""}</td>
+            <td>${c.endereco || ""}</td>
+            <td>${c.bairro || ""}</td>
+            <td>${c.cidade || ""}</td>
+            <td>${c.email || ""}</td>
+          `;
+          tabela.appendChild(linha);
+        });
+      } catch (erro) {
+        console.error("Erro ao buscar clientes:", erro);
+      }
+    });
+  </script>
+
+</body>
+</html>
