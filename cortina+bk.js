@@ -138,24 +138,43 @@ function calcularCortinaBK() {
   const totalC = arred(baseC * 2.4 / 0.879);
 
   // Parte do BLACKOUT
-  const baseBK = arred(largura + 0.8);
-  const alturaBK = arred(altura + 0.25);
-  const qtdBK = arred(baseBK);
+  let tecidoBase = 0;
+  let qtdTiras = 1;
+  let alturaFinal = arred(altura + 0.10 + 0.15);
+  let qtdBK = 0;
+  
+  if (altura <= 2.8) {
+    tecidoBase = arred(largura + 0.8);
+    qtdBK = tecidoBase;
+  } else if (altura <= 3.0) {
+    tecidoBase = arred(largura + 0.8 + ((altura - 2.8) * 2));
+    qtdBK = tecidoBase;
+  } else {
+    const bruto = (largura + 0.8) / 2.8;
+    const decimal = bruto % 1;
+    if (decimal <= 0.14) qtdTiras = Math.floor(bruto);
+    else if (decimal <= 0.5) qtdTiras = Math.floor(bruto) + 0.5;
+    else qtdTiras = Math.ceil(bruto);
+    qtdBK = arred(alturaFinal * qtdTiras);
+    tecidoBase = arred(largura + 0.8); // usado em barra, entretela, etc.
+  }
+  
   const valorTecidoBK = arred(qtdBK * precoBK);
   linhasBK.push({ label: `Tecido BK: ${qtdBK} m`, valor: valorTecidoBK });
-  linhasBK.push({ label: `Entretela`, valor: arred(baseBK * parametros["ENTRETELA BK"]) });
-  linhasBK.push({ label: `Deslizante`, valor: arred(Math.ceil(baseBK / 0.08) * parametros["DESLIZANTE"]) });
+  linhasBK.push({ label: `Entretela`, valor: arred(tecidoBase * parametros["ENTRETELA BK"]) });
+  linhasBK.push({ label: `Deslizante`, valor: arred(Math.ceil(tecidoBase / 0.08) * parametros["DESLIZANTE"]) });
   linhasBK.push({ label: `Terminal`, valor: arred(2 * parametros["TERMINAL"]) });
   linhasBK.push({ label: `Costura`, valor: arred(qtdBK * parametros["COSTURA"]) });
-  linhasBK.push({ label: `Barra`, valor: arred(baseBK * parametros["BARRA"]) });
+  linhasBK.push({ label: `Barra`, valor: arred(tecidoBase * parametros["BARRA"]) });
   linhasBK.push({ label: `Instalação`, valor: parametros["INSTALAÇÃO"] });
   linhasBK.push({ label: `Bucha e Parafuso`, valor: arred(Math.ceil(largura) * parametros["BUCHA E PARAFUSO"]) });
-
+  
   const linhasBKFiltradas = removerItensCompartilhados(linhasBK);
   const subtotalBK = somarLinhas(linhasBKFiltradas);
   const simplesBK = arred(subtotalBK * 0.06);
   const baseBKfinal = arred(subtotalBK + simplesBK);
   const totalBK = arred(baseBKfinal * 2.4 / 0.879);
+
 
   const totalFinal = arred(totalC + totalBK - desconto);
 
