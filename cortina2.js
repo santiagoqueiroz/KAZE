@@ -93,6 +93,7 @@ export function calcularCortina() {
   const precoSuporte = parametros["SUPORTE"];
   const precoTampa = parametros["TAMPA"];
 
+  let qtdSuporte = 0;
   if (nomeTrilho.includes("VARÃO SUÍÇO")) {
     const qtdTubo = ceiling(largura, 0.5);
     let qtdSuporte = 2;
