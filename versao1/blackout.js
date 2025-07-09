@@ -25,6 +25,9 @@ export async function preencherSelects() {
   const trilhoSelect = document.getElementById("trilhoBK");
   if (!tecidoSelect || !trilhoSelect) return;
 
+  tecidoSelect.innerHTML = "";
+  trilhoSelect.innerHTML = "";
+
   const docTecidos = await getDoc(doc(db, "precos", "tecidos_bk"));
   const docTrilhos = await getDoc(doc(db, "precos", "trilhos"));
   const docParametros = await getDoc(doc(db, "precos", "parametros"));
