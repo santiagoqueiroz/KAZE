@@ -202,9 +202,9 @@ document.getElementById("total-vista").textContent = totalVista.toLocaleString('
     document.getElementById("resultado").innerHTML = "";
   };
 
-  window.abrirJanelaCortinaBK = async function () {
+  window.abrirJanelaCortinaBK = function () {
     document.getElementById("janelaCortinaBK").style.display = "flex";
-    preencherSelectsCBK();
+    setTimeout(preencherSelectsCBK, 10);
   };
 
   window.fecharJanelaCortinaBK = function () {
