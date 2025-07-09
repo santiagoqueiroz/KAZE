@@ -13,6 +13,8 @@
   import { carregarTipos, calcularPersiana } from './persianas.js';
 // 📦 Importação de módulos do Firebase e scripts locais
   import { preencherSelects, calcularCortina } from './cortina.js';
+  import { preencherSelects as preencherSelectsBK, calcularBlackout } from './blackout.js';
+
 
   const firebaseConfig = {
     apiKey: "AIzaSyD5kVoWRWZB6xtacyu6lH--QFXry_MPKps",
@@ -187,6 +189,18 @@ document.getElementById("total-vista").textContent = totalVista.toLocaleString('
     document.getElementById("resultado").innerHTML = "";
   };
 
+  window.abrirJanelaBlackout = async function () {
+    document.getElementById("janelaBlackout").style.display = "flex";
+    preencherSelectsBK();
+  };
+  
+  window.fecharJanelaBlackout = function () {
+    document.getElementById("janelaBlackout").style.display = "none";
+    document.getElementById("resultado").innerHTML = "";
+  };
+
+
+
 // ✅ Confirma e salva item de cortina no Firestore
   window.confirmarItemCortina = async function () {
     if (!clienteSelecionado) return alert("Selecione um cliente.");
@@ -240,6 +254,48 @@ document.getElementById("total-vista").textContent = totalVista.toLocaleString('
     mostrarItens(itens);
     fecharJanelaCortina();
   };
+
+window.confirmarItemBlackout = async function () {
+  if (!clienteSelecionado) return alert("Selecione um cliente.");
+
+  calcularBlackout();
+
+  let produto = document.querySelector("#resultado h2")?.textContent || "Blackout";
+  const ambiente = document.getElementById("ambienteC").value.trim();
+
+  if (produto.startsWith("Ambiente")) {
+    produto = produto.slice("Ambiente".length).trim().replace(/^[-–]\\s*/, "");
+  }
+  if (ambiente && produto.startsWith(ambiente)) {
+    produto = produto.slice(ambiente.length).trim().replace(/^[-–]\\s*/, "");
+  }
+  if (ambiente) produto += ` (${ambiente})`;
+
+  const largura = parseFloat(document.getElementById("larguraC").value || 0);
+  const altura = parseFloat(document.getElementById("alturaC").value || 0);
+  const totalTexto = document.querySelector("#resultado tr:last-child td:last-child")?.textContent || "0";
+
+  const valorLimpo = totalTexto.replace("R$", "").replace(/\\./g, "").replace(",", ".").trim();
+  const total = parseFloat(valorLimpo) || 0;
+
+  const item = {
+    produto,
+    largura,
+    altura,
+    qtd: 1,
+    unit: total,
+    total: total
+  };
+
+  const ref = doc(db, "clientes", clienteSelecionado);
+  const snap = await getDoc(ref);
+  const itens = snap.data().orcamentoAtivo?.itens || [];
+  itens.push(item);
+  await updateDoc(ref, { "orcamentoAtivo.itens": itens });
+
+  mostrarItens(itens);
+  fecharJanelaBlackout();
+};
 
 
   window.removerItem = async function (index) {
