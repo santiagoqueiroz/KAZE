@@ -2,14 +2,51 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <title>Inserir Preços no Firestore</title>
+  <title>Editar Preços no Firestore</title>
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+  <style>
+    body { font-family: sans-serif; margin: 20px; background: #f5f5f5; }
+    h2 { background: #333; color: #fff; padding: 10px; margin-top: 30px; }
+    .grupo { margin-bottom: 20px; padding: 10px; background: #fff; border: 1px solid #ccc; }
+    label { display: flex; justify-content: space-between; margin: 5px 0; }
+    input[type="text"] { width: 100px; text-align: right; }
+    button { margin-top: 20px; padding: 10px 20px; font-weight: bold; }
+  </style>
 </head>
 <body>
-  <h2>Inserir preços automaticamente</h2>
-  <button onclick="inserirPrecos()">Rodar agora</button>
+  <h1>Editar Preços no Firestore</h1>
+
+  <div id="grupos"></div>
+
+  <button onclick="salvar()">💾 Salvar alterações</button>
   <p id="status"></p>
+
+  <hr>
+
+  <h2>➕ Adicionar novo item</h2>
+  <label>
+    Categoria:
+    <select id="nova-categoria">
+      <option value="tecidos">tecidos</option>
+      <option value="tecidos_bk">tecidos_bk</option>
+      <option value="parametros">parametros</option>
+      <option value="trilhos">trilhos</option>
+    </select>
+  </label>
+  <br>
+  <label>
+    Nome:
+    <input type="text" id="novo-nome" placeholder="Ex: TECIDO NOVO">
+  </label>
+  <br>
+  <label>
+    Valor:
+    <input type="text" id="novo-valor" placeholder="Ex: 12,34" oninput="mascarar(this)">
+  </label>
+  <br><br>
+  <button onclick="adicionarNovo()">➕ Adicionar</button>
+  <p id="novo-status"></p>
 
   <script>
     const firebaseConfig = {
@@ -24,66 +61,85 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
-    async function inserirPrecos() {
-      document.getElementById("status").innerText = "Enviando dados...";
+    const categorias = ["tecidos", "tecidos_bk", "parametros", "trilhos"];
+    const precos = {};
 
-      const precos = {
-        tecidos: {
-          "CETIM": 11.00,
-          "MICROFIBRA": 6.70,
-          "GAZE DE LINHO": 12.00,
-          "LINHO DHL": 25.00,
-          "LINHO FLAME": 16.00,
-          "LINHO JEANS": 25.00,
-          "LINHO CTX": 16.50,
-          "LINHO POLLY": 18.00,
-          "LINHO ROMA": 23.00,
-          "OXFORD": 11.00,
-          "SHANTUNG": 28.00,
-          "TECIDO TELADO": 40.00,
-          "VELUDO 1,40": 17.00,
-          "VELUDO SILVER": 32.00,
-          "VOIL LISO": 8.50,
-          "VOIL TEXTURIZADO": 14.00
-        },
-        tecidos_bk: {
-          "BK 100% LAVÁVEL": 27.00,
-          "BK 100% LINHÃO": 40.00,
-          "BK 70% MESCLA": 38.00,
-          "BK 70%": 23.00
-        },
-        parametros: {
-          "ENTRETELA": 1.64,
-          "ENTRETELA BK": 1.00,
-          "DESLIZANTE": 0.15,
-          "TERMINAL": 0.66,
-          "COSTURA": 8.00,
-          "BARRA": 5.50,
-          "INSTALAÇÃO": 5.00,
-          "BUCHA E PARAFUSO": 4.00
-        },
-        trilhos: {
-          "TRILHO SUÍÇO SIMPLES": 8.50,
-          "TRILHO SUÍCO DUPLO": 11.00,
-          "TRILHO SUÍCO TRIPLO": 17.00,
-          "TRILHO SUÍÇO FLEXÍVEL": 15.00,
-          "SEM TRILHO": 0.00,
-          "VARÃO SUÍÇO": 17.00,
-          "VARÃO SUÍÇO DUPLO": 25.00,
-          "SUPORTE": 9.00,
-          "TAMPA": 2.00
-        }
-      };
+    async function carregar() {
+      const container = document.getElementById("grupos");
+      container.innerHTML = "";
+      for (const categoria of categorias) {
+        const doc = await db.collection("precos").doc(categoria).get();
+        const dados = doc.data();
+        precos[categoria] = dados;
 
-      try {
-        for (const [doc, dados] of Object.entries(precos)) {
-          await db.collection("precos").doc(doc).set(dados);
+        const div = document.createElement("div");
+        div.className = "grupo";
+        div.innerHTML = `<h2>${categoria.toUpperCase()}</h2>`;
+
+        for (const [nome, valor] of Object.entries(dados)) {
+          const valorFormatado = valor.toFixed(2).replace('.', ',');
+          div.innerHTML += `
+            <label>
+              <span>${nome}</span>
+              <input type="text" value="${valorFormatado}" data-cat="${categoria}" data-nome="${nome}" oninput="mascarar(this)">
+            </label>
+          `;
         }
-        document.getElementById("status").innerText = "✅ Dados enviados com sucesso.";
-      } catch (err) {
-        document.getElementById("status").innerText = "❌ Erro: " + err.message;
+
+        container.appendChild(div);
       }
     }
+
+    function mascarar(campo) {
+      let v = campo.value.replace(/\D/g, '');
+      v = (parseFloat(v) / 100).toFixed(2);
+      campo.value = v.replace('.', ',');
+    }
+
+    async function salvar() {
+      const inputs = document.querySelectorAll("input[data-cat]");
+      for (const input of inputs) {
+        const cat = input.dataset.cat;
+        const nome = input.dataset.nome;
+        const valor = parseFloat(input.value.replace(',', '.')) || 0;
+        precos[cat][nome] = valor;
+      }
+
+      try {
+        for (const cat of categorias) {
+          await db.collection("precos").doc(cat).set(precos[cat]);
+        }
+        document.getElementById("status").innerText = "✅ Alterações salvas com sucesso.";
+      } catch (err) {
+        document.getElementById("status").innerText = "❌ Erro ao salvar: " + err.message;
+      }
+    }
+
+    async function adicionarNovo() {
+      const cat = document.getElementById("nova-categoria").value;
+      const nome = document.getElementById("novo-nome").value.trim();
+      const valorStr = document.getElementById("novo-valor").value.replace(',', '.');
+      const valor = parseFloat(valorStr);
+
+      if (!nome || isNaN(valor)) {
+        document.getElementById("novo-status").innerText = "❌ Preencha nome e valor corretamente.";
+        return;
+      }
+
+      try {
+        const docRef = db.collection("precos").doc(cat);
+        await docRef.update({ [nome]: valor });
+        document.getElementById("novo-status").innerText = "✅ Item adicionado!";
+        carregar(); // recarrega a tela com novo item
+        document.getElementById("novo-nome").value = "";
+        document.getElementById("novo-valor").value = "";
+      } catch (err) {
+        document.getElementById("novo-status").innerText = "❌ Erro ao adicionar: " + err.message;
+      }
+    }
+
+    carregar();
   </script>
 </body>
+
 </html>
