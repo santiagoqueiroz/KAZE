@@ -1,19 +1,9 @@
 // Versão do cortina.js com dados puxados do Firebase Firestore
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 
+const db = getFirestore(getApp());
 
-const firebaseConfig = {
-  apiKey: "AIzaSyD5kVoWRWZB6xtacyu6lH--QFXry_MPKps",
-  authDomain: "kaze-8836b.firebaseapp.com",
-  projectId: "kaze-8836b",
-  storageBucket: "kaze-8836b.appspot.com",
-  messagingSenderId: "336054068300",
-  appId: "1:336054068300:web:6125e8eecc08d667fac0e9"
-};
-
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
 
 let tecidos = {};  // será preenchido do Firestore
 let trilhos = {};  // idem
