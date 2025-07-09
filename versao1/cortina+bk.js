@@ -222,4 +222,4 @@ onAuthStateChanged(auth, (user) => {
   }
 });
 
-document.getElementById("btn-calcular").onclick = calcularCortinaBK;
+export { carregarPrecos as preencherSelects, calcularCortinaBK };
