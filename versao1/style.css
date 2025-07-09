@@ -87,3 +87,10 @@
   max-width: 600px;
 }
 
+#resultadoBK table {
+  width: 100% !important;
+  table-layout: fixed;
+  word-break: break-word;
+  font-size: 14px;
+}
+
