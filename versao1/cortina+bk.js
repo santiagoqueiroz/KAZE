@@ -219,7 +219,9 @@ function calcularCortinaBK() {
   console.log("TOTAL FINAL:", formatarReais(totalFinal));
   console.groupEnd();
 
-  document.getElementById("resultado").innerHTML = tabelaHTML;
+  document.getElementById("resultadoCBK").innerHTML = tabelaHTML;
+  window.totalFinalGlobal = totalFinal;
+
 }
 
 
