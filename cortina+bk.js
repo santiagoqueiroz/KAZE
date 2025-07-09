@@ -196,7 +196,7 @@ function calcularCortinaBK() {
 
   const totalFinal = arred(totalC + totalBK - desconto);
 
-  const produto = `${ambiente} - Cortina ${nomeC} + BK ${nomeBK} - ${nomeTrilho}`;
+  const produto = `${ambiente} - Cortina ${nomeC} + Blackout ${nomeBK} - ${nomeTrilho}`;
   const linhasCombinadas = [...linhasCortina, ...linhasBKFiltradas];
   const tabelaHTML = gerarTabela(produto, linhasCombinadas, totalFinal);
 
