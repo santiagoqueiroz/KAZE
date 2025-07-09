@@ -261,7 +261,7 @@ window.confirmarItemBlackout = async function () {
   calcularBlackout();
 
   let produto = document.querySelector("#resultado h2")?.textContent || "Blackout";
-  const ambiente = document.getElementById("ambienteC").value.trim();
+  const ambiente = document.getElementById("ambienteBK").value.trim();
 
   if (produto.startsWith("Ambiente")) {
     produto = produto.slice("Ambiente".length).trim().replace(/^[-–]\\s*/, "");
@@ -271,9 +271,9 @@ window.confirmarItemBlackout = async function () {
   }
   if (ambiente) produto += ` (${ambiente})`;
 
-  const largura = parseFloat(document.getElementById("larguraC").value || 0);
-  const altura = parseFloat(document.getElementById("alturaC").value || 0);
-  const totalTexto = document.querySelector("#resultado tr:last-child td:last-child")?.textContent || "0";
+  const largura = parseFloat(document.getElementById("larguraBK").value || 0);
+  const altura = parseFloat(document.getElementById("alturaBK").value || 0);
+  const totalTexto = document.querySelector("#resultadoBK tr:last-child td:last-child")?.textContent || "0";
 
   const valorLimpo = totalTexto.replace("R$", "").replace(/\\./g, "").replace(",", ".").trim();
   const total = parseFloat(valorLimpo) || 0;
