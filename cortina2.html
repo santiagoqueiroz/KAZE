@@ -15,8 +15,8 @@
 <body>
   <h1>Simulador de Orçamento - Cortina</h1>
 
-  <label>Largura (m): <input type="number" step="0.01" id="largura" value="1.5"></label>
-  <label>Altura (m): <input type="number" step="0.01" id="altura" value="2.9"></label>
+  <label>Largura (m): <input type="number" step="0.01" id="larguraC" value="1.5"></label>
+  <label>Altura (m): <input type="number" step="0.01" id="alturaC" value="2.9"></label>
 
   <label>Tecido:
     <select id="tecido"></select>
@@ -26,13 +26,23 @@
     <select id="trilho"></select>
   </label>
 
-  <button onclick="calcular()">Calcular</button>
+  <label>Ambiente: <input type="text" id="ambienteC" value="Sala"></label>
+  <label>Barra Extra (m): <input type="number" step="0.01" id="barraExtra" value="0"></label>
+  <label>Multiplicador Barra Alta: <input type="number" step="0.01" id="xBarraAlta" value="1.4"></label>
+  <label>Desconto: <input type="number" step="0.01" id="descontoC" value="0"></label>
+
+  <button id="btnCalcular">Calcular</button>
 
   <div id="resultado"></div>
 
-  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
-<script src="cortina.js"></script>
+  <script type="module">
+    import { preencherSelects, calcularCortina } from './cortina.js';
+
+    preencherSelects();
+
+    document.getElementById('btnCalcular').addEventListener('click', () => {
+      calcularCortina();
+    });
+  </script>
 </body>
 </html>
