@@ -83,12 +83,12 @@ export function calcularBlackout() {
   }
 
   const valorTecido = arred(qtdTecidoTotal * precoTecido);
-  const entrela = arred(qtdTecidoTotal * parametros["ENTRETELA BK"]);
+  const entrela = arred(tecidoBase * parametros["ENTRETELA BK"]);
   const qtdDeslizante = Math.ceil(tecidoBase / 0.08);
   const deslizante = arred(qtdDeslizante * parametros["DESLIZANTE"]);
   const terminal = arred(2 * parametros["TERMINAL"]);
   const costura = arred(qtdTecidoTotal * parametros["COSTURA"]);
-  const barra = arred(qtdTecidoTotal * parametros["BARRA"]);
+  const barra = arred(tecidoBase * parametros["BARRA"]);
   const instalacao = parametros["INSTALAÇÃO"];
   const kitsBucha = Math.ceil(largura);
   const bucha = arred(kitsBucha * parametros["BUCHA E PARAFUSO"]);
@@ -118,17 +118,18 @@ export function calcularBlackout() {
 
   const produto = `${ambiente} - Blackout ${nomeTecido} - ${nomeTrilho}`;
 
-  const linhas = [
+    const linhas = [
     { label: `Tecido: ${qtdTecidoTotal} m x R$ ${precoTecido.toFixed(2)}`, valor: valorTecido },
     { label: `Trilho`, valor: trilho },
-    { label: `Entretela: ${qtdTecidoTotal} m x R$ ${parametros["ENTRETELA BK"].toFixed(2)}`, valor: entrela },
+    { label: `Entretela: ${tecidoBase} m x R$ ${parametros["ENTRETELA BK"].toFixed(2)}`, valor: entrela },
     { label: `Deslizante: ${qtdDeslizante} x R$ ${parametros["DESLIZANTE"].toFixed(2)}`, valor: deslizante },
     { label: `Terminal: 2 x R$ ${parametros["TERMINAL"].toFixed(2)}`, valor: terminal },
     { label: `Costura: ${qtdTecidoTotal} m x R$ ${parametros["COSTURA"].toFixed(2)}`, valor: costura },
-    { label: `Barra: ${qtdTecidoTotal} m x R$ ${parametros["BARRA"].toFixed(2)}`, valor: barra },
+    { label: `Barra: ${tecidoBase} m x R$ ${parametros["BARRA"].toFixed(2)}`, valor: barra },
     { label: `Instalação`, valor: instalacao },
     { label: `Bucha e Parafuso: ${kitsBucha} x R$ ${parametros["BUCHA E PARAFUSO"].toFixed(2)}`, valor: bucha },
   ];
+
 
 
   const tabela = `
@@ -165,11 +166,11 @@ export function calcularBlackout() {
     } else {
       console.log("🛤️ Trilho:", `ceiling(${largura}m, 0.5) x R$ ${precoTrilho.toFixed(2)} = ${formatarReais(trilho)}`);
     }
-    console.log("📐 Entretela:", `${qtdTecidoTotal} m x R$ ${parametros["ENTRETELA BK"].toFixed(2)} = ${formatarReais(entrela)}`);
+    console.log("📐 Entretela:", `${tecidoBase} m x R$ ${parametros["ENTRETELA BK"].toFixed(2)} = ${formatarReais(entrela)}`);
     console.log("🧷 Deslizante:", `${qtdDeslizante} x R$ ${parametros["DESLIZANTE"].toFixed(2)} = ${formatarReais(deslizante)}`);
     console.log("🔩 Terminal:", `2 x R$ ${parametros["TERMINAL"].toFixed(2)} = ${formatarReais(terminal)}`);
     console.log("🧵 Costura:", `${qtdTecidoTotal} m x R$ ${parametros["COSTURA"].toFixed(2)} = ${formatarReais(costura)}`);
-    console.log("📏 Barra:", `${qtdTecidoTotal} m x R$ ${parametros["BARRA"].toFixed(2)} = ${formatarReais(barra)}`);
+    console.log("📏 Barra:", `${tecidoBase} m x R$ ${parametros["BARRA"].toFixed(2)} = ${formatarReais(barra)}`);
     console.log("🛠️ Instalação:", formatarReais(instalacao));
     console.log("🔧 Bucha e Parafuso:", `${kitsBucha} x R$ ${parametros["BUCHA E PARAFUSO"].toFixed(2)} = ${formatarReais(bucha)}`);
     console.log("🧮 Subtotal:", formatarReais(subtotal));
