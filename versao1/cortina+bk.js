@@ -112,7 +112,7 @@ function calcularCortinaBK() {
   const alturaTira = arred(altura + 0.12 + barraExtra);
   const qtdBase = arred((largura * 3.1) + 0.7);
   const qtdTiras = (qtdBase / 3) % 1 < 0.4 ? Math.floor(qtdBase / 3) : Math.ceil(qtdBase / 3);
-  const qtdTotalC = altura > 2.6 ? arred(qtdTiras * alturaTira) : arred(qtdBase);
+  const qtdTotalC = arred(altura > 2.6 ? (qtdTiras * alturaTira) : qtdBase);
   const valorTecidoC = arred(qtdTotalC * precoC);
   const entrela = arred(qtdBase * parametros["ENTRETELA"]);
   const qntDeslizante = Math.ceil(((largura / 0.1) + 1) * 2);
@@ -120,7 +120,22 @@ function calcularCortinaBK() {
   const terminal = arred(2 * parametros["TERMINAL"]);
   const costura = arred(qtdTotalC * parametros["COSTURA"]);
   const barra = arred(qtdBase * parametros["BARRA"] * (altura > 3.5 ? xBarraAlta : 1));
-  const trilho = arred(ceiling(largura, 0.5) * precoTrilho);
+  
+  let trilho = 0;
+  const precoSuporte = parametros["SUPORTE"];
+  const precoTampa = parametros["TAMPA"];
+  if (nomeTrilho.includes("VARÃO SUÍÇO")) {
+    const qtdTubo = ceiling(largura, 0.5);
+    let qtdSuporte = 2;
+    if (largura > 1.9 && largura <= 3.5) qtdSuporte = 3;
+    else if (largura > 3.5 && largura <= 4.8) qtdSuporte = 4;
+    else if (largura > 4.8) qtdSuporte = 4 + Math.ceil((largura - 4.8) / 1.5);
+    const precoTubo = trilhos[nomeTrilho.trim()];
+    trilho = arred((qtdTubo * precoTubo) + (qtdSuporte * precoSuporte) + (2 * precoTampa));
+  } else {
+    trilho = arred(ceiling(largura, 0.5) * precoTrilho);
+  }
+  
   const instalacao = parametros["INSTALAÇÃO"];
   const kitsBucha = Math.ceil(largura * 0.5);
   const bucha = arred(kitsBucha * parametros["BUCHA E PARAFUSO"]);
