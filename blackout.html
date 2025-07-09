@@ -35,36 +35,41 @@
 
   <div id="resultado"></div>
 
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-    import { preencherSelects, calcularBlackout } from './blackout.js';
+<!-- 🔹 Primeiro: inicializa o Firebase -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 
-    // ✅ Inicializar Firebase ANTES de usar blackout.js
-    const firebaseConfig = {
-      apiKey: "AIzaSyD5kVoWRWZB6xtacyu6lH--QFXry_MPKps",
-      authDomain: "kaze-8836b.firebaseapp.com",
-      projectId: "kaze-8836b",
-      storageBucket: "kaze-8836b.appspot.com",
-      messagingSenderId: "336054068300",
-      appId: "1:336054068300:web:6125e8eecc08d667fac0e9"
-    };
+  const firebaseConfig = {
+    apiKey: "AIzaSyD5kVoWRWZB6xtacyu6lH--QFXry_MPKps",
+    authDomain: "kaze-8836b.firebaseapp.com",
+    projectId: "kaze-8836b",
+    storageBucket: "kaze-8836b.appspot.com",
+    messagingSenderId: "336054068300",
+    appId: "1:336054068300:web:6125e8eecc08d667fac0e9"
+  };
 
-    initializeApp(firebaseConfig); // ✅ Agora o getApp() funciona no blackout.js
-    const auth = getAuth();
+  initializeApp(firebaseConfig); // 🔧 Isso precisa rodar antes de qualquer getApp()
+</script>
 
-    onAuthStateChanged(auth, (user) => {
-      if (user) {
-        console.log("✅ Logado como:", user.email);
-        preencherSelects().then(() => {
-          document.getElementById('btnCalcular').addEventListener('click', () => {
-            calcularBlackout();
-          });
+<!-- 🔹 Depois: usa o Firebase e o blackout.js -->
+<script type="module">
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+  import { preencherSelects, calcularBlackout } from './blackout.js';
+
+  const auth = getAuth();
+  onAuthStateChanged(auth, (user) => {
+    if (user) {
+      console.log("✅ Logado como:", user.email);
+      preencherSelects().then(() => {
+        document.getElementById('btnCalcular').addEventListener('click', () => {
+          calcularBlackout();
         });
-      } else {
-        alert("Você precisa estar logado para usar o simulador.");
-      }
-    });
-  </script>
+      });
+    } else {
+      alert("Você precisa estar logado para usar o simulador.");
+    }
+  });
+</script>
+
 </body>
 </html>
