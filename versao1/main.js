@@ -14,6 +14,8 @@
 // 📦 Importação de módulos do Firebase e scripts locais
   import { preencherSelects, calcularCortina } from './cortina.js';
   import { preencherSelects as preencherSelectsBK, calcularBlackout } from './blackout.js';
+  import { preencherSelects as preencherSelectsCBK, calcularCortinaBK } from './cortina+bk.js';
+
 
 
   const firebaseConfig = {
@@ -151,6 +153,7 @@ document.getElementById("total-vista").textContent = totalVista.toLocaleString('
     document.getElementById("resultado").innerHTML = "";
   };
 
+
 // ✅ Confirma e salva item de persiana no Firestore
   window.confirmarItemPersiana = async function () {
     if (!clienteSelecionado) return alert("Selecione um cliente.");
@@ -199,6 +202,15 @@ document.getElementById("total-vista").textContent = totalVista.toLocaleString('
     document.getElementById("resultado").innerHTML = "";
   };
 
+  window.abrirJanelaCortinaBK = async function () {
+    document.getElementById("janelaCortinaBK").style.display = "flex";
+    preencherSelectsCBK();
+  };
+
+  window.fecharJanelaCortinaBK = function () {
+    document.getElementById("janelaCortinaBK").style.display = "none";
+    document.getElementById("resultadoCBK").innerHTML = "";
+  };
 
 
 // ✅ Confirma e salva item de cortina no Firestore
@@ -295,6 +307,46 @@ window.confirmarItemBlackout = async function () {
 
   mostrarItens(itens);
   fecharJanelaBlackout();
+};
+
+window.confirmarItemCortinaBK = async function () {
+  if (!clienteSelecionado) return alert("Selecione um cliente.");
+  calcularCortinaBK();
+
+  let produto = document.querySelector("#resultadoCBK h2")?.textContent || "Cortina + Blackout";
+  const ambiente = document.getElementById("ambienteCBK").value.trim();
+
+  if (produto.startsWith("Ambiente")) {
+    produto = produto.slice("Ambiente".length).trim().replace(/^[-–]\s*/, "");
+  }
+  if (ambiente && produto.startsWith(ambiente)) {
+    produto = produto.slice(ambiente.length).trim().replace(/^[-–]\s*/, "");
+  }
+  if (ambiente) produto += ` (${ambiente})`;
+
+  const largura = parseFloat(document.getElementById("larguraCBK").value || 0);
+  const altura = parseFloat(document.getElementById("alturaCBK").value || 0);
+  const totalTexto = document.querySelector("#resultadoCBK tr:last-child td:last-child")?.textContent || "0";
+
+  const valorLimpo = totalTexto.replace("R$", "").replace(/\./g, "").replace(",", ".").trim();
+  const total = parseFloat(valorLimpo) || 0;
+
+  const item = {
+    produto,
+    largura,
+    altura,
+    qtd: 1,
+    unit: total,
+    total: total
+  };
+
+  const ref = doc(db, "clientes", clienteSelecionado);
+  const snap = await getDoc(ref);
+  const itens = snap.data().orcamentoAtivo?.itens || [];
+  itens.push(item);
+  await updateDoc(ref, { "orcamentoAtivo.itens": itens });
+  mostrarItens(itens);
+  fecharJanelaCortinaBK();
 };
 
 
