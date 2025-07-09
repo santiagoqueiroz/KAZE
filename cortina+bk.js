@@ -111,16 +111,27 @@ function calcularCortinaBK() {
   const qtdTiras = (qtdBase / 3) % 1 < 0.4 ? Math.floor(qtdBase / 3) : Math.ceil(qtdBase / 3);
   const qtdTotalC = altura > 2.6 ? arred(qtdTiras * alturaTira) : arred(qtdBase);
   const valorTecidoC = arred(qtdTotalC * precoC);
-  linhasCortina.push({ label: `Tecido cortina: ${qtdTotalC} m`, valor: valorTecidoC });
-
+  const entrela = arred(qtdBase * parametros["ENTRETELA"]);
+  const qntDeslizante = Math.ceil(((largura / 0.1) + 1) * 2);
+  const deslizante = arred(qntDeslizante * parametros["DESLIZANTE"]);
+  const terminal = arred(2 * parametros["TERMINAL"]);
+  const costura = arred(qtdTotalC * parametros["COSTURA"]);
   const barra = arred(qtdBase * parametros["BARRA"] * (altura > 3.5 ? xBarraAlta : 1));
   const trilho = arred(ceiling(largura, 0.5) * precoTrilho);
-
+  const instalacao = parametros["INSTALAÇÃO"];
+  const kitsBucha = Math.ceil(largura * 0.5);
+  const bucha = arred(kitsBucha * parametros["BUCHA E PARAFUSO"]);
+  
+  linhasCortina.push({ label: `Tecido cortina: ${qtdTotalC} m`, valor: valorTecidoC });
   linhasCortina.push({ label: `Trilho`, valor: trilho });
+  linhasCortina.push({ label: `Entrela`, valor: entrela });
+  linhasCortina.push({ label: `Deslizante`, valor: deslizante });
+  linhasCortina.push({ label: `Terminal`, valor: terminal });
+  linhasCortina.push({ label: `Costura`, valor: costura });
   linhasCortina.push({ label: `Barra`, valor: barra });
-  linhasCortina.push({ label: `Instalação`, valor: parametros["INSTALAÇÃO"] });
-  linhasCortina.push({ label: `Bucha e Parafuso`, valor: arred(Math.ceil(largura * 0.5) * parametros["BUCHA E PARAFUSO"]) });
-
+  linhasCortina.push({ label: `Instalação`, valor: instalacao });
+  linhasCortina.push({ label: `Bucha e Parafuso`, valor: bucha });
+  
   const subtotalC = somarLinhas(linhasCortina);
   const simplesC = arred(subtotalC * 0.06);
   const baseC = arred(subtotalC + simplesC);
