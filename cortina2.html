@@ -52,15 +52,19 @@
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
 
-    onAuthStateChanged(auth, (user) => {
-      if (user) {
-        console.log("✅ Logado como:", user.email);
-        preencherSelects();
-      } else {
-        console.error("❌ Nenhum usuário logado.");
-        alert("Você precisa estar logado para usar o simulador.");
-      }
+onAuthStateChanged(auth, (user) => {
+  if (user) {
+    console.log("✅ Logado como:", user.email);
+    preencherSelects().then(() => {
+      document.getElementById('btnCalcular').addEventListener('click', () => {
+        calcularCortina();
+      });
     });
+  } else {
+    alert("Você precisa estar logado para usar o simulador.");
+  }
+});
+
 
     document.getElementById('btnCalcular').addEventListener('click', () => {
       calcularCortina();
