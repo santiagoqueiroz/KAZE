@@ -119,7 +119,7 @@ export function calcularBlackout() {
   const totalCorrigido = arred(totalVista / 0.879);
   const totalFinal = arred(totalCorrigido - desconto);
 
-  const produto = `${ambiente} - Blackout ${nomeTecido} - ${nomeTrilho}`;
+  const produto = `${ambiente}Blackout ${nomeTecido} - ${nomeTrilho}`;
 
     const linhas = [
     { label: `Tecido: ${qtdTecidoTotal} m x R$ ${precoTecido.toFixed(2)}`, valor: valorTecido },
