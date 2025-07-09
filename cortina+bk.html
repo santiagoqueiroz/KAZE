@@ -1,1 +1,57 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Teste Cortina + Blackout</title>
+  <link rel="stylesheet" href="style.css">
+  <script type="module" src="cortina+bk.js"></script>
+</head>
+<body>
+  <div class="container">
+    <h2>Simulador: Cortina com Blackout</h2>
 
+    <div id="login-box">
+      <label>Email:</label>
+      <input type="email" id="email" placeholder="usuario@exemplo.com">
+      <label>Senha:</label>
+      <input type="password" id="senha" placeholder="********">
+      <button id="btn-login">Entrar</button>
+      <p id="erro-login" style="color:red;"></p>
+    </div>
+
+    <div id="formulario" style="display:none">
+      <label>Largura (m):</label>
+      <input type="number" id="largura" step="0.01">
+
+      <label>Altura (m):</label>
+      <input type="number" id="altura" step="0.01">
+
+      <label>Tecido Cortina:</label>
+      <select id="tecidoC"></select>
+
+      <label>Tecido Blackout:</label>
+      <select id="tecidoBK"></select>
+
+      <label>Trilho:</label>
+      <select id="trilho"></select>
+
+      <label>Barra (m):</label>
+      <input type="number" id="barraExtra" value="0.40" step="0.01">
+
+      <label>Multiplicador barra alta:</label>
+      <input type="number" id="xBarraAlta" value="1.4" step="0.01">
+
+      <label>Ambiente:</label>
+      <input type="text" id="ambiente">
+
+      <label>Desconto (R$):</label>
+      <input type="number" id="desconto" value="0" step="0.01">
+
+      <button id="btn-calcular">Calcular</button>
+
+      <div id="resultado" style="margin-top:20px;"></div>
+    </div>
+  </div>
+</body>
+</html>
