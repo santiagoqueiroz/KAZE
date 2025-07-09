@@ -260,7 +260,7 @@ window.confirmarItemBlackout = async function () {
 
   calcularBlackout();
 
-  let produto = document.querySelector("#resultado h2")?.textContent || "Blackout";
+  let produto = document.querySelector("#resultadoBK h2")?.textContent || "Blackout";
   const ambiente = document.getElementById("ambienteBK").value.trim();
 
   if (produto.startsWith("Ambiente")) {
