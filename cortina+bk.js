@@ -139,7 +139,7 @@ function calcularCortinaBK() {
 
   // Parte do BLACKOUT
   let tecidoBase = 0;
-  let qtdTiras = 1;
+  let qtdTirasBK = 1;
   let alturaFinal = arred(altura + 0.10 + 0.15);
   let qtdBK = 0;
   
@@ -155,7 +155,7 @@ function calcularCortinaBK() {
     if (decimal <= 0.14) qtdTiras = Math.floor(bruto);
     else if (decimal <= 0.5) qtdTiras = Math.floor(bruto) + 0.5;
     else qtdTiras = Math.ceil(bruto);
-    qtdBK = arred(alturaFinal * qtdTiras);
+    qtdBK = arred(alturaFinal * qtdTirasBK);
     tecidoBase = arred(largura + 0.8); // usado em barra, entretela, etc.
   }
   
