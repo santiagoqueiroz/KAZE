@@ -77,4 +77,13 @@
       max-width: 400px;
       width: 90%;
     }
-  
+  #resultadoBK {
+  overflow-x: auto;
+  word-break: break-word;
+  max-width: 100%;
+}
+
+.modal .conteudo {
+  max-width: 600px;
+}
+
