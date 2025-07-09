@@ -87,9 +87,9 @@
 
   auth.onAuthStateChanged(async user => {
     if (user) {
-      const doc = await db.collection("permissoes").doc(user.email).get();
-      const dados = doc.data();
-      if (!doc.exists || !dados?.acessoPrecos) {
+    const docPermissao = await db.collection("permissoes").doc(user.email).get();
+    if (!docPermissao.exists || docPermissao.data()?.acessoPrecos !== true) {
+
         alert("Acesso negado. Este usuário não tem permissão.");
         auth.signOut();
         return;
