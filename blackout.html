@@ -1,1 +1,70 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Simulador de Orçamento - Blackout</title>
+  <style>
+    body { font-family: Arial; max-width: 800px; margin: auto; padding: 2rem; }
+    label { display: block; margin-top: 10px; }
+    input, select { width: 100%; padding: 5px; }
+    #resultado { margin-top: 2rem; font-weight: bold; white-space: pre-line; }
+    table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
+    th, td { border: 1px solid #ccc; padding: 6px; text-align: left; }
+  </style>
+</head>
+<body>
+  <h1>Simulador de Orçamento - Blackout</h1>
+
+  <label>Largura (m): <input type="number" step="0.01" id="larguraC" value="1.5"></label>
+  <label>Altura (m): <input type="number" step="0.01" id="alturaC" value="2.9"></label>
+
+  <label>Tecido:
+    <select id="tecido"></select>
+  </label>
+
+  <label>Tipo de Trilho:
+    <select id="trilho"></select>
+  </label>
+
+  <label>Ambiente: <input type="text" id="ambienteC" value="Sala"></label>
+  <label>Barra Extra (m): <input type="number" step="0.01" id="barraExtra" value="0"></label>
+  <label>Multiplicador Barra Alta: <input type="number" step="0.01" id="xBarraAlta" value="1.4"></label>
+  <label>Desconto: <input type="number" step="0.01" id="descontoC" value="0"></label>
+
+  <button id="btnCalcular">Calcular</button>
+
+  <div id="resultado"></div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
+    import { preencherSelects, calcularBlackout } from './blackout.js';
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyD5kVoWRWZB6xtacyu6lH--QFXry_MPKps",
+      authDomain: "kaze-8836b.firebaseapp.com",
+      projectId: "kaze-8836b",
+      storageBucket: "kaze-8836b.appspot.com",
+      messagingSenderId: "336054068300",
+      appId: "1:336054068300:web:6125e8eecc08d667fac0e9"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        console.log("✅ Logado como:", user.email);
+        preencherSelects().then(() => {
+          document.getElementById('btnCalcular').addEventListener('click', () => {
+            calcularBlackout();
+          });
+        });
+      } else {
+        alert("Você precisa estar logado para usar o simulador.");
+      }
+    });
+  </script>
+</body>
+</html>
 
