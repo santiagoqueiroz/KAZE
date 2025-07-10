@@ -141,4 +141,31 @@
 
       document.body.style.visibility = 'visible';
 
-      const tabe
+      const tabela = document.querySelector("#tabelaClientes tbody");
+
+      try {
+        const q = query(collection(db, "clientes"), orderBy("nome"));
+        const querySnapshot = await getDocs(q);
+
+        querySnapshot.forEach((doc) => {
+          const c = doc.data();
+          const linha = document.createElement("tr");
+          linha.innerHTML = `
+            <td>${c.nome || ""}</td>
+            <td>${c.telefone || ""}</td>
+            <td>${c.cpfOuCnpj || ""}</td>
+            <td>${c.endereco || ""}</td>
+            <td>${c.bairro || ""}</td>
+            <td>${c.cidade || ""}</td>
+            <td>${c.email || ""}</td>
+          `;
+          tabela.appendChild(linha);
+        });
+      } catch (erro) {
+        console.error("Erro ao buscar clientes:", erro);
+      }
+    });
+  </script>
+
+</body>
+</html>
