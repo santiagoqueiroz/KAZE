@@ -91,13 +91,14 @@ Email: ${escolhido.cliente?.email || "-"}
 Itens:
 ${escolhido.itens.map((item, i) => {
   const total = parseFloat(item.total) || 0;
-  return `  ${i + 1}. ${item.produto} - ${item.largura}m x ${item.altura}m - R$ ${total.toFixed(2).replace('.', ',')}`;
+  return `  ${i + 1}. ${item.produto} - ${item.largura}m x ${item.altura}m - R$ ${total.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
 }).join('\n')}
 
-Total geral: R$ ${(parseFloat(escolhido.totalGeral) || 0).toFixed(2).replace('.', ',')}
-Total à vista: R$ ${(parseFloat(escolhido.totalVista) || 0).toFixed(2).replace('.', ',')}
+Total geral: R$ ${(parseFloat(escolhido.totalGeral) || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+Total à vista: R$ ${(parseFloat(escolhido.totalVista) || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
 Data/hora: ${new Date(escolhido.dataHora).toLocaleString()}
 `.trim();
+
 
 conteudo.textContent = texto;
 detalhes.style.display = "block";
