@@ -170,3 +170,44 @@ button:hover {
 .linha-campos label {
   margin-top: 0;
 }
+
+@media (max-width: 768px) {
+  table {
+    display: block;
+    overflow-x: auto;
+    width: 100%;
+  }
+
+  thead, tbody, th, td, tr {
+    display: block;
+  }
+
+  thead tr {
+    display: none; /* esconde cabeçalho */
+  }
+
+  td {
+    text-align: left;
+    padding-left: 50%;
+    position: relative;
+    border: 1px solid #ccc;
+  }
+
+  td::before {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    width: 45%;
+    white-space: nowrap;
+    font-weight: bold;
+  }
+
+  /* rótulos das colunas */
+  td:nth-of-type(1)::before { content: "Produto"; }
+  td:nth-of-type(2)::before { content: "Largura"; }
+  td:nth-of-type(3)::before { content: "Altura"; }
+  td:nth-of-type(4)::before { content: "Qtd"; }
+  td:nth-of-type(5)::before { content: "V. Unit."; }
+  td:nth-of-type(6)::before { content: "Total"; }
+}
+
