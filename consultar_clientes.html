@@ -150,7 +150,7 @@
         querySnapshot.forEach((doc) => {
           const c = doc.data();
           const linha = document.createElement("tr");
-          linha.innerHTML = `
+         linha.innerHTML = `
             <td>${c.nome || ""}</td>
             <td>${c.telefone || ""}</td>
             <td>${c.cpfOuCnpj || ""}</td>
@@ -158,14 +158,31 @@
             <td>${c.bairro || ""}</td>
             <td>${c.cidade || ""}</td>
             <td>${c.email || ""}</td>
+            <td><button onclick="excluirCliente('${doc.id}')">Excluir</button></td>
           `;
+
           tabela.appendChild(linha);
         });
       } catch (erro) {
         console.error("Erro ao buscar clientes:", erro);
       }
     });
-  </script>
 
+    import { deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+    window.excluirCliente = async function(id) {
+      if (!confirm("Tem certeza que deseja excluir este cliente?")) return;
+    
+      try {
+        await deleteDoc(doc(db, "clientes", id));
+        alert("Cliente excluído.");
+        location.reload(); // atualiza a tabela
+      } catch (err) {
+        console.error("Erro ao excluir:", err);
+        alert("Erro ao excluir cliente.");
+      }
+    }
+    
+  </script>
 </body>
 </html>
