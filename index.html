@@ -6,50 +6,97 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
     body {
-      font-family: Bahnschrift, sans-serif;
-      background-color: #f8f8f8;
-      padding: 40px;
-      text-align: center;
+      font-family: 'Bahnschrift', sans-serif;
+      background-color: #faebd7;
+      margin: 0;
+      padding: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
     }
-    h2 {
+
+    .container {
+      background: white;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      text-align: center;
+      max-width: 400px;
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    img.logo {
+      max-width: 180px;
       margin-bottom: 20px;
     }
-    input, button {
-      padding: 10px;
+
+    h2 {
+      margin-bottom: 20px;
+      font-size: 24px;
+    }
+
+    input {
+      padding: 12px;
       font-size: 16px;
-      margin-bottom: 10px;
       width: 100%;
-      max-width: 300px;
+      margin-bottom: 12px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      box-sizing: border-box;
     }
+
     button {
-      background-color: #333;
+      background-color: #915c83;
       color: white;
+      padding: 14px;
+      font-size: 16px;
       border: none;
+      border-radius: 8px;
       cursor: pointer;
+      width: 100%;
+      font-weight: bold;
     }
+
     button:hover {
-      background-color: #555;
+      background-color: #7a4b6e;
     }
+
     #mensagem {
       margin-top: 20px;
       color: red;
+      font-weight: bold;
     }
-    img.logo {
-      max-width: 200px;
-      margin-bottom: 20px;
+
+    @media (max-width: 600px) {
+      .container {
+        padding: 20px;
+      }
+
+      h2 {
+        font-size: 22px;
+      }
+
+      input, button {
+        font-size: 18px;
+        padding: 16px;
+      }
     }
   </style>
 </head>
 <body>
-  <img src="logo_kaze.jpg" alt="Kazê" class="logo">
 
-  <h2>Login</h2>
+  <div class="container">
+    <img src="logo_kaze.jpg" alt="Kazê" class="logo">
+    <h2>Login</h2>
 
-  <input type="email" id="email" placeholder="Email" required><br>
-  <input type="password" id="senha" placeholder="Senha" required><br>
-  <button onclick="login()">Entrar</button>
+    <input type="email" id="email" placeholder="Email" required>
+    <input type="password" id="senha" placeholder="Senha" required>
+    <button onclick="login()">Entrar</button>
 
-  <p id="mensagem"></p>
+    <p id="mensagem"></p>
+  </div>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
