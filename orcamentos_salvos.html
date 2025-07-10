@@ -20,6 +20,7 @@
     <div id="detalhesOrcamento" class="info-box" style="display:none; margin-top: 20px;">
       <h3>Detalhes do Orçamento</h3>
       <pre id="conteudoOrcamento" style="white-space: pre-wrap;"></pre>
+      <button onclick="excluirOrcamento()" style="margin-top: 15px;">🗑️ Excluir orçamento</button>
     </div>
   </div>
 
@@ -102,6 +103,32 @@ conteudo.textContent = texto;
 detalhes.style.display = "block";
 
     };
+    import { deleteDoc } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+
+window.excluirOrcamento = async () => {
+  const id = select.value;
+  if (!id) return alert("Nenhum orçamento selecionado.");
+
+  const confirmar = confirm("Tem certeza que deseja excluir este orçamento?");
+  if (!confirmar) return;
+
+  try {
+    await deleteDoc(doc(db, "orcamentos", id));
+    alert("Orçamento excluído com sucesso!");
+
+    // Remove da lista local e do select
+    orcamentos = orcamentos.filter(o => o.id !== id);
+    select.querySelector(`option[value="${id}"]`)?.remove();
+    detalhes.style.display = "none";
+    select.value = "";
+  } catch (e) {
+    console.error("Erro ao excluir:", e);
+    alert("Erro ao excluir o orçamento.");
+  }
+};
+
+
+    
   </script>
 </body>
 </html>
