@@ -106,6 +106,8 @@ button:hover {
   border-radius: 10px;
   max-width: 90%;
   width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
   box-sizing: border-box;
 }
 
