@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1" name="viewport"/>
+  <title>Orçamentos Salvos - KAZE</title>
+  <link href="style.css" rel="stylesheet"/>
+</head>
+<body>
+  <a href="painel.html" class="botao-voltar">← Voltar</a>
+
+  <div class="container">
+    <h2>Orçamentos Salvos</h2>
+
+    <label for="orcamentoSelecionado">Selecione um orçamento:</label>
+    <select id="orcamentoSelecionado" onchange="exibirOrcamento()">
+      <option value="">Carregando orçamentos...</option>
+    </select>
+
+    <div id="detalhesOrcamento" class="info-box" style="display:none; margin-top: 20px;">
+      <h3>Detalhes do Orçamento</h3>
+      <pre id="conteudoOrcamento" style="white-space: pre-wrap;"></pre>
+    </div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
+    import {
+      getFirestore, collection, getDocs, doc, getDoc
+    } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+    import {
+      getAuth, onAuthStateChanged
+    } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyD5kVoWRWZB6xtacyu6lH--QFXry_MPKps",
+      authDomain: "kaze-8836b.firebaseapp.com",
+      projectId: "kaze-8836b",
+      storageBucket: "kaze-8836b.firebasestorage.app",
+      messagingSenderId: "336054068300",
+      appId: "1:336054068300:web:6125e8eecc08d667fac0e9"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const auth = getAuth(app);
+
+    const select = document.getElementById("orcamentoSelecionado");
+    const detalhes = document.getElementById("detalhesOrcamento");
+    const conteudo = document.getElementById("conteudoOrcamento");
+
+    let orcamentos = [];
+
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) return window.location.href = "index.html";
+
+      const snapshot = await getDocs(collection(db, "orcamentos"));
+      orcamentos = [];
+
+      select.innerHTML = '<option value="">Selecione...</option>';
+
+      snapshot.forEach(doc => {
+        const dados = doc.data();
+        const data = new Date(dados.dataHora);
+        const nome = dados.cliente?.nome || "Sem nome";
+        const rotulo = `${nome} - ${data.toLocaleDateString()} - ${data.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'})}`;
+        orcamentos.push({ id: doc.id, ...dados });
+        const option = document.createElement("option");
+        option.value = doc.id;
+        option.textContent = rotulo;
+        select.appendChild(option);
+      });
+    });
+
+    window.exibirOrcamento = () => {
+      const id = select.value;
+      if (!id) {
+        detalhes.style.display = "none";
+        return;
+      }
+
+      const escolhido = orcamentos.find(o => o.id === id);
+      if (!escolhido) return;
+
+      const texto = `
+Cliente: ${escolhido.cliente?.nome || "-"}
+Telefone: ${escolhido.cliente?.telefone || "-"}
+Email: ${escolhido.cliente?.email || "-"}
+
+Itens:
+${escolhido.itens.map((item, i) => `  ${i + 1}. ${item.produto} - ${item.largura}m x ${item.altura}m - R$ ${item.total.toFixed(2).replace('.', ',')}`).join('\n')}
+
+Total geral: R$ ${escolhido.totalGeral.toFixed(2).replace('.', ',')}
+Total à vista: R$ ${escolhido.totalVista.toFixed(2).replace('.', ',')}
+Data/hora: ${new Date(escolhido.dataHora).toLocaleString()}
+      `.trim();
+
+      conteudo.textContent = texto;
+      detalhes.style.display = "block";
+    };
+  </script>
+</body>
+</html>
