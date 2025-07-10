@@ -6,54 +6,92 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
     body {
-      font-family: sans-serif;
-      background-color: #f8f8f8;
-      padding: 40px;
+      font-family: 'Bahnschrift', sans-serif;
+      background-color: #faebd7;
+      margin: 0;
+      padding: 20px;
     }
+
+    .container {
+      max-width: 500px;
+      margin: auto;
+      background: white;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      box-sizing: border-box;
+    }
+
     h1 {
-      margin-bottom: 20px;
+      margin-top: 0;
+      text-align: center;
+      margin-bottom: 30px;
     }
+
     form {
       display: flex;
       flex-direction: column;
-      gap: 12px;
-      max-width: 400px;
+      gap: 14px;
     }
-    input, button {
-      padding: 10px;
+
+    input {
+      padding: 12px;
       font-size: 16px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      box-sizing: border-box;
     }
+
     button {
-      background-color: #333;
+      background-color: #915c83;
       color: white;
+      padding: 14px;
+      font-size: 16px;
       border: none;
+      border-radius: 8px;
       cursor: pointer;
+      font-weight: bold;
     }
+
     button:hover {
-      background-color: #555;
+      background-color: #7a4b6e;
     }
+
     .mensagem {
       margin-top: 20px;
-      color: green;
+      text-align: center;
+      font-weight: bold;
+    }
+
+    @media (max-width: 600px) {
+      .container {
+        padding: 20px;
+      }
+
+      input, button {
+        font-size: 18px;
+        padding: 16px;
+      }
     }
   </style>
 </head>
 <body>
+  <div class="container">
+    <h1>Cadastrar Cliente</h1>
 
-  <h1>Cadastrar Cliente</h1>
+    <form id="formCliente">
+      <input type="text" name="nome" placeholder="Nome completo" required>
+      <input type="tel" name="telefone" placeholder="Telefone/WhatsApp" required>
+      <input type="text" name="cpfOuCnpj" placeholder="CPF ou CNPJ (opcional)">
+      <input type="text" name="endereco" placeholder="Endereço">
+      <input type="text" name="bairro" placeholder="Bairro">
+      <input type="text" name="cidade" placeholder="Cidade">
+      <input type="email" name="email" placeholder="E-mail (opcional)">
+      <button type="submit">Salvar Cliente</button>
+    </form>
 
-  <form id="formCliente">
-    <input type="text" name="nome" placeholder="Nome completo" required>
-    <input type="tel" name="telefone" placeholder="Telefone/WhatsApp" required>
-    <input type="text" name="cpfOuCnpj" placeholder="CPF ou CNPJ (opcional)">
-    <input type="text" name="endereco" placeholder="Endereço">
-    <input type="text" name="bairro" placeholder="Bairro">
-    <input type="text" name="cidade" placeholder="Cidade">
-    <input type="email" name="email" placeholder="E-mail (opcional)">
-    <button type="submit">Salvar Cliente</button>
-  </form>
-
-  <div class="mensagem" id="mensagem"></div>
+    <div class="mensagem" id="mensagem"></div>
+  </div>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
@@ -73,7 +111,6 @@
     const db = getFirestore(app);
     const auth = getAuth(app);
 
-    // Proteção: redireciona se não estiver logado
     auth.onAuthStateChanged((user) => {
       if (!user) {
         window.location.href = "login.html";
@@ -112,6 +149,5 @@
       }
     });
   </script>
-
 </body>
 </html>
