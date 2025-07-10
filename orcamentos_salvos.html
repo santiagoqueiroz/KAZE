@@ -83,10 +83,18 @@
       const escolhido = orcamentos.find(o => o.id === id);
       if (!escolhido) return;
 
-     const texto = `
-Cliente: ${escolhido.cliente?.nome || "-"}
-Telefone: ${escolhido.cliente?.telefone || "-"}
-Email: ${escolhido.cliente?.email || "-"}
+    function mostrar(valor) {
+  return (typeof valor === "string" && valor.trim() !== "") ? valor : "";
+}
+
+const texto = `
+Cliente: ${mostrar(escolhido.cliente?.nome)}
+Telefone: ${mostrar(escolhido.cliente?.telefone)}
+Email: ${mostrar(escolhido.cliente?.email)}
+CPF/CNPJ: ${mostrar(escolhido.cliente?.cpf)}
+Endereço: ${mostrar(escolhido.cliente?.endereco)}
+Bairro: ${mostrar(escolhido.cliente?.bairro)}
+Cidade: ${mostrar(escolhido.cliente?.cidade)}
 
 Itens:
 ${escolhido.itens.map((item, i) => {
