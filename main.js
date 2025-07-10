@@ -15,6 +15,8 @@
   import { preencherSelects, calcularCortina } from './cortina.js';
   import { preencherSelects as preencherSelectsBK, calcularBlackout } from './blackout.js';
   import { preencherSelects as preencherSelectsCBK, calcularCortinaBK } from './cortina+bk.js';
+  import { addDoc } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+
 
 
 
@@ -364,3 +366,51 @@ window.confirmarItemCortinaBK = async function () {
     mostrarItens(itens);
   }
 };
+
+// Salvar orçamento
+window.salvarOrcamento = async function () {
+  if (!clienteSelecionado) return alert("Selecione um cliente antes de salvar.");
+
+  const user = auth.currentUser;
+  if (!user) return alert("Usuário não autenticado.");
+
+  const cliente = clientes[clienteSelecionado];
+  const ref = doc(db, "clientes", clienteSelecionado);
+  const snap = await getDoc(ref);
+  const itens = snap.data().orcamentoAtivo?.itens || [];
+
+  if (itens.length === 0) return alert("Não há itens no orçamento para salvar.");
+
+  const totalGeralText = document.getElementById("soma-final").textContent || "R$ 0,00";
+  const totalVistaText = document.getElementById("total-vista").textContent || "R$ 0,00";
+
+  const totalGeral = parseFloat(totalGeralText.replace("R$", "").replace(/\./g, "").replace(",", "."));
+  const totalVista = parseFloat(totalVistaText.replace("R$", "").replace(/\./g, "").replace(",", "."));
+
+  const orcamento = {
+    clienteId: clienteSelecionado,
+    cliente: {
+      nome: cliente.nome || "",
+      telefone: cliente.telefone || "",
+      cpf: cliente.cpfOuCnpj || "",
+      endereco: cliente.endereco || "",
+      bairro: cliente.bairro || "",
+      cidade: cliente.cidade || "",
+      email: cliente.email || ""
+    },
+    itens: itens,
+    totalGeral: totalGeral,
+    totalVista: totalVista,
+    dataHora: new Date().toISOString(),
+    usuarioId: user.uid
+  };
+
+  try {
+    await addDoc(collection(db, "orcamentos"), orcamento);
+    alert("Orçamento salvo com sucesso!");
+  } catch (erro) {
+    console.error("Erro ao salvar orçamento:", erro);
+    alert("Erro ao salvar. Verifique o console.");
+  }
+};
+
