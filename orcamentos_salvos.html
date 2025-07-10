@@ -82,21 +82,25 @@
       const escolhido = orcamentos.find(o => o.id === id);
       if (!escolhido) return;
 
-      const texto = `
+     const texto = `
 Cliente: ${escolhido.cliente?.nome || "-"}
 Telefone: ${escolhido.cliente?.telefone || "-"}
 Email: ${escolhido.cliente?.email || "-"}
 
 Itens:
-${escolhido.itens.map((item, i) => `  ${i + 1}. ${item.produto} - ${item.largura}m x ${item.altura}m - R$ ${item.total.toFixed(2).replace('.', ',')}`).join('\n')}
+${escolhido.itens.map((item, i) => {
+  const total = parseFloat(item.total) || 0;
+  return `  ${i + 1}. ${item.produto} - ${item.largura}m x ${item.altura}m - R$ ${total.toFixed(2).replace('.', ',')}`;
+}).join('\n')}
 
-Total geral: R$ ${escolhido.totalGeral.toFixed(2).replace('.', ',')}
-Total à vista: R$ ${escolhido.totalVista.toFixed(2).replace('.', ',')}
+Total geral: R$ ${(parseFloat(escolhido.totalGeral) || 0).toFixed(2).replace('.', ',')}
+Total à vista: R$ ${(parseFloat(escolhido.totalVista) || 0).toFixed(2).replace('.', ',')}
 Data/hora: ${new Date(escolhido.dataHora).toLocaleString()}
-      `.trim();
+`.trim();
 
-      conteudo.textContent = texto;
-      detalhes.style.display = "block";
+conteudo.textContent = texto;
+detalhes.style.display = "block";
+
     };
   </script>
 </body>
