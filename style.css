@@ -212,4 +212,18 @@ button:hover {
   td:nth-of-type(5)::before { content: "V. Unit."; }
   td:nth-of-type(6)::before { content: "Total"; }
 }
+.botao-voltar {
+  display: inline-block;
+  background-color: #915c83;
+  color: white;
+  padding: 10px 16px;
+  border-radius: 8px;
+  text-decoration: none;
+  font-weight: bold;
+  margin-bottom: 20px;
+}
+
+.botao-voltar:hover {
+  background-color: #7a4b6e;
+}
 
