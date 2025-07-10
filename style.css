@@ -154,3 +154,19 @@ button:hover {
     white-space: nowrap;
   }
 }
+
+.linha-campos {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+}
+
+.linha-campos .campo-pequeno {
+  flex: 1;
+  min-width: 100px;
+}
+
+.linha-campos label {
+  margin-top: 0;
+}
