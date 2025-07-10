@@ -83,29 +83,33 @@
       const escolhido = orcamentos.find(o => o.id === id);
       if (!escolhido) return;
 
-    function mostrar(valor) {
-  return (typeof valor === "string" && valor.trim() !== "") ? valor : "";
+   function mostrarLinha(label, valor) {
+  return (typeof valor === "string" && valor.trim() !== "") ? `${label}: ${valor.trim()}\n` : "";
 }
 
-const texto = `
-Cliente: ${mostrar(escolhido.cliente?.nome)}
-Telefone: ${mostrar(escolhido.cliente?.telefone)}
-Email: ${mostrar(escolhido.cliente?.email)}
-CPF/CNPJ: ${mostrar(escolhido.cliente?.cpf)}
-Endereço: ${mostrar(escolhido.cliente?.endereco)}
-Bairro: ${mostrar(escolhido.cliente?.bairro)}
-Cidade: ${mostrar(escolhido.cliente?.cidade)}
+let texto = "";
 
-Itens:
-${escolhido.itens.map((item, i) => {
+const c = escolhido.cliente || {};
+
+texto += mostrarLinha("Cliente", c.nome);
+texto += mostrarLinha("Telefone", c.telefone);
+texto += mostrarLinha("Email", c.email);
+texto += mostrarLinha("CPF/CNPJ", c.cpf);
+texto += mostrarLinha("Endereço", c.endereco);
+texto += mostrarLinha("Bairro", c.bairro);
+texto += mostrarLinha("Cidade", c.cidade);
+
+texto += `\nItens:\n${escolhido.itens.map((item, i) => {
   const total = parseFloat(item.total) || 0;
   return `  ${i + 1}. ${item.produto} - ${item.largura}m x ${item.altura}m - R$ ${total.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
-}).join('\n')}
+}).join('\n')}\n`;
 
-Total geral: R$ ${(parseFloat(escolhido.totalGeral) || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-Total à vista: R$ ${(parseFloat(escolhido.totalVista) || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-Data/hora: ${new Date(escolhido.dataHora).toLocaleString()}
-`.trim();
+texto += `\nTotal geral: R$ ${(parseFloat(escolhido.totalGeral) || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
+texto += `\nTotal à vista: R$ ${(parseFloat(escolhido.totalVista) || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
+texto += `\nData/hora: ${new Date(escolhido.dataHora).toLocaleString()}`;
+
+texto = texto.trim();
+
 
 
 conteudo.textContent = texto;
