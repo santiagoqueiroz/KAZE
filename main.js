@@ -168,8 +168,10 @@ document.getElementById("total-vista").textContent = totalVista.toLocaleString('
 
     const r = calcularPersiana(largura, altura, tipo, desconto);
     const item = {
-      produto: `Persiana - ${tipo} (${ambiente})`,
-      largura, altura, qtd: 1,
+      produto: `${ambiente} - Persiana ${tipo}`,
+      largura,
+      altura,
+      qtd: 1,
       unit: r.valorUnitario,
       total: r.total
     };
@@ -225,17 +227,7 @@ document.getElementById("total-vista").textContent = totalVista.toLocaleString('
     let produto = document.querySelector("#resultado h2")?.textContent || "Cortina";
     const ambiente = document.getElementById("ambienteC").value.trim();
 
-    // Remove o ambiente do início se já vier no título
-    if (produto.startsWith("Ambiente")) {
-      produto = produto.slice("Ambiente".length).trim().replace(/^[-–]\s*/, "");
-    }
-    if (ambiente && produto.startsWith(ambiente)) {
-      produto = produto.slice(ambiente.length).trim().replace(/^[-–]\s*/, "");
-    }
 
-
-    // Adiciona o ambiente no final entre parênteses
-    if (ambiente) produto += ` (${ambiente})`;
 
     const largura = parseFloat(document.getElementById("larguraC").value || 0);
     const altura = parseFloat(document.getElementById("alturaC").value || 0);
@@ -276,15 +268,6 @@ window.confirmarItemBlackout = async function () {
 
   let produto = document.querySelector("#resultadoBK h2")?.textContent || "Blackout";
   const ambiente = document.getElementById("ambienteBK").value.trim();
-
-  if (produto.startsWith("Ambiente")) {
-    produto = produto.slice("Ambiente".length).trim().replace(/^[-–]\\s*/, "");
-  }
-  if (ambiente && produto.startsWith(ambiente)) {
-    produto = produto.slice(ambiente.length).trim().replace(/^[-–]\\s*/, "");
-  }
-  if (ambiente) produto += ` (${ambiente})`;
-
   const largura = parseFloat(document.getElementById("larguraBK").value || 0);
   const altura = parseFloat(document.getElementById("alturaBK").value || 0);
   const totalTexto = document.querySelector("#resultadoBK tr:last-child td:last-child")?.textContent || "0";
@@ -317,15 +300,6 @@ window.confirmarItemCortinaBK = async function () {
 
   let produto = document.querySelector("#resultadoCBK h2")?.textContent || "Cortina + Blackout";
   const ambiente = document.getElementById("ambienteCBK").value.trim();
-
-  if (produto.startsWith("Ambiente")) {
-    produto = produto.slice("Ambiente".length).trim().replace(/^[-–]\s*/, "");
-  }
-  if (ambiente && produto.startsWith(ambiente)) {
-    produto = produto.slice(ambiente.length).trim().replace(/^[-–]\s*/, "");
-  }
-  if (ambiente) produto += ` (${ambiente})`;
-
   const largura = parseFloat(document.getElementById("larguraCBK").value || 0);
   const altura = parseFloat(document.getElementById("alturaCBK").value || 0);
   const totalTexto = document.querySelector("#resultadoCBK tr:last-child td:last-child")?.textContent || "0";
