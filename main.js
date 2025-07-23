@@ -170,24 +170,12 @@ document.getElementById("total-vista").textContent = totalVista.toLocaleString('
       if (!tipo || !largura || !altura) return alert("Preencha todos os campos.");
   
       const r = calcularPersianaCalc(largura, altura, tipo, desconto);
-      window.resultadoPersiana = r;
-      const tabela = `
-        <style>
-          table { border-collapse: collapse; width: 100%; font-family: sans-serif; }
-          th, td { border-top: 1px solid #ccc; padding: 8px; text-align: right; }
-          th:first-child, td:first-child { text-align: left; }
-          tr:nth-child(even) { background-color: #f9f9f9; }
-          tr:last-child td { font-weight: bold; color: #1a1a1a; background-color: #e0e0e0; }
-        </style>
+      window.resultadoPersiana = { ...r, desconto: desconto };
+      const resumo = `
         <h2>${ambiente} - Persiana ${tipo}</h2>
-        <table>
-          <tr><th>Item</th><th>Valor</th></tr>
-          <tr><td>Área calculada</td><td>${r.area} m²</td></tr>
-          <tr><td>Valor m²</td><td>${formatarReais(r.valorUnitario)}</td></tr>
-          <tr><td>Desconto</td><td>${formatarReais(desconto)}</td></tr>
-          <tr><td><strong>TOTAL FINAL</strong></td><td><strong>${formatarReais(r.total)}</strong></td></tr>
-        </table>`;
-      document.getElementById("resultado").innerHTML = tabela;
+        <p>Desconto: ${formatarReais(desconto)}</p>
+        <p><strong>Valor final: ${formatarReais(r.total)}</strong></p>`;
+      document.getElementById("resultado").innerHTML = resumo;
     };
 
 
@@ -202,9 +190,7 @@ document.getElementById("total-vista").textContent = totalVista.toLocaleString('
     const desconto = parseFloat(document.getElementById("desconto").value || 0);
     if (!tipo || !largura || !altura || !ambiente) return alert("Preencha todos os campos.");
 
-    const totalTexto = document.querySelector("#resultado tr:last-child td:last-child")?.textContent || "0";
-    const valorLimpo = totalTexto.replace("R$", "").replace(/\./g, "").replace(",", ".").trim();
-    const total = parseFloat(valorLimpo) || 0;
+    const total = parseFloat(window.resultadoPersiana?.total || 0);
     const unit = parseFloat(window.resultadoPersiana?.valorUnitario || 0);
     const item = {
       produto: `${ambiente} - Persiana ${tipo}`,
@@ -269,16 +255,7 @@ document.getElementById("total-vista").textContent = totalVista.toLocaleString('
 
     const largura = parseFloat(document.getElementById("larguraC").value || 0);
     const altura = parseFloat(document.getElementById("alturaC").value || 0);
-    const totalTexto = document.querySelector("#resultadoC tr:last-child td:last-child")?.textContent || "0";
-
-    // Converte R$ 1.234,56 → 1234.56
-    const valorLimpo = totalTexto
-      .replace("R$", "")
-      .replace(/\./g, "")
-      .replace(",", ".")
-      .trim();
-
-    const total = parseFloat(valorLimpo) || 0;
+    const total = parseFloat(window.totalFinalCortina || 0);
 
     const item = {
       produto,
@@ -308,10 +285,7 @@ window.confirmarItemBlackout = async function () {
   const ambiente = document.getElementById("ambienteBK").value.trim();
   const largura = parseFloat(document.getElementById("larguraBK").value || 0);
   const altura = parseFloat(document.getElementById("alturaBK").value || 0);
-  const totalTexto = document.querySelector("#resultadoBK tr:last-child td:last-child")?.textContent || "0";
-
-  const valorLimpo = totalTexto.replace("R$", "").replace(/\./g, "").replace(",", ".").trim();
-  const total = parseFloat(valorLimpo) || 0;
+  const total = parseFloat(window.totalFinalBlackout || 0);
 
   const item = {
     produto,
@@ -340,10 +314,7 @@ window.confirmarItemCortinaBK = async function () {
   const ambiente = document.getElementById("ambienteCBK").value.trim();
   const largura = parseFloat(document.getElementById("larguraCBK").value || 0);
   const altura = parseFloat(document.getElementById("alturaCBK").value || 0);
-  const totalTexto = document.querySelector("#resultadoCBK tr:last-child td:last-child")?.textContent || "0";
-
-  const valorLimpo = totalTexto.replace("R$", "").replace(/\./g, "").replace(",", ".").trim();
-  const total = parseFloat(valorLimpo) || 0;
+  const total = parseFloat(window.totalFinalGlobal || 0);
 
   const item = {
     produto,
