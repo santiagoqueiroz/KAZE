@@ -58,16 +58,24 @@
       const snapshot = await getDocs(collection(db, "orcamentos"));
       orcamentos = [];
 
+            snapshot.forEach(doc => {
+        orcamentos.push({ id: doc.id, ...doc.data() });
+      });
+
+      orcamentos.sort((a, b) => {
+        const nomeA = a.cliente?.nome || "";
+        const nomeB = b.cliente?.nome || "";
+        return nomeA.localeCompare(nomeB);
+      });
+
       select.innerHTML = '<option value="">Selecione...</option>';
 
-      snapshot.forEach(doc => {
-        const dados = doc.data();
-        const data = new Date(dados.dataHora);
-        const nome = dados.cliente?.nome || "Sem nome";
+      orcamentos.forEach(o => {
+        const data = new Date(o.dataHora);
+        const nome = o.cliente?.nome || "Sem nome";
         const rotulo = `${nome} - ${data.toLocaleDateString()} - ${data.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'})}`;
-        orcamentos.push({ id: doc.id, ...dados });
         const option = document.createElement("option");
-        option.value = doc.id;
+        option.value = o.id;
         option.textContent = rotulo;
         select.appendChild(option);
       });
