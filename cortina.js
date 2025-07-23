@@ -167,5 +167,5 @@ console.log("🏷️ Desconto:", formatarReais(desconto));
 console.log("💰 TOTAL FINAL:", formatarReais(totalFinal));
 console.groupEnd();
 
-  document.getElementById('resultado').innerHTML = tabela;
+  document.getElementById('resultadoC').innerHTML = tabela;
 }
