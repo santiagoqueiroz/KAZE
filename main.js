@@ -10,14 +10,16 @@
 // 📦 Importação de módulos do Firebase e scripts locais
   import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
 // 📦 Importação de módulos do Firebase e scripts locais
-  import { carregarTipos, calcularPersiana } from './persianas.js';
+  import { carregarTipos, calcularPersiana as calcularPersianaCalc } from './persianas.js';
 // 📦 Importação de módulos do Firebase e scripts locais
   import { preencherSelects, calcularCortina } from './cortina.js';
   import { preencherSelects as preencherSelectsBK, calcularBlackout } from './blackout.js';
   import { preencherSelects as preencherSelectsCBK, calcularCortinaBK } from './cortina+bk.js';
   import { addDoc } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 
-
+  window.calcularCortina = calcularCortina;
+  window.calcularBlackout = calcularBlackout;
+  window.calcularCortinaBK = calcularCortinaBK;
 
 
   const firebaseConfig = {
@@ -37,8 +39,12 @@
   const auth = getAuth(app);
 
 // 📁 Objeto para armazenar dados dos clientes
-  const clientes = {};
-  let clienteSelecionado = null;
+const clientes = {};
+let clienteSelecionado = null;
+
+  function formatarReais(v) {
+    return parseFloat(v).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+  }
 
   const select = document.getElementById("cliente");
   const corpoItens = document.getElementById("lista-itens");
@@ -155,6 +161,36 @@ document.getElementById("total-vista").textContent = totalVista.toLocaleString('
     document.getElementById("resultado").innerHTML = "";
   };
 
+  window.calcularPersiana = function () {
+      const tipo = document.getElementById("tipo").value;
+      const largura = parseFloat(document.getElementById("largura").value || 0);
+      const altura = parseFloat(document.getElementById("altura").value || 0);
+      const desconto = parseFloat(document.getElementById("desconto").value || 0);
+      const ambiente = document.getElementById("ambiente").value.trim() || "Ambiente";
+      if (!tipo || !largura || !altura) return alert("Preencha todos os campos.");
+  
+      const r = calcularPersianaCalc(largura, altura, tipo, desconto);
+      window.resultadoPersiana = r;
+      const tabela = `
+        <style>
+          table { border-collapse: collapse; width: 100%; font-family: sans-serif; }
+          th, td { border-top: 1px solid #ccc; padding: 8px; text-align: right; }
+          th:first-child, td:first-child { text-align: left; }
+          tr:nth-child(even) { background-color: #f9f9f9; }
+          tr:last-child td { font-weight: bold; color: #1a1a1a; background-color: #e0e0e0; }
+        </style>
+        <h2>${ambiente} - Persiana ${tipo}</h2>
+        <table>
+          <tr><th>Item</th><th>Valor</th></tr>
+          <tr><td>Área calculada</td><td>${r.area} m²</td></tr>
+          <tr><td>Valor m²</td><td>${formatarReais(r.valorUnitario)}</td></tr>
+          <tr><td>Desconto</td><td>${formatarReais(desconto)}</td></tr>
+          <tr><td><strong>TOTAL FINAL</strong></td><td><strong>${formatarReais(r.total)}</strong></td></tr>
+        </table>`;
+      document.getElementById("resultado").innerHTML = tabela;
+    };
+
+
 
 // ✅ Confirma e salva item de persiana no Firestore
   window.confirmarItemPersiana = async function () {
@@ -166,14 +202,17 @@ document.getElementById("total-vista").textContent = totalVista.toLocaleString('
     const desconto = parseFloat(document.getElementById("desconto").value || 0);
     if (!tipo || !largura || !altura || !ambiente) return alert("Preencha todos os campos.");
 
-    const r = calcularPersiana(largura, altura, tipo, desconto);
+    const totalTexto = document.querySelector("#resultado tr:last-child td:last-child")?.textContent || "0";
+    const valorLimpo = totalTexto.replace("R$", "").replace(/\./g, "").replace(",", ".").trim();
+    const total = parseFloat(valorLimpo) || 0;
+    const unit = parseFloat(window.resultadoPersiana?.valorUnitario || 0);
     const item = {
       produto: `${ambiente} - Persiana ${tipo}`,
       largura,
       altura,
       qtd: 1,
-      unit: r.valorUnitario,
-      total: r.total
+      unit: unit,
+      total: total
     };
     const ref = doc(db, "clientes", clienteSelecionado);
     const snap = await getDoc(ref);
@@ -221,7 +260,6 @@ document.getElementById("total-vista").textContent = totalVista.toLocaleString('
   window.confirmarItemCortina = async function () {
     if (!clienteSelecionado) return alert("Selecione um cliente.");
 
-    calcularCortina();
 
     // Pega o nome base do produto gerado
     let produto = document.querySelector("#resultado h2")?.textContent || "Cortina";
@@ -264,7 +302,7 @@ document.getElementById("total-vista").textContent = totalVista.toLocaleString('
 window.confirmarItemBlackout = async function () {
   if (!clienteSelecionado) return alert("Selecione um cliente.");
 
-  calcularBlackout();
+
 
   let produto = document.querySelector("#resultadoBK h2")?.textContent || "Blackout";
   const ambiente = document.getElementById("ambienteBK").value.trim();
@@ -296,7 +334,7 @@ window.confirmarItemBlackout = async function () {
 
 window.confirmarItemCortinaBK = async function () {
   if (!clienteSelecionado) return alert("Selecione um cliente.");
-  calcularCortinaBK();
+
 
   let produto = document.querySelector("#resultadoCBK h2")?.textContent || "Cortina + Blackout";
   const ambiente = document.getElementById("ambienteCBK").value.trim();
