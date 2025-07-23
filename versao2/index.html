@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Login KAZE</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body {
+      font-family: 'Bahnschrift', sans-serif;
+      background-color: #faebd7;
+      margin: 0;
+      padding: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+    }
+
+    .container {
+      background: white;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      text-align: center;
+      max-width: 400px;
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    img.logo {
+      max-width: 180px;
+      margin-bottom: 20px;
+    }
+
+    h2 {
+      margin-bottom: 20px;
+      font-size: 24px;
+    }
+
+    input {
+      padding: 12px;
+      font-size: 16px;
+      width: 100%;
+      margin-bottom: 12px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      box-sizing: border-box;
+    }
+
+    button {
+      background-color: #915c83;
+      color: white;
+      padding: 14px;
+      font-size: 16px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      width: 100%;
+      font-weight: bold;
+    }
+
+    button:hover {
+      background-color: #7a4b6e;
+    }
+
+    #mensagem {
+      margin-top: 20px;
+      color: red;
+      font-weight: bold;
+    }
+
+    @media (max-width: 600px) {
+      .container {
+        padding: 20px;
+      }
+
+      h2 {
+        font-size: 22px;
+      }
+
+      input, button {
+        font-size: 18px;
+        padding: 16px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <img src="logo_kaze.png" alt="Kazê" class="logo">
+    <input type="email" id="email" placeholder="Email" required>
+    <input type="password" id="senha" placeholder="Senha" required>
+    <button onclick="login()">Entrar</button>
+
+    <p id="mensagem"></p>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyD5kVoWRWZB6xtacyu6lH--QFXry_MPKps",
+      authDomain: "kaze-8836b.firebaseapp.com",
+      projectId: "kaze-8836b",
+      storageBucket: "kaze-8836b.firebasestorage.app",
+      messagingSenderId: "336054068300",
+      appId: "1:336054068300:web:6125e8eecc08d667fac0e9"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+
+    window.login = function () {
+      const email = document.getElementById('email').value;
+      const senha = document.getElementById('senha').value;
+      const msg = document.getElementById('mensagem');
+
+      signInWithEmailAndPassword(auth, email, senha)
+        .then(() => {
+          window.location.href = "painel.html";
+        })
+        .catch((error) => {
+          msg.textContent = "Erro ao fazer login: " + traduzErro(error.code);
+        });
+    }
+
+    function traduzErro(codigo) {
+      switch (codigo) {
+        case "auth/user-not-found": return "Usuário não encontrado.";
+        case "auth/wrong-password": return "Senha incorreta.";
+        case "auth/invalid-email": return "E-mail inválido.";
+        default: return "Erro desconhecido.";
+      }
+    }
+  </script>
+</body>
+</html>
