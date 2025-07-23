@@ -198,7 +198,10 @@ function calcularCortinaBK() {
 
   const produto = `${ambiente} - Cortina ${nomeC} + Blackout ${nomeBK} - ${nomeTrilho}`;
   const linhasCombinadas = [...linhasCortina, ...linhasBKFiltradas];
-  const tabelaHTML = gerarTabela(produto, linhasCombinadas, totalFinal);
+  const resumoHTML = `
+    <h2>${produto}</h2>
+    <p>Desconto: ${formatarReais(desconto)}</p>
+    <p><strong>Valor final: ${formatarReais(totalFinal)}</strong></p>`;
 
   console.groupCollapsed(`🧮 Cálculo Detalhado - ${produto}`);
   console.log("CORTINA:");
@@ -219,8 +222,9 @@ function calcularCortinaBK() {
   console.log("TOTAL FINAL:", formatarReais(totalFinal));
   console.groupEnd();
 
-  document.getElementById("resultadoCBK").innerHTML = tabelaHTML;
+  
   window.totalFinalGlobal = totalFinal;
+  document.getElementById("resultadoCBK").innerHTML = resumoHTML;
 
 }
 
