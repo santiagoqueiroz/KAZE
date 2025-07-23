@@ -29,7 +29,9 @@
       max-width: 800px;
       margin: 0 auto 20px;
       padding: 0 40px;
-      text-align: right;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
     }
     .botoes button {
       padding: 10px 20px;
@@ -39,6 +41,10 @@
       border: none;
       border-radius: 6px;
       cursor: pointer;
+      font-size: 14px;
+    }
+    .botoes select {
+      padding: 8px 12px;
       font-size: 14px;
     }
     .container {
@@ -151,6 +157,12 @@
   </div>
 
   <div class="botoes">
+        <div>
+      <label for="parcelas" style="margin-right:5px;">Parcelas:</label>
+      <select id="parcelas" onchange="atualizarParcelas()">
+        <!-- opções geradas via JS -->
+      </select>
+    </div>
     <button onclick="salvarImagem()">Salvar Imagem</button>
   </div>
 
@@ -186,7 +198,7 @@
         <span>R$</span>
         <strong id="total-parcelado">-</strong>
       </div>
-      <div style="text-align: right; font-size: 12px; color: #333;">EM ATÉ 12X SEM JUROS</div>
+      <div style="text-align: right; font-size: 12px; color: #333;">EM ATÉ <span id="parcelas-num">12</span>X SEM JUROS</div>
 
       <div class="linha-total">
         <span>R$</span>
@@ -220,6 +232,22 @@
     const select = document.getElementById("cliente");
     const corpo = document.getElementById("lista-itens");
     const infoBox = document.getElementById("dados-cliente");
+    const parcelasSelect = document.getElementById("parcelas");
+    const spanParcelas = document.getElementById("parcelas-num");
+
+    for (let i = 1; i <= 12; i++) {
+      const opt = document.createElement('option');
+      opt.value = i;
+      opt.textContent = i + 'x';
+      if (i === 12) opt.selected = true;
+      parcelasSelect.appendChild(opt);
+    }
+    spanParcelas.textContent = parcelasSelect.value;
+
+    window.atualizarParcelas = function() {
+      spanParcelas.textContent = parcelasSelect.value;
+    }
+
 
     onAuthStateChanged(auth, async (user) => {
       if (!user) return window.location.href = "index.html";
