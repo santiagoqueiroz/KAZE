@@ -255,7 +255,10 @@ document.getElementById("total-vista").textContent = totalVista.toLocaleString('
 
     const largura = parseFloat(document.getElementById("larguraC").value || 0);
     const altura = parseFloat(document.getElementById("alturaC").value || 0);
-    const total = parseFloat(window.totalFinalCortina || 0);
+    const total = typeof window.totalFinalCortina === "number"
+  ? window.totalFinalCortina
+  : Number(window.totalFinalCortina.toString().replace(",", "."));
+
 
     const item = {
       produto,
@@ -285,7 +288,10 @@ window.confirmarItemBlackout = async function () {
   const ambiente = document.getElementById("ambienteBK").value.trim();
   const largura = parseFloat(document.getElementById("larguraBK").value || 0);
   const altura = parseFloat(document.getElementById("alturaBK").value || 0);
-  const total = parseFloat(window.totalFinalBlackout || 0);
+  const total = typeof window.totalFinalBlackout === "number"
+  ? window.totalFinalBlackout
+  : Number(window.totalFinalBlackout.toString().replace(",", "."));
+
 
   const item = {
     produto,
@@ -314,7 +320,10 @@ window.confirmarItemCortinaBK = async function () {
   const ambiente = document.getElementById("ambienteCBK").value.trim();
   const largura = parseFloat(document.getElementById("larguraCBK").value || 0);
   const altura = parseFloat(document.getElementById("alturaCBK").value || 0);
-  const total = parseFloat(window.totalFinalGlobal || 0);
+  const total = typeof window.totalFinalGlobal === "number"
+  ? window.totalFinalGlobal
+  : Number(window.totalFinalGlobal.toString().replace(",", "."));
+
 
   const item = {
     produto,
