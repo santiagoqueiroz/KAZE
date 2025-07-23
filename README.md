@@ -29,6 +29,7 @@ Este repositório contém uma aplicação web simples para gerenciamento de clie
 ## Diretórios auxiliares
 
 - **versao1/** – Guarda uma versão anterior da aplicação contendo arquivos equivalentes (HTML, CSS e scripts) utilizados como referência histórica.
+- **versao2/** – Guarda uma versão anterior da aplicação contendo arquivos equivalentes (HTML, CSS e scripts) utilizados como referência histórica. 23-07-25
 - **teste/** – Conjunto de arquivos de teste e protótipos diversos utilizados durante o desenvolvimento.
 
 Para utilizar a aplicação localmente basta abrir `index.html` em um navegador com acesso à internet (para carregar o Firebase). É necessário possuir credenciais válidas de usuário cadastradas no projeto Firebase indicado nos scripts.
