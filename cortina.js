@@ -118,27 +118,10 @@ export function calcularCortina() {
     { label: `Bucha e Parafuso: ${kitsBucha} x R$ ${parametros["BUCHA E PARAFUSO"].toFixed(2)}`, valor: bucha },
   ];
 
-  const tabela = `
-    <style>
-      table { border-collapse: collapse; width: 100%; font-family: sans-serif; }
-      th, td { border-top: 1px solid #ccc; padding: 8px; text-align: right; }
-      th:first-child, td:first-child { text-align: left; }
-      tr:nth-child(even) { background-color: #f9f9f9; }
-      tr:last-child td { font-weight: bold; color: #1a1a1a; background-color: #e0e0e0; }
-    </style>
+  const resumo = `
     <h2>${produto}</h2>
-    <table>
-      <tr><th>Item</th><th>Valor (R$)</th></tr>
-      ${linhas.map(l => `<tr><td>${l.label}</td><td>${formatarReais(l.valor)}</td></tr>`).join('')}
-      <tr><td><strong>Subtotal</strong></td><td>${formatarReais(subtotal)}</td></tr>
-      <tr><td>Simples Nacional (6%)</td><td>${formatarReais(simples)}</td></tr>
-      <tr><td>Subtotal + Simples</td><td>${formatarReais(baseMaisSimples)}</td></tr>
-      <tr><td>Markup (2,4x)</td><td>${formatarReais(totalVista)}</td></tr>
-      <tr><td>Ajuste Cartão (/0.879)</td><td>${formatarReais(totalCorrigido)}</td></tr>
-      <tr><td>Desconto</td><td>${formatarReais(desconto)}</td></tr>
-      <tr><td><strong>TOTAL FINAL</strong></td><td><strong>${formatarReais(totalFinal)}</strong></td></tr>
-    </table>
-  `;
+    <p>Desconto: ${formatarReais(desconto)}</p>
+    <p><strong>Valor final: ${formatarReais(totalFinal)}</strong></p>`;
 
   console.groupCollapsed(`🧮 Cálculo Detalhado - ${produto}`);
 console.log("🧵 Tecido:", `${qtdTecidoTotal} m x R$ ${precoTecido.toFixed(2)} = ${formatarReais(valorTecido)}`);
@@ -167,5 +150,6 @@ console.log("🏷️ Desconto:", formatarReais(desconto));
 console.log("💰 TOTAL FINAL:", formatarReais(totalFinal));
 console.groupEnd();
 
-  document.getElementById('resultadoC').innerHTML = tabela;
+  window.totalFinalCortina = totalFinal;
+  document.getElementById('resultadoC').innerHTML = resumo;
 }
