@@ -232,7 +232,7 @@ document.getElementById("total-vista").textContent = totalVista.toLocaleString('
 
   window.fecharJanelaCortina = function () {
     document.getElementById("janelaCortina").style.display = "none";
-    document.getElementById("resultado").innerHTML = "";
+    document.getElementById("resultadoC").innerHTML = "";
   };
 
   window.abrirJanelaBlackout = async function () {
@@ -242,7 +242,7 @@ document.getElementById("total-vista").textContent = totalVista.toLocaleString('
   
   window.fecharJanelaBlackout = function () {
     document.getElementById("janelaBlackout").style.display = "none";
-    document.getElementById("resultado").innerHTML = "";
+    document.getElementById("resultadoBK").innerHTML = "";
   };
 
   window.abrirJanelaCortinaBK = function () {
@@ -262,14 +262,14 @@ document.getElementById("total-vista").textContent = totalVista.toLocaleString('
 
 
     // Pega o nome base do produto gerado
-    let produto = document.querySelector("#resultado h2")?.textContent || "Cortina";
+    let produto = document.querySelector("#resultadoC h2")?.textContent || "Cortina";
     const ambiente = document.getElementById("ambienteC").value.trim();
 
 
 
     const largura = parseFloat(document.getElementById("larguraC").value || 0);
     const altura = parseFloat(document.getElementById("alturaC").value || 0);
-    const totalTexto = document.querySelector("#resultado tr:last-child td:last-child")?.textContent || "0";
+    const totalTexto = document.querySelector("#resultadoC tr:last-child td:last-child")?.textContent || "0";
 
     // Converte R$ 1.234,56 → 1234.56
     const valorLimpo = totalTexto
