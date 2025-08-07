@@ -295,7 +295,11 @@ window.confirmarItemBlackout = async function () {
 
 
 
-  let produto = document.querySelector("#resultadoBK h2")?.textContent || "Blackout";
+  const tipo = document.getElementById("tecidoBK")?.selectedOptions[0]?.text?.split(" - ")[0] || "";
+  const trilho = document.getElementById("trilhoBK")?.selectedOptions[0]?.text?.split(" - ")[0] || "";
+  const ambiente = document.getElementById("ambienteBK")?.value.trim() || "Ambiente";
+  const produto = `${ambiente} - Blackout ${tipo} - ${trilho}`;
+
   const ambiente = document.getElementById("ambienteBK").value.trim();
   const largura = parseFloat(document.getElementById("larguraBK").value || 0);
   const altura = parseFloat(document.getElementById("alturaBK").value || 0);
@@ -327,7 +331,12 @@ window.confirmarItemCortinaBK = async function () {
   if (!clienteSelecionado) return alert("Selecione um cliente.");
 
 
-  let produto = document.querySelector("#resultadoCBK h2")?.textContent || "Cortina + Blackout";
+  const tipoC = document.getElementById("tecidoC")?.selectedOptions[0]?.text?.split(" - ")[0] || "";
+  const tipoBK = document.getElementById("tecidoBK_CBK")?.selectedOptions[0]?.text?.split(" - ")[0] || "";
+  const trilho = document.getElementById("trilhoCBK")?.selectedOptions[0]?.text?.split(" - ")[0] || "";
+  const ambiente = document.getElementById("ambienteCBK")?.value.trim() || "Ambiente";
+  const produto = `${ambiente} - Cortina ${tipoC} + Blackout ${tipoBK} - ${trilho}`;
+
   const ambiente = document.getElementById("ambienteCBK").value.trim();
   const largura = parseFloat(document.getElementById("larguraCBK").value || 0);
   const altura = parseFloat(document.getElementById("alturaCBK").value || 0);
