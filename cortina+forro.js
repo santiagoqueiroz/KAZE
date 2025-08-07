@@ -73,8 +73,8 @@ function calcularCortinaForro() {
   const precoTecidoC = parseFloat(selTecidoC.value || 0);
   const precoTecidoF = parseFloat(selTecidoF.value || 0);
   const precoTrilho = parseFloat(selTrilho.value || 0);
-  const nomeTecidoC = selTecido.selectedOptions[0].text.split(" - ")[0];
-  const nomeTecidoF = selTecido.selectedOptions[0].text.split(" - ")[0];
+  const nomeTecidoC = selTecidoC.selectedOptions[0].text.split(" - ")[0];
+  const nomeTecidoF = selTecidoF.selectedOptions[0].text.split(" - ")[0];
   const nomeTrilho = selTrilho.selectedOptions[0].text.split(" - ")[0];
   const ambiente = document.getElementById("ambienteCF")?.value || "Ambiente";
 
@@ -139,9 +139,11 @@ function calcularCortinaForro() {
   const baseF = arred(subtotalF + simplesF);
   const totalF = arred(baseF * 2.4 / 0.879);
 
+  const totalFinal = arred(totalC + totalF - desconto);
+  
   const produto = `${ambiente} - Cortina ${nomeTecidoC} + Forro ${nomeTecidoF} - ${nomeTrilho}`;
   window.produtoCortinaForro = produto;
-  const produto = `${ambiente} - Cortina + Forro ${nomeTecido} - ${nomeTrilho}`;
+  
 
   const resumoHTML = `
     <h2>${produto}</h2>
