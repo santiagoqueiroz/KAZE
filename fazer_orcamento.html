@@ -127,6 +127,9 @@
     <button onclick="abrirJanelaCortinaBK()">
      + Cortina + Blackout
     </button>
+    <button onclick="abrirJanelaCortinaForro()">
+     + Cortina + Forro
+    </button>
    </div>
      <div class="modal" id="janelaItem">
       <div class="conteudo">
@@ -275,6 +278,36 @@
         <div id="resultadoCBK" style="margin-top:15px;"></div>
         <button onclick="confirmarItemCortinaBK()" style="margin-top: 10px;">Adicionar ao orçamento</button>
         <button onclick="fecharJanelaCortinaBK()">Fechar</button>
+      </div>
+    </div>
+   
+    <div class="modal" id="janelaCortinaForro">
+      <div class="conteudo">
+        <h3>Cortina + Forro</h3>
+
+        <div class="linha-campos">
+          <div class="campo-pequeno">
+            <label for="larguraCF">Largura (m):</label>
+            <input id="larguraCF" type="number" step="0.01" />
+          </div>
+          <div class="campo-pequeno">
+            <label for="alturaCF">Altura (m):</label>
+            <input id="alturaCF" type="number" step="0.01" />
+          </div>
+        </div>
+
+        <label for="tecidoCF">Tecido:</label>
+        <select id="tecidoCF"></select>
+        <label for="trilhoCF">Trilho:</label>
+        <select id="trilhoCF"></select>
+
+        <label for="ambienteCF">Ambiente:</label>
+        <input id="ambienteCF" type="text" />
+
+        <button onclick="calcularCortinaForro()" style="margin-top: 10px;">Calcular</button>
+        <div id="resultadoCF" style="margin-top:15px;"></div>
+        <button onclick="confirmarItemCortinaForro()" style="margin-top: 10px;">Adicionar ao orçamento</button>
+        <button onclick="fecharJanelaCortinaForro()">Fechar</button>
       </div>
     </div>
   </div>
