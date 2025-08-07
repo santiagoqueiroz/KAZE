@@ -128,48 +128,43 @@ function calcularCortinaForro() {
   linhasForro.push({ label: `Tecido forro: ${metragem} m`, valor: valorTecidoF });
   linhasForro.push({ label: `Costura (forro)`, valor: costuraF });
   linhasForro.push({ label: `Barra (forro)`, valor: barraF });
-
-  const subtotalC = somarLinhas(linhasCortina);
-  const simplesC = arred(subtotalC * 0.06);
-  const baseC = arred(subtotalC + simplesC);
-  const totalC = arred(baseC * 2.4 / 0.879);
-
-  const subtotalF = somarLinhas(linhasForro);
-  const simplesF = arred(subtotalF * 0.06);
-  const baseF = arred(subtotalF + simplesF);
-  const totalF = arred(baseF * 2.4 / 0.879);
-
-  const totalFinal = arred(totalC + totalF - desconto);
   
+  const todasAsLinhas = [...linhasCortina, ...linhasForro];
+  const subtotal = somarLinhas(todasAsLinhas);
+  const simples = arred(subtotal * 0.06);
+  const base = arred(subtotal + simples);
+  const valorComMarkup = arred(base * 2.4);
+  const valorCorrigido = arred(valorComMarkup / 0.879);
+  const totalFinal = arred(valorCorrigido - desconto);
+
   const produto = `${ambiente} - Cortina ${nomeTecidoC} + Forro ${nomeTecidoF} - ${nomeTrilho}`;
   window.produtoCortinaForro = produto;
-  
 
   const resumoHTML = `
     <h2>${produto}</h2>
+    <p>Desconto: ${formatarReais(desconto)}</p>
     <p><strong>Valor final: ${formatarReais(totalFinal)}</strong></p>
   `;
 
   console.groupCollapsed(`🧮 Cálculo Detalhado - ${produto}`);
   console.log("CORTINA:");
   linhasCortina.forEach(l => console.log(" -", l.label, "=", formatarReais(l.valor)));
-  console.log("Subtotal:", formatarReais(subtotalC));
-  console.log("+6%:", formatarReais(simplesC));
-  console.log("x2.4:", formatarReais(baseC * 2.4));
-  console.log("/0.879:", formatarReais(totalC));
+
   console.log("FORRO:");
   linhasForro.forEach(l => console.log(" -", l.label, "=", formatarReais(l.valor)));
-  console.log("Subtotal:", formatarReais(subtotalF));
-  console.log("+6%:", formatarReais(simplesF));
-  console.log("x2.4:", formatarReais(baseF * 2.4));
-  console.log("/0.879:", formatarReais(totalF));
+
+  console.log("Subtotal:", formatarReais(subtotal));
+  console.log("+6%:", formatarReais(simples));
+  console.log("x2.4:", formatarReais(valorComMarkup));
+  console.log("/0.879:", formatarReais(valorCorrigido));
+  console.log("DESCONTO FINAL:", formatarReais(desconto));
   console.log("TOTAL FINAL:", formatarReais(totalFinal));
   console.groupEnd();
 
   window.totalFinalCortinaForro = totalFinal;
-  window.totalCortinaCF = totalC;
-  window.totalForroCF = totalF;
   document.getElementById("resultadoCF").innerHTML = resumoHTML;
+
+ 
 }
 
 export { preencherSelectsCF, calcularCortinaForro };
