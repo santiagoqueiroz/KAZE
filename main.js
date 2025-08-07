@@ -15,12 +15,13 @@
   import { preencherSelects, calcularCortina } from './cortina.js';
   import { preencherSelects as preencherSelectsBK, calcularBlackout } from './blackout.js';
   import { preencherSelects as preencherSelectsCBK, calcularCortinaBK } from './cortina+bk.js';
+  import { preencherSelectsCF, calcularCortinaForro } from './cortina+forro.js';
   import { addDoc } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 
   window.calcularCortina = calcularCortina;
   window.calcularBlackout = calcularBlackout;
   window.calcularCortinaBK = calcularCortinaBK;
-
+  window.calcularCortinaForro = calcularCortinaForro;
 
   const firebaseConfig = {
     apiKey: "AIzaSyD5kVoWRWZB6xtacyu6lH--QFXry_MPKps",
@@ -242,6 +243,16 @@ document.getElementById("total-vista").textContent = totalVista.toLocaleString('
   };
 
 
+  window.abrirJanelaCortinaForro = function () {
+    document.getElementById("janelaCortinaForro").style.display = "flex";
+    setTimeout(preencherSelectsCF, 10);
+  };
+
+  window.fecharJanelaCortinaForro = function () {
+    document.getElementById("janelaCortinaForro").style.display = "none";
+    document.getElementById("resultadoCF").innerHTML = "";
+  };
+
 // ✅ Confirma e salva item de cortina no Firestore
   window.confirmarItemCortina = async function () {
     if (!clienteSelecionado) return alert("Selecione um cliente.");
@@ -342,6 +353,47 @@ window.confirmarItemCortinaBK = async function () {
   mostrarItens(itens);
   fecharJanelaCortinaBK();
 };
+
+  window.confirmarItemCortinaForro = async function () {
+  if (!clienteSelecionado) return alert("Selecione um cliente.");
+
+  let produto = document.querySelector("#resultadoCF h2")?.textContent || "Cortina + Forro";
+  const largura = parseFloat(document.getElementById("larguraCF").value || 0);
+  const altura = parseFloat(document.getElementById("alturaCF").value || 0);
+
+  const total = typeof window.totalFinalCortinaForro === "number"
+    ? window.totalFinalCortinaForro
+    : Number(window.totalFinalCortinaForro.toString().replace(",", "."));
+
+  const totalCortina = window.totalCortinaCF || 0;
+  const totalForro = window.totalForroCF || 0;
+
+  console.groupCollapsed("💾 Salvando Cortina + Forro");
+  console.log("Cortina:", formatarReais(totalCortina));
+  console.log("Forro:", formatarReais(totalForro));
+  console.log("TOTAL FINAL:", formatarReais(total));
+  console.groupEnd();
+
+  const item = {
+    produto,
+    largura,
+    altura,
+    cortina: totalCortina,
+    forro: totalForro,
+    qtd: 1,
+    unit: total,
+    total: total
+  };
+
+  const ref = doc(db, "clientes", clienteSelecionado);
+  const snap = await getDoc(ref);
+  const itens = snap.data().orcamentoAtivo?.itens || [];
+  itens.push(item);
+  await updateDoc(ref, { "orcamentoAtivo.itens": itens });
+  mostrarItens(itens);
+  fecharJanelaCortinaForro();
+};
+
 
 
   window.removerItem = async function (index) {
