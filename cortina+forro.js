@@ -29,17 +29,24 @@ async function preencherSelectsCF() {
   trilhos = t3.exists() ? t3.data() : {};
   parametros = t4.exists() ? t4.data() : {};
 
-  const selTecido = document.getElementById("tecidoCF");
+  const selTecidoC = document.getElementById("tecidoC_CF");
+  const selTecidoF = document.getElementById("tecidoF_CF");
   const selTrilho = document.getElementById("trilhoCF");
 
-  selTecido.innerHTML = "";
+  selTecidoC.innerHTML = "";
+  selTecidoF.innerHTML = ""
   selTrilho.innerHTML = "";
 
   for (const [nome, preco] of Object.entries(tecidos).sort()) {
-    const o = document.createElement("option");
-    o.value = preco;
-    o.textContent = `${nome} - R$ ${preco.toFixed(2)}`;
-    selTecido.appendChild(o);
+    const o1 = document.createElement("option");
+    o1.value = preco;
+    o1.textContent = `${nome} - R$ ${preco.toFixed(2)}`;
+    selTecidoC.appendChild(o1);
+
+    const o2 = document.createElement("option");
+    o2.value = preco;
+    o2.textContent = `${nome} - R$ ${preco.toFixed(2)}`;
+    selTecidoF.appendChild(o2);
   }
   for (const [nome, preco] of Object.entries(trilhos)) {
     const o = document.createElement("option");
@@ -56,28 +63,28 @@ function somarLinhas(linhas) {
 function calcularCortinaForro() {
   const largura = parseFloat(document.getElementById("larguraCF").value || 0);
   const altura = parseFloat(document.getElementById("alturaCF").value || 0);
-  const selTecido = document.getElementById("tecidoCF");
+  const barraExtra = parseFloat(document.getElementById("barraExtraCF").value || 0.40);
+  const xBarraAlta = parseFloat(document.getElementById("xBarraAltaCF").value || 1.4);
+  const desconto = parseFloat(document.getElementById("descontoCF").value || 0);
+  const selTecidoC = document.getElementById("tecidoC_CF");
+  const selTecidoF = document.getElementById("tecidoF_CF");
   const selTrilho = document.getElementById("trilhoCF");
 
-  const precoTecido = parseFloat(selTecido.value || 0);
+  const precoTecidoC = parseFloat(selTecidoC.value || 0);
+  const precoTecidoF = parseFloat(selTecidoF.value || 0);
   const precoTrilho = parseFloat(selTrilho.value || 0);
   const nomeTecidoC = selTecido.selectedOptions[0].text.split(" - ")[0];
   const nomeTecidoF = selTecido.selectedOptions[0].text.split(" - ")[0];
   const nomeTrilho = selTrilho.selectedOptions[0].text.split(" - ")[0];
   const ambiente = document.getElementById("ambienteCF")?.value || "Ambiente";
 
-  const barraExtra = 0.40;
-  const xBarraAlta = 1.4;
-
   const alturaTira = arred(altura + 0.12 + barraExtra);
   const qtdBase = arred((largura * 3.1) + 0.7);
   const qtdTiras = (qtdBase / 3) % 1 < 0.4 ? Math.floor(qtdBase / 3) : Math.ceil(qtdBase / 3);
   const metragem = arred(altura > 2.6 ? (qtdTiras * alturaTira) : qtdBase);
 
-  const metragemTotalTecido = arred(metragem * 2);
-
-  const valorTecidoC = arred(metragem * precoTecido);
-  const valorTecidoF = arred(metragem * precoTecido);
+  const valorTecidoC = arred(metragem * precoTecidoC);
+  const valorTecidoF = arred(metragem * precoTecidoF);
 
   const entrela = arred(qtdBase * parametros["ENTRETELA"]);
   const qntDeslizante = Math.ceil(((largura / 0.1) + 1) * 2);
