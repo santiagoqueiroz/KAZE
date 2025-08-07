@@ -357,7 +357,7 @@ window.confirmarItemCortinaBK = async function () {
   window.confirmarItemCortinaForro = async function () {
   if (!clienteSelecionado) return alert("Selecione um cliente.");
 
-  let produto = document.querySelector("#resultadoCF h2")?.textContent || "Cortina + Forro";
+  let produto = window.produtoCortinaForro || document.querySelector("#resultadoCF h2")?.textContent || "Cortina + Forro";
   const largura = parseFloat(document.getElementById("larguraCF").value || 0);
   const altura = parseFloat(document.getElementById("alturaCF").value || 0);
 
