@@ -151,9 +151,9 @@ function calcularCortinaBK() {
   linhasCortina.push({ label: `Bucha e Parafuso`, valor: bucha });
   
   const subtotalC = somarLinhas(linhasCortina);
-  const simplesC = arred(subtotalC * 0.06);
-  const baseC = arred(subtotalC + simplesC);
-  const totalC = arred(baseC * 2.4 / 0.879);
+  //const simplesC = arred(subtotalC * 0.06);
+  //const baseC = arred(subtotalC + simplesC);
+  //const totalC = arred(baseC * 2.4 / 0.879);
 
   // Parte do BLACKOUT
   let tecidoBase = 0;
@@ -189,12 +189,20 @@ function calcularCortinaBK() {
   
   const linhasBKFiltradas = removerItensCompartilhados(linhasBK);
   const subtotalBK = somarLinhas(linhasBKFiltradas);
-  const simplesBK = arred(subtotalBK * 0.06);
-  const baseBKfinal = arred(subtotalBK + simplesBK);
-  const totalBK = arred(baseBKfinal * 2.4 / 0.879);
+  //const simplesBK = arred(subtotalBK * 0.06);
+  //const baseBKfinal = arred(subtotalBK + simplesBK);
+  //const totalBK = arred(baseBKfinal * 2.4 / 0.879);
 
 
-  const totalFinal = arred(totalC + totalBK - desconto);
+  //const totalFinal = arred(totalC + totalBK - desconto);
+
+  const subtotalCombinado = arred(subtotalC + subtotalBK);
+  const simples = arred(subtotalCombinado * 0.06);
+  const base = arred(subtotalCombinado + simples);
+  const valorComMarkup = arred(base * 2.4);
+  const valorCorrigido = arred(valorComMarkup / 0.879);
+  const totalFinal = arred(valorCorrigido - desconto);
+
 
   const produto = `${ambiente} - Cortina ${nomeC} + Blackout ${nomeBK} - ${nomeTrilho}`;
   const linhasCombinadas = [...linhasCortina, ...linhasBKFiltradas];
@@ -203,24 +211,20 @@ function calcularCortinaBK() {
     <p>Desconto: ${formatarReais(desconto)}</p>
     <p><strong>Valor final: ${formatarReais(totalFinal)}</strong></p>`;
 
-  console.groupCollapsed(`🧮 Cálculo Detalhado - ${produto}`);
-  console.log("CORTINA:");
-  linhasCortina.forEach(l => console.log(" -", l.label, "=", formatarReais(l.valor)));
-  console.log("Subtotal:", formatarReais(subtotalC));
-  console.log("+6%:", formatarReais(simplesC));
-  console.log("x2.4:", formatarReais(baseC * 2.4));
-  console.log("/0.879:", formatarReais(totalC));
+console.groupCollapsed(`🧮 Cálculo Detalhado - ${produto}`);
+console.log("CORTINA:");
+linhasCortina.forEach(l => console.log(" -", l.label, "=", formatarReais(l.valor)));
 
-  console.log("BLACKOUT (sem trilho, barra, instalação, bucha):");
-  linhasBKFiltradas.forEach(l => console.log(" -", l.label, "=", formatarReais(l.valor)));
-  console.log("Subtotal:", formatarReais(subtotalBK));
-  console.log("+6%:", formatarReais(simplesBK));
-  console.log("x2.4:", formatarReais(baseBKfinal * 2.4));
-  console.log("/0.879:", formatarReais(totalBK));
+console.log("BLACKOUT (sem trilho, barra, instalação, bucha):");
+linhasBKFiltradas.forEach(l => console.log(" -", l.label, "=", formatarReais(l.valor)));
 
-  console.log("DESCONTO FINAL:", formatarReais(desconto));
-  console.log("TOTAL FINAL:", formatarReais(totalFinal));
-  console.groupEnd();
+console.log("Subtotal combinado:", formatarReais(subtotalCombinado));
+console.log("+6%:", formatarReais(simples));
+console.log("x2.4:", formatarReais(valorComMarkup));
+console.log("/0.879:", formatarReais(valorCorrigido));
+console.log("DESCONTO FINAL:", formatarReais(desconto));
+console.log("TOTAL FINAL:", formatarReais(totalFinal));
+console.groupEnd();
 
   
   window.totalFinalGlobal = totalFinal;
