@@ -375,12 +375,6 @@ window.confirmarItemCortinaBK = async function () {
   const totalCortina = window.totalCortinaCF || 0;
   const totalForro = window.totalForroCF || 0;
 
-  console.groupCollapsed("💾 Salvando Cortina + Forro");
-  console.log("Cortina:", formatarReais(totalCortina));
-  console.log("Forro:", formatarReais(totalForro));
-  console.log("TOTAL FINAL:", formatarReais(total));
-  console.groupEnd();
-
   const item = {
     produto,
     largura,
