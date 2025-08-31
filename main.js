@@ -253,6 +253,14 @@ document.getElementById("total-vista").textContent = totalVista.toLocaleString('
     document.getElementById("resultadoCF").innerHTML = "";
   };
 
+window.abrirJanelaManual = function () {
+    document.getElementById("janelaManual").style.display = "flex";
+  };
+
+  window.fecharJanelaManual = function () {
+    document.getElementById("janelaManual").style.display = "none";
+  };
+
 // ✅ Confirma e salva item de cortina no Firestore
   window.confirmarItemCortina = async function () {
     if (!clienteSelecionado) return alert("Selecione um cliente.");
@@ -394,6 +402,32 @@ window.confirmarItemCortinaBK = async function () {
   mostrarItens(itens);
   fecharJanelaCortinaForro();
 };
+
+  window.confirmarItemManual = async function () {
+    if (!clienteSelecionado) return alert("Selecione um cliente.");
+
+    const nome = document.getElementById("nomeManual").value.trim();
+    const quantidade = parseFloat(document.getElementById("quantidadeManual").value || 0);
+    const valor = parseFloat(document.getElementById("valorManual").value || 0);
+    if (!nome || !quantidade || !valor) return alert("Preencha todos os campos.");
+
+    const item = {
+      produto: nome,
+      largura: 0,
+      altura: 0,
+      qtd: quantidade,
+      unit: valor,
+      total: quantidade * valor
+    };
+
+    const ref = doc(db, "clientes", clienteSelecionado);
+    const snap = await getDoc(ref);
+    const itens = snap.data().orcamentoAtivo?.itens || [];
+    itens.push(item);
+    await updateDoc(ref, { "orcamentoAtivo.itens": itens });
+    mostrarItens(itens);
+    fecharJanelaManual();
+  };
 
 
 
