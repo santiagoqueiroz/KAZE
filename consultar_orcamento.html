@@ -150,9 +150,11 @@
 <body>
   <a href="painel.html" class="botao-voltar">← Voltar</a>
   <div class="seletor">
-    <label for="cliente">Selecionar Cliente:</label>
-    <select id="cliente" onchange="carregarOrcamento()">
-      <option value="">Selecione...</option>
+   <label for="cliente">Selecionar Orçamento:</label>
+<select id="cliente" onchange="carregarOrcamento()">
+  <option value="">Selecione um orçamento...</option>
+</select>
+
     </select>
   </div>
 
@@ -229,7 +231,7 @@
     const db = getFirestore(app);
     const auth = getAuth(app);
 
-    const select = document.getElementById("orcamento");
+    const select = document.getElementById("cliente");
     const corpo = document.getElementById("lista-itens");
     const infoBox = document.getElementById("dados-cliente");
     const parcelasSelect = document.getElementById("parcelas");
