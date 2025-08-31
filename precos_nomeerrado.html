@@ -130,7 +130,7 @@
       const { nome, preco } = doc.data();
       precos.persianas[doc.id] = { nome, preco };
       const v = (preco || 0).toFixed(2).replace('.', ',');
-      divP.innerHTML += `<label><span>${nome}</span><input type="text" data-cat="persianas" data-id="${doc.id}" value="${v}" oninput="mascarar(this)"></label>`;
+      divP.innerHTML += `<label><span>${nome}</span><input type="text" data-cat="persianas" data-id="${id}" value="${v}" oninput="mascarar(this)"></label>`;
     });
     container.appendChild(divP);
   }
@@ -203,7 +203,7 @@
       return;
     }
    if (cat === "persianas") {
-      for (const [id, dados] of Object.entries(precos.persianas)) {
+      for (const [id, dados] of Object.entries(precos.persianas).sort((a, b) => a[1].nome.localeCompare(b[1].nome))) {
         const opt = document.createElement("option");
         opt.value = id;
         opt.innerText = dados.nome;
