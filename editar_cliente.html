@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Editar Cliente</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body {
+      font-family: 'Bahnschrift', sans-serif;
+      background-color: #faebd7;
+      margin: 0;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 500px;
+      margin: auto;
+      background: white;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      box-sizing: border-box;
+    }
+
+    h1 {
+      margin-top: 0;
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    form {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    input {
+      padding: 12px;
+      font-size: 16px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      box-sizing: border-box;
+    }
+
+    button {
+      background-color: #915c83;
+      color: white;
+      padding: 14px;
+      font-size: 16px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    button:hover {
+      background-color: #7a4b6e;
+    }
+
+    .mensagem {
+      margin-top: 20px;
+      text-align: center;
+      font-weight: bold;
+    }
+
+    @media (max-width: 600px) {
+      .container {
+        padding: 20px;
+      }
+
+      input, button {
+        font-size: 18px;
+        padding: 16px;
+      }
+    }
+
+    .botao-voltar {
+      display: inline-block;
+      background-color: #915c83;
+      color: white;
+      padding: 10px 16px;
+      border-radius: 8px;
+      text-decoration: none;
+      font-weight: bold;
+      margin-top: 20px;
+      margin-left: 20px
+    }
+
+    .botao-voltar:hover {
+      background-color: #7a4b6e;
+    }
+
+  </style>
+</head>
+<body>
+  <a href="painel.html" class="botao-voltar">← Voltar</a>
+  <div class="container">
+    <h1>Editar Cliente</h1>
+
+    <form id="formCliente">
+      <input type="text" name="nome" placeholder="Nome completo" required>
+      <input type="tel" name="telefone" placeholder="Telefone/WhatsApp" required>
+      <input type="text" name="cpfOuCnpj" placeholder="CPF ou CNPJ (opcional)">
+      <input type="text" name="endereco" placeholder="Endereço">
+      <input type="text" name="bairro" placeholder="Bairro">
+      <input type="text" name="cidade" placeholder="Cidade">
+      <input type="email" name="email" placeholder="E-mail (opcional)">
+      <button type="submit">Salvar Alterações</button>
+    </form>
+
+    <div class="mensagem" id="mensagem"></div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getFirestore, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyD5kVoWRWZB6xtacyu6lH--QFXry_MPKps",
+      authDomain: "kaze-8836b.firebaseapp.com",
+      projectId: "kaze-8836b",
+      storageBucket: "kaze-8836b.firebasestorage.app",
+      messagingSenderId: "336054068300",
+      appId: "1:336054068300:web:6125e8eecc08d667fac0e9"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const auth = getAuth(app);
+
+    const params = new URLSearchParams(window.location.search);
+    const id = params.get('id');
+
+    if (!id) {
+      document.getElementById('mensagem').textContent = 'ID do cliente não encontrado.';
+    }
+
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        window.location.href = "login.html";
+        return;
+      }
+
+      if (!id) return;
+
+      try {
+        const docRef = doc(db, "clientes", id);
+        const snap = await getDoc(docRef);
+        if (snap.exists()) {
+          const dados = snap.data();
+          const form = document.getElementById('formCliente');
+          form.nome.value = dados.nome || '';
+          form.telefone.value = dados.telefone || '';
+          form.cpfOuCnpj.value = dados.cpfOuCnpj || '';
+          form.endereco.value = dados.endereco || '';
+          form.bairro.value = dados.bairro || '';
+          form.cidade.value = dados.cidade || '';
+          form.email.value = dados.email || '';
+        } else {
+          document.getElementById('mensagem').textContent = 'Cliente não encontrado.';
+        }
+      } catch (err) {
+        console.error(err);
+        document.getElementById('mensagem').textContent = 'Erro ao carregar cliente.';
+      }
+    });
+
+    const form = document.getElementById('formCliente');
+    const mensagem = document.getElementById('mensagem');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const user = auth.currentUser;
+      if (!user) {
+        alert("Você precisa estar logado.");
+        return;
+      }
+
+      const formData = new FormData(form);
+      const dados = Object.fromEntries(formData.entries());
+
+      try {
+        await updateDoc(doc(db, "clientes", id), dados);
+        mensagem.textContent = 'Cliente atualizado com sucesso!';
+        mensagem.style.color = 'green';
+        setTimeout(() => {
+          window.location.href = 'consultar_clientes.html';
+        }, 1000);
+      } catch (err) {
+        console.error(err);
+        mensagem.textContent = 'Erro ao atualizar cliente.';
+        mensagem.style.color = 'red';
+      }
+    });
+  </script>
+</body>
+</html>
