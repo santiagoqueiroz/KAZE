@@ -103,6 +103,7 @@
           <th>Bairro</th>
           <th>Cidade</th>
           <th>E-mail</th>
+          <th>Ações</th>
         </tr>
       </thead>
       <tbody></tbody>
@@ -158,7 +159,10 @@
             <td>${c.bairro || ""}</td>
             <td>${c.cidade || ""}</td>
             <td>${c.email || ""}</td>
-            <td><button onclick="excluirCliente('${doc.id}')">Excluir</button></td>
+            <td>
+              <button onclick="editarCliente('${doc.id}')">Editar</button>
+              <button onclick="excluirCliente('${doc.id}')">Excluir</button>
+            </td>
           `;
 
           tabela.appendChild(linha);
@@ -183,6 +187,10 @@
       }
     }
     
+    window.editarCliente = function(id) {
+      window.location.href = `editar_cliente.html?id=${id}`;
+    }
+
   </script>
 </body>
 </html>
