@@ -130,6 +130,7 @@
     <button onclick="abrirJanelaCortinaForro()">
      + Cortina + Forro
     </button>
+     <button onclick="abrirJanelaManual()">+ Adicionar Item Manual</button>
    </div>
      <div class="modal" id="janelaItem">
       <div class="conteudo">
@@ -322,6 +323,25 @@
         <div id="resultadoCF" style="margin-top:15px;"></div>
         <button onclick="confirmarItemCortinaForro()" style="margin-top: 10px;">Adicionar ao orçamento</button>
         <button onclick="fecharJanelaCortinaForro()">Fechar</button>
+      </div>
+    </div>
+   <div class="modal" id="janelaManual">
+      <div class="conteudo">
+        <h3>Adicionar Item Manual</h3>
+        <label for="nomeManual">Nome:</label>
+        <input id="nomeManual" type="text" />
+        <div class="linha-campos">
+          <div class="campo-pequeno">
+            <label for="quantidadeManual">Quantidade:</label>
+            <input id="quantidadeManual" type="number" />
+          </div>
+          <div class="campo-pequeno">
+            <label for="valorManual">Valor (R$):</label>
+            <input id="valorManual" type="number" step="0.01" />
+          </div>
+        </div>
+        <button onclick="confirmarItemManual()">Adicionar ao orçamento</button>
+        <button onclick="fecharJanelaManual()">Fechar</button>
       </div>
     </div>
   </div>
