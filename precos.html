@@ -126,13 +126,17 @@
     const divP = document.createElement("div");
     divP.className = "grupo";
     divP.innerHTML = `<h2>PERSIANAS</h2>`;
-    snap.forEach(doc => {
-      const { nome, preco } = doc.data();
-      precos.persianas[doc.id] = { nome, preco };
-      const v = (preco || 0).toFixed(2).replace('.', ',');
-      divP.innerHTML += `<label><span>${nome}</span><input type="text" data-cat="persianas" data-id="${doc.id}" value="${v}" oninput="mascarar(this)"></label>`;
-    });
-    container.appendChild(divP);
+   const docs = [];
+snap.forEach(doc => docs.push({ id: doc.id, ...doc.data() }));
+docs.sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'));
+
+for (const { id, nome, preco } of docs) {
+  precos.persianas[id] = { nome, preco };
+  const v = (preco || 0).toFixed(2).replace('.', ',');
+  divP.innerHTML += `<label><span>${nome}</span><input type="text" data-cat="persianas" data-id="${id}" value="${v}" oninput="mascarar(this)"></label>`;
+}
+
+container.appendChild(divP);
   }
 
   function mascarar(campo) {
