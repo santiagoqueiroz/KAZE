@@ -409,12 +409,14 @@ window.confirmarItemCortinaBK = async function () {
     const nome = document.getElementById("nomeManual").value.trim();
     const quantidade = parseFloat(document.getElementById("quantidadeManual").value || 0);
     const valor = parseFloat(document.getElementById("valorManual").value || 0);
+    const largura = parseFloat(document.getElementById("larguraManual").value || 0);
+    const altura  = parseFloat(document.getElementById("alturaManual").value || 0);
     if (!nome || !quantidade || !valor) return alert("Preencha todos os campos.");
 
     const item = {
       produto: nome,
-      largura: 0,
-      altura: 0,
+      largura: largura,
+      altura: altura,
       qtd: quantidade,
       unit: valor,
       total: quantidade * valor
