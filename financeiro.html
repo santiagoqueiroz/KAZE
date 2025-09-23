@@ -144,17 +144,13 @@
     </div>
   </div>
 
-  <!-- Firebase + app existente -->
-  <script src="https://www.gstatic.com/firebasejs/10.12.3/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.3/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.3/firebase-firestore-compat.js"></script>
-  <script src="main.js"></script>
+<!-- Chart.js e FullCalendar se você usa na tela -->
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 
-  <!-- FullCalendar + Chart.js -->
-  <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<!-- Firebase SDK MODULAR será importado pelo main.js; não use *-compat aqui -->
+<script type="module" src="main.js"></script>
+<script type="module" src="financeiro.js"></script>
 
-  <!-- Módulo financeiro -->
-  <script src="financeiro.js"></script>
 </body>
 </html>
