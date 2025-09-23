@@ -2,7 +2,7 @@
 import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {
   getFirestore, collection, doc, getDoc, getDocs, query, where, orderBy,
-  writeBatch, updateDoc, Timestamp
+  writeBatch, updateDoc, deleteDoc, Timestamp
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
@@ -15,13 +15,10 @@ const firebaseConfig = {
   appId: "1:336054068300:web:6125e8eecc08d667fac0e9"
 };
 
-// Reutiliza o app [DEFAULT] se já existir; senão cria o [DEFAULT]
+// Usa o app [DEFAULT] se já existir; senão cria
 const app  = getApps().length ? getApp() : initializeApp(firebaseConfig);
 const db   = getFirestore(app);
 const auth = getAuth(app);
-
-window.auth = auth;
-
 
 // ===== helpers =====
 const $ = (id) => document.getElementById(id);
@@ -62,7 +59,6 @@ async function boot(){
 
   onAuthStateChanged(auth, (user)=>{
     if(!user){
-      console.warn("[financeiro.js] Usuário não autenticado → index.html");
       try{ window.location.href = "index.html"; }catch(e){}
       return;
     }
@@ -84,7 +80,6 @@ function setupDefaults(){
 
 // ===== categorias (somente 'despesa') =====
 async function loadCategorias(){
-  // cria defaults se vazio
   const chk = await getDocs(query(collection(db, COL_CATEGORIAS)));
   if(chk.empty){
     const batch = writeBatch(db);
@@ -153,7 +148,6 @@ async function salvarLancamento(){
 
   await batch.commit();
 
-  // limpa
   if(els.descricao) els.descricao.value="";
   if(els.valor) els.valor.value="";
   if(els.formaPgto) els.formaPgto.value="";
@@ -169,6 +163,11 @@ async function marcarPago(id){
     status:"pago",
     pagoEm: Timestamp.now().toDate().toISOString()
   });
+  await refreshAll();
+}
+
+async function excluirLancamento(id){
+  await deleteDoc(doc(db, COL_LANCAMENTOS, id));
   await refreshAll();
 }
 
@@ -218,7 +217,10 @@ function renderTabela(items){
       <td>despesa</td>
       <td>${fmtMoney(it.valor)}</td>
       <td>${pill}</td>
-      <td>${it.status!=="pago" ? `<button data-id="${it.id}" class="btn-pagar">Marcar pago</button>` : ""}</td>
+      <td>
+        ${it.status!=="pago" ? `<button data-id="${it.id}" class="btn-pagar">Marcar pago</button>` : ""}
+        <button data-id="${it.id}" class="btn-excluir">Excluir</button>
+      </td>
     </tr>`;
   }).join("");
 
@@ -226,6 +228,13 @@ function renderTabela(items){
     btn.addEventListener("click", ()=>{
       const id = btn.getAttribute("data-id");
       marcarPago(id);
+    });
+  });
+
+  els.tbody.querySelectorAll(".btn-excluir").forEach(btn=>{
+    btn.addEventListener("click", ()=>{
+      const id = btn.getAttribute("data-id");
+      if (confirm("Excluir esta despesa?")) excluirLancamento(id);
     });
   });
 }
