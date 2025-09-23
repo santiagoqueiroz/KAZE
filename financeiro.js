@@ -1,10 +1,12 @@
-// FINANCEIRO.JS — inicialização própria
+// FINANCEIRO.JS — inicialização própria (ESM, Firebase v10.12.2)
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { 
-  getFirestore, collection, doc, getDoc, getDocs, query, where, orderBy, writeBatch, updateDoc 
+import {
+  getFirestore, collection, doc, getDoc, getDocs, query, where, orderBy,
+  writeBatch, updateDoc, Timestamp
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
+// --- Firebase config (copiado do main) ---
 const firebaseConfig = {
   apiKey: "AIzaSyD5kVoWRWZB6xtacyu6lH--QFXry_MPKps",
   authDomain: "kaze-8836b.firebaseapp.com",
@@ -15,13 +17,9 @@ const firebaseConfig = {
 };
 
 // cria app só para o financeiro
-const app = initializeApp(firebaseConfig, "financeiro");
+const app  = initializeApp(firebaseConfig, "financeiro");
 const db   = getFirestore(app);
 const auth = getAuth(app);
-
-// agora pode usar db, auth normalmente aqui embaixo…
-
-
 
 // ===== helpers =====
 const $ = (id) => document.getElementById(id);
@@ -47,8 +45,8 @@ const els = {
   tbody: $("tbody"),
 };
 
-const COL_CATEGORIAS = "categorias";
-const COL_LANCAMENTOS = "lancamentos";
+const COL_CATEGORIAS   = "categorias";
+const COL_LANCAMENTOS  = "lancamentos";
 
 function fmtMoney(n){ return (Number(n)||0).toLocaleString("pt-BR",{style:"currency",currency:"BRL"}); }
 function ymd(d){ const x=new Date(d); const m=String(x.getMonth()+1).padStart(2,"0"); const dd=String(x.getDate()).padStart(2,"0"); return `${x.getFullYear()}-${m}-${dd}`; }
@@ -57,13 +55,8 @@ function addMonths(dateStr,n){ const d=new Date(dateStr); d.setMonth(d.getMonth(
 
 // ===== boot =====
 async function boot(){
-  // usa o app já criado no main.js
-  const app = getApp();
-  const db  = getFirestore(app);
-  const auth = getAuth(app);
-
   setupDefaults();
-  await loadCategorias(db);
+  await loadCategorias();
 
   onAuthStateChanged(auth, (user)=>{
     if(!user){
@@ -71,11 +64,11 @@ async function boot(){
       try{ window.location.href = "index.html"; }catch(e){}
       return;
     }
-    refreshAll(db);
+    refreshAll();
   });
 
-  els.btnAplicarFiltros?.addEventListener("click", ()=>refreshAll(db));
-  els.btnSalvar?.addEventListener("click", ()=>salvarLancamento(db));
+  els.btnAplicarFiltros?.addEventListener("click", ()=>refreshAll());
+  els.btnSalvar?.addEventListener("click", ()=>salvarLancamento());
 }
 
 function setupDefaults(){
@@ -88,10 +81,10 @@ function setupDefaults(){
 }
 
 // ===== categorias (somente 'despesa') =====
-async function loadCategorias(db){
-  // se vazio, cria defaults
-  const hasOne = await getDocs(query(collection(db, COL_CATEGORIAS), where("tipo","in",["despesa","receita"])));
-  if(hasOne.empty){
+async function loadCategorias(){
+  // cria defaults se vazio
+  const chk = await getDocs(query(collection(db, COL_CATEGORIAS)));
+  if(chk.empty){
     const batch = writeBatch(db);
     [
       { nome:"Aluguel", tipo:"despesa" },
@@ -123,7 +116,7 @@ async function loadCategorias(db){
 }
 
 // ===== CRUD: lançamentos (despesa) =====
-async function salvarLancamento(db){
+async function salvarLancamento(){
   const descricao = (els.descricao?.value||"").trim();
   const categoriaId = els.categoria?.value||"";
   const valor = Number(els.valor?.value||0);
@@ -165,16 +158,16 @@ async function salvarLancamento(db){
   if(els.status) els.status.value="a_pagar";
   if(els.recorrencia) els.recorrencia.value="";
 
-  await refreshAll(db);
+  await refreshAll();
   alert("Despesa(s) salva(s) com sucesso!");
 }
 
-async function marcarPago(db, id){
+async function marcarPago(id){
   await updateDoc(doc(db, COL_LANCAMENTOS, id), {
     status:"pago",
     pagoEm: Timestamp.now().toDate().toISOString()
   });
-  await refreshAll(db);
+  await refreshAll();
 }
 
 function getPeriodo(){
@@ -185,7 +178,7 @@ function getPeriodo(){
   return { ini, fim };
 }
 
-async function fetchLancamentos(db){
+async function fetchLancamentos(){
   const { ini, fim } = getPeriodo();
   let qy = query(
     collection(db, COL_LANCAMENTOS),
@@ -195,7 +188,6 @@ async function fetchLancamentos(db){
     orderBy("data","asc")
   );
 
-  // filtros
   const st = els.filtroStatus?.value||"";
   const cat = els.filtroCategoria?.value||"";
   if(st){ qy = query(qy, where("status","==", st)); }
@@ -205,13 +197,13 @@ async function fetchLancamentos(db){
   return snap.docs.map(d=>({ id:d.id, ...d.data() }));
 }
 
-async function refreshAll(db){
-  const data = await fetchLancamentos(db);
-  renderTabela(db, data);
+async function refreshAll(){
+  const data = await fetchLancamentos();
+  renderTabela(data);
   renderTotais(data);
 }
 
-function renderTabela(db, items){
+function renderTabela(items){
   if(!els.tbody) return;
   els.tbody.innerHTML = items.map(it=>{
     const pill = it.status === "pago"
@@ -231,7 +223,7 @@ function renderTabela(db, items){
   els.tbody.querySelectorAll(".btn-pagar").forEach(btn=>{
     btn.addEventListener("click", ()=>{
       const id = btn.getAttribute("data-id");
-      marcarPago(db, id);
+      marcarPago(id);
     });
   });
 }
