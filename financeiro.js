@@ -20,6 +20,8 @@ const firebaseConfig = {
 const app  = initializeApp(firebaseConfig, "financeiro");
 const db   = getFirestore(app);
 const auth = getAuth(app);
+window.auth = auth;
+
 
 // ===== helpers =====
 const $ = (id) => document.getElementById(id);
