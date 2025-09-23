@@ -1,12 +1,16 @@
 // FINANCEIRO.JS (ESM) — integra no app já inicializado pelo main.js
 // Não mexe no main.js. Aqui só pegamos o app existente com getApp().
 
-import { getApp } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-app.js";
-import {
-  getFirestore, collection, doc, getDoc, getDocs, query, where, orderBy,
-  addDoc, writeBatch, updateDoc, Timestamp
-} from "https://www.gstatic.com/firebasejs/10.12.3/firebase-firestore.js";
-import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-auth.js";
+import { getApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getFirestore, collection, doc, getDoc, getDocs, query, where, orderBy, writeBatch, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+const app  = getApp();           // pega o app já criado pelo main.js
+const db   = getFirestore(app);
+const auth = getAuth(app);
+
+// ... resto do código do financeiro (cadastro de despesas)
+
 
 // ===== helpers =====
 const $ = (id) => document.getElementById(id);
