@@ -1,15 +1,26 @@
-// FINANCEIRO.JS (ESM) — integra no app já inicializado pelo main.js
-// Não mexe no main.js. Aqui só pegamos o app existente com getApp().
-
-import { getApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getFirestore, collection, doc, getDoc, getDocs, query, where, orderBy, writeBatch, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+// FINANCEIRO.JS — inicialização própria
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { 
+  getFirestore, collection, doc, getDoc, getDocs, query, where, orderBy, writeBatch, updateDoc 
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
-const app  = getApp();           // pega o app já criado pelo main.js
+const firebaseConfig = {
+  apiKey: "AIzaSyD5kVoWRWZB6xtacyu6lH--QFXry_MPKps",
+  authDomain: "kaze-8836b.firebaseapp.com",
+  projectId: "kaze-8836b",
+  storageBucket: "kaze-8836b.firebasestorage.app",
+  messagingSenderId: "336054068300",
+  appId: "1:336054068300:web:6125e8eecc08d667fac0e9"
+};
+
+// cria app só para o financeiro
+const app = initializeApp(firebaseConfig, "financeiro");
 const db   = getFirestore(app);
 const auth = getAuth(app);
 
-// ... resto do código do financeiro (cadastro de despesas)
+// agora pode usar db, auth normalmente aqui embaixo…
+
 
 
 // ===== helpers =====
