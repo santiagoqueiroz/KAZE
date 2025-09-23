@@ -1,12 +1,11 @@
 // FINANCEIRO.JS — inicialização própria (ESM, Firebase v10.12.2)
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {
   getFirestore, collection, doc, getDoc, getDocs, query, where, orderBy,
   writeBatch, updateDoc, Timestamp
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
-// --- Firebase config (copiado do main) ---
 const firebaseConfig = {
   apiKey: "AIzaSyD5kVoWRWZB6xtacyu6lH--QFXry_MPKps",
   authDomain: "kaze-8836b.firebaseapp.com",
@@ -16,10 +15,11 @@ const firebaseConfig = {
   appId: "1:336054068300:web:6125e8eecc08d667fac0e9"
 };
 
-// cria app só para o financeiro
-const app  = initializeApp(firebaseConfig, "financeiro");
+// Reutiliza o app [DEFAULT] se já existir; senão cria o [DEFAULT]
+const app  = getApps().length ? getApp() : initializeApp(firebaseConfig);
 const db   = getFirestore(app);
 const auth = getAuth(app);
+
 window.auth = auth;
 
 
