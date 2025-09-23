@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <title>KAZE • Financeiro</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="icon" href="favicon.ico" />
+  <link rel="stylesheet" href="style.css" />
+  <!-- FullCalendar (CDN) -->
+  <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.css" rel="stylesheet">
+  <!-- Estilos rápidos para grid -->
+  <style>
+    .container{max-width:1100px;margin:0 auto;padding:16px}
+    .grid{display:grid;gap:12px}
+    .grid-2{grid-template-columns:1fr 1fr}
+    .card{background:#fff;border:1px solid #eee;border-radius:8px;padding:12px}
+    .table{width:100%;border-collapse:collapse}
+    .table th,.table td{border-bottom:1px solid #eee;padding:8px;text-align:left}
+    .row-actions{display:flex;gap:8px}
+    .status-pill{padding:2px 8px;border-radius:12px;font-size:12px}
+    .pill-pago{background:#e6ffed}
+    .pill-apagar{background:#fff5e6}
+    .totais{display:flex;gap:16px;flex-wrap:wrap}
+    .totais .badge{padding:8px 12px;border-radius:8px;background:#f4f4f4}
+    #calendar{background:#fff;border:1px solid #eee;border-radius:8px;padding:8px}
+    .charts{display:grid;gap:12px;grid-template-columns:1fr 1fr}
+    @media (max-width: 900px){ .grid-2, .charts{grid-template-columns:1fr} }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Financeiro</h1>
+    <p>Cadastre e acompanhe <b>despesas/receitas</b>, visualize no <b>calendário</b> e veja <b>gráficos</b>.</p>
+
+    <!-- Totais & Filtros -->
+    <div class="card">
+      <div class="totais" id="totais"></div>
+      <div class="grid grid-2" style="margin-top:8px">
+        <div>
+          <label>Período</label><br/>
+          <input type="month" id="mesInicio"> —
+          <input type="month" id="mesFim">
+        </div>
+        <div>
+          <label>Status</label><br/>
+          <select id="filtroStatus">
+            <option value="">Todos</option>
+            <option value="a_pagar">A pagar</option>
+            <option value="pago">Pago</option>
+          </select>
+          &nbsp;&nbsp;
+          <label>Tipo</label>
+          <select id="filtroTipo">
+            <option value="">Todos</option>
+            <option value="despesa">Despesa</option>
+            <option value="receita">Receita</option>
+          </select>
+          &nbsp;&nbsp;
+          <label>Categoria</label>
+          <select id="filtroCategoria"></select>
+          &nbsp;&nbsp;
+          <button id="btnAplicarFiltros">Aplicar</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Form novo lançamento -->
+    <div class="card">
+      <h3>Novo lançamento</h3>
+      <div class="grid grid-2">
+        <div>
+          <label>Descrição</label><br/>
+          <input id="descricao" placeholder="Ex.: Aluguel" style="width:100%"/>
+        </div>
+        <div>
+          <label>Categoria</label><br/>
+          <select id="categoria"></select>
+        </div>
+        <div>
+          <label>Valor (R$)</label><br/>
+          <input id="valor" type="number" step="0.01" />
+        </div>
+        <div>
+          <label>Data</label><br/>
+          <input id="data" type="date" />
+        </div>
+        <div>
+          <label>Tipo</label><br/>
+          <select id="tipo">
+            <option value="despesa">Despesa</option>
+            <option value="receita">Receita</option>
+          </select>
+        </div>
+        <div>
+          <label>Forma de pagamento</label><br/>
+          <input id="formaPgto" placeholder="PIX, Boleto, etc" />
+        </div>
+        <div>
+          <label>Status</label><br/>
+          <select id="status">
+            <option value="a_pagar">A pagar</option>
+            <option value="pago">Pago</option>
+          </select>
+        </div>
+        <div>
+          <label>Recorrente</label><br/>
+          <select id="recorrencia">
+            <option value="">Não</option>
+            <option value="mensal">Mensal</option>
+          </select>
+        </div>
+      </div>
+      <div style="margin-top:8px">
+        <button id="btnSalvar">Salvar</button>
+      </div>
+    </div>
+
+    <!-- Lista -->
+    <div class="card">
+      <h3>Lançamentos</h3>
+      <table class="table" id="tabela">
+        <thead>
+          <tr>
+            <th>Data</th><th>Descrição</th><th>Categoria</th><th>Tipo</th><th>Valor</th><th>Status</th><th>Ações</th>
+          </tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+
+    <!-- Calendário -->
+    <div class="card">
+      <h3>Calendário</h3>
+      <div id="calendar"></div>
+    </div>
+
+    <!-- Gráficos -->
+    <div class="card">
+      <h3>Gráficos</h3>
+      <div class="charts">
+        <canvas id="chartCategorias" height="120"></canvas>
+        <canvas id="chartMensal" height="120"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- Firebase + app existente -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.3/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.3/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.3/firebase-firestore-compat.js"></script>
+  <script src="main.js"></script>
+
+  <!-- FullCalendar + Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+  <!-- Módulo financeiro -->
+  <script src="financeiro.js"></script>
+</body>
+</html>
