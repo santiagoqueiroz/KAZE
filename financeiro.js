@@ -17,7 +17,7 @@ const els = {
   filtroCategoria: $("filtroCategoria"),
   mesInicio: $("mesInicio"),
   mesFim: $("mesFim"),
-  btnAplicarFiltros: $("btnAplicarFiltros),
+  btnAplicarFiltros: $("btnAplicarFiltros"),
 
   descricao: $("descricao"),
   categoria: $("categoria"),
