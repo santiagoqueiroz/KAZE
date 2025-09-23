@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Consultar Clientes</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body {
+      font-family: 'Bahnschrift', sans-serif;
+      padding: 20px;
+      background-color: #faebd7;
+      margin: 0;
+      visibility: hidden;
+    }
+
+    .container {
+      max-width: 1000px;
+      margin: auto;
+      background: white;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      box-sizing: border-box;
+    }
+
+    h1 {
+      text-align: center;
+      margin-top: 0;
+      margin-bottom: 30px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 20px;
+      font-size: 15px;
+    }
+
+    th, td {
+      border: 1px solid #ccc;
+      padding: 10px;
+      text-align: left;
+    }
+
+    th {
+      background-color: #eee;
+    }
+
+    #voltar {
+      display: inline-block;
+      background-color: #915c83;
+      color: white;
+      padding: 12px 20px;
+      text-decoration: none;
+      border-radius: 8px;
+      font-weight: bold;
+      text-align: center;
+    }
+
+    #voltar:hover {
+      background-color: #7a4b6e;
+    }
+
+    @media (max-width: 600px) {
+      .container {
+        padding: 15px;
+      }
+
+      table {
+        font-size: 14px;
+        overflow-x: auto;
+        display: block;
+      }
+
+      th, td {
+        white-space: nowrap;
+      }
+
+      h1 {
+        font-size: 20px;
+      }
+
+      #voltar {
+        display: block;
+        width: 100%;
+        margin-top: 10px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <a id="voltar" href="painel.html">← Voltar</a>
+  
+  <div class="container">
+    <h1>Clientes Cadastrados</h1>
+
+    <table id="tabelaClientes">
+      <thead>
+        <tr>
+          <th>Nome</th>
+          <th>Telefone</th>
+          <th>CPF/CNPJ</th>
+          <th>Endereço</th>
+          <th>Bairro</th>
+          <th>Cidade</th>
+          <th>E-mail</th>
+          <th>Ações</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+
+    <a id="voltar" href="painel.html">← Voltar</a>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import {
+      getFirestore, collection, getDocs, query, orderBy
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import {
+      getAuth, onAuthStateChanged
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyD5kVoWRWZB6xtacyu6lH--QFXry_MPKps",
+      authDomain: "kaze-8836b.firebaseapp.com",
+      projectId: "kaze-8836b",
+      storageBucket: "kaze-8836b.firebasestorage.app",
+      messagingSenderId: "336054068300",
+      appId: "1:336054068300:web:6125e8eecc08d667fac0e9"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const auth = getAuth(app);
+
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        window.location.href = "index.html";
+        return;
+      }
+
+      document.body.style.visibility = 'visible';
+
+      const tabela = document.querySelector("#tabelaClientes tbody");
+
+      try {
+        const q = query(collection(db, "clientes"), orderBy("nome"));
+        const querySnapshot = await getDocs(q);
+
+        querySnapshot.forEach((doc) => {
+          const c = doc.data();
+          const linha = document.createElement("tr");
+         linha.innerHTML = `
+            <td>${c.nome || ""}</td>
+            <td>${c.telefone || ""}</td>
+            <td>${c.cpfOuCnpj || ""}</td>
+            <td>${c.endereco || ""}</td>
+            <td>${c.bairro || ""}</td>
+            <td>${c.cidade || ""}</td>
+            <td>${c.email || ""}</td>
+            <td>
+              <button onclick="editarCliente('${doc.id}')">Editar</button>
+              <button onclick="excluirCliente('${doc.id}')">Excluir</button>
+            </td>
+          `;
+
+          tabela.appendChild(linha);
+        });
+      } catch (erro) {
+        console.error("Erro ao buscar clientes:", erro);
+      }
+    });
+
+    import { deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+    window.excluirCliente = async function(id) {
+      if (!confirm("Tem certeza que deseja excluir este cliente?")) return;
+    
+      try {
+        await deleteDoc(doc(db, "clientes", id));
+        alert("Cliente excluído.");
+        location.reload(); // atualiza a tabela
+      } catch (err) {
+        console.error("Erro ao excluir:", err);
+        alert("Erro ao excluir cliente.");
+      }
+    }
+    
+    window.editarCliente = function(id) {
+      window.location.href = `editar_cliente.html?id=${id}`;
+    }
+
+  </script>
+</body>
+</html>

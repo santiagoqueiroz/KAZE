@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Editar Preços no Firestore</title>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+  <style>
+    body { font-family: sans-serif; margin: 20px; background: #f5f5f5; }
+    h2 { background: #333; color: #fff; padding: 10px; margin-top: 30px; }
+    .grupo { margin-bottom: 20px; padding: 10px; background: #fff; border: 1px solid #ccc; }
+    label { display: flex; justify-content: space-between; margin: 5px 0; }
+    input[type="text"] { width: 100px; text-align: right; }
+    button { margin-top: 20px; padding: 10px 20px; font-weight: bold; }
+  </style>
+</head>
+<body>
+<div id="login">
+  <h2>Login</h2>
+  <input id="email" type="email" placeholder="Email"><br><br>
+  <input id="senha" type="password" placeholder="Senha"><br><br>
+  <button onclick="logar()">Entrar</button>
+  <p id="login-erro" style="color:red;"></p>
+</div>
+
+<div id="conteudo" style="display:none;">
+  <h1>Editar Preços no Firestore</h1>
+  <div id="grupos"></div>
+  <button onclick="salvar()">📂 Salvar alterações</button>
+  <p id="status"></p>
+
+  <hr>
+  <h2>➕ Adicionar novo item</h2>
+  <label>Categoria:
+    <select id="nova-categoria">
+      <option value="tecidos">tecidos</option>
+      <option value="tecidos_bk">tecidos_bk</option>
+      <option value="parametros">parametros</option>
+      <option value="trilhos">trilhos</option>
+      <option value="persianas">persianas</option>
+    </select>
+  </label><br>
+  <label>Nome:
+    <input type="text" id="novo-nome" placeholder="Ex: TECIDO NOVO">
+  </label><br>
+  <label>Valor:
+    <input type="text" id="novo-valor" placeholder="Ex: 12,34" oninput="mascarar(this)">
+  </label><br><br>
+  <button onclick="adicionarNovo()">➕ Adicionar</button>
+  <p id="novo-status"></p>
+
+  <hr>
+  <h2>🗑️ Excluir item existente</h2>
+  <label>Categoria:
+    <select id="del-categoria" onchange="atualizarListaExclusao()">
+      <option value="">-- selecione --</option>
+      <option value="tecidos">tecidos</option>
+      <option value="tecidos_bk">tecidos_bk</option>
+      <option value="parametros">parametros</option>
+      <option value="trilhos">trilhos</option>
+      <option value="persianas">persianas</option>
+    </select>
+  </label><br>
+  <label>Item:
+    <select id="del-item">
+      <option value="">-- selecione uma categoria --</option>
+    </select>
+  </label><br><br>
+  <button onclick="excluir()">❌ Confirmar exclusão</button>
+  <p id="excluir-status"></p>
+</div>
+
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyD5kVoWRWZB6xtacyu6lH--QFXry_MPKps",
+    authDomain: "kaze-8836b.firebaseapp.com",
+    projectId: "kaze-8836b",
+    storageBucket: "kaze-8836b.appspot.com",
+    messagingSenderId: "336054068300",
+    appId: "1:336054068300:web:6125e8eecc08d667fac0e9"
+  };
+
+  firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
+  const db = firebase.firestore();
+  const categorias = ["tecidos", "tecidos_bk", "parametros", "trilhos"];
+  const precos = {};
+
+  auth.onAuthStateChanged(user => {
+    if (user) {
+      document.getElementById("login").style.display = "none";
+      document.getElementById("conteudo").style.display = "block";
+      carregar();
+    }
+  });
+
+  function logar() {
+    const email = document.getElementById("email").value;
+    const senha = document.getElementById("senha").value;
+    auth.signInWithEmailAndPassword(email, senha)
+      .catch(err => {
+        document.getElementById("login-erro").innerText = "Erro: " + err.message;
+      });
+  }
+
+  async function carregar() {
+    const container = document.getElementById("grupos");
+    container.innerHTML = "";
+    for (const categoria of categorias) {
+      const doc = await db.collection("precos").doc(categoria).get();
+      const dados = doc.data();
+      precos[categoria] = dados;
+      const div = document.createElement("div");
+      div.className = "grupo";
+      div.innerHTML = `<h2>${categoria.toUpperCase()}</h2>`;
+      for (const [nome, valor] of Object.entries(dados).sort((a, b) => a[0].localeCompare(b[0]))) {
+        const v = valor.toFixed(2).replace('.', ',');
+        div.innerHTML += `<label><span>${nome}</span><input type="text" value="${v}" data-cat="${categoria}" data-nome="${nome}" oninput="mascarar(this)"></label>`;
+      }
+      container.appendChild(div);
+    }
+    
+    const snap = await db.collection("persianas").get();
+    precos.persianas = {};
+    const divP = document.createElement("div");
+    divP.className = "grupo";
+    divP.innerHTML = `<h2>PERSIANAS</h2>`;
+   const docs = [];
+snap.forEach(doc => docs.push({ id: doc.id, ...doc.data() }));
+docs.sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'));
+
+for (const { id, nome, preco } of docs) {
+  precos.persianas[id] = { nome, preco };
+  const v = (preco || 0).toFixed(2).replace('.', ',');
+  divP.innerHTML += `<label><span>${nome}</span><input type="text" data-cat="persianas" data-id="${id}" value="${v}" oninput="mascarar(this)"></label>`;
+}
+
+container.appendChild(divP);
+  }
+
+  function mascarar(campo) {
+    let v = campo.value.replace(/\D/g, '');
+    v = (parseFloat(v) / 100).toFixed(2);
+    campo.value = v.replace('.', ',');
+  }
+
+  async function salvar() {
+    const inputs = document.querySelectorAll("input[data-cat]");
+    const persianasUpdates = [];
+    for (const input of inputs) {
+      const cat = input.dataset.cat;
+      if (cat === "persianas") {
+        const id = input.dataset.id;
+        const preco = parseFloat(input.value.replace(',', '.')) || 0;
+        persianasUpdates.push({ id, preco });
+        if (precos.persianas[id]) precos.persianas[id].preco = preco;
+      } else {
+        const nome = input.dataset.nome;
+        const valor = parseFloat(input.value.replace(',', '.')) || 0;
+        precos[cat][nome] = valor;
+      }
+    }
+    try {
+      for (const cat of categorias) {
+        await db.collection("precos").doc(cat).set(precos[cat]);
+      }
+      for (const { id, preco } of persianasUpdates) {
+        await db.collection("persianas").doc(id).update({ preco });
+      }
+      document.getElementById("status").innerText = "✅ Alterações salvas com sucesso.";
+    } catch (err) {
+      document.getElementById("status").innerText = "❌ Erro ao salvar: " + err.message;
+    }
+  }
+
+  async function adicionarNovo() {
+    const cat = document.getElementById("nova-categoria").value;
+    const nome = document.getElementById("novo-nome").value.trim().toUpperCase();
+    const valorStr = document.getElementById("novo-valor").value.replace(',', '.');
+    const valor = parseFloat(valorStr);
+    if (!nome || isNaN(valor)) {
+      document.getElementById("novo-status").innerText = "❌ Preencha nome e valor corretamente.";
+      return;
+    }
+    try {
+      if (cat === "persianas") {
+        await db.collection("persianas").add({ nome, preco: valor });
+      } else {
+        await db.collection("precos").doc(cat).update({ [nome]: valor });
+      }
+      document.getElementById("novo-status").innerText = "✅ Item adicionado!";
+      carregar();
+      document.getElementById("novo-nome").value = "";
+      document.getElementById("novo-valor").value = "";
+    } catch (err) {
+      document.getElementById("novo-status").innerText = "❌ Erro ao adicionar: " + err.message;
+    }
+  }
+
+  function atualizarListaExclusao() {
+    const cat = document.getElementById("del-categoria").value;
+    const select = document.getElementById("del-item");
+    select.innerHTML = "";
+    if (!cat || !precos[cat]) {
+      select.innerHTML = `<option value="">-- selecione uma categoria --</option>`;
+      return;
+    }
+   if (cat === "persianas") {
+      for (const [id, dados] of Object.entries(precos.persianas).sort((a, b) => a[1].nome.localeCompare(b[1].nome))) {
+        const opt = document.createElement("option");
+        opt.value = id;
+        opt.innerText = dados.nome;
+        select.appendChild(opt);
+      }
+    } else {
+      for (const nome of Object.keys(precos[cat])) {
+        const opt = document.createElement("option");
+        opt.value = nome;
+        opt.innerText = nome;
+        select.appendChild(opt);
+      }
+    }
+  }
+
+  async function excluir() {
+    const cat = document.getElementById("del-categoria").value;
+    const valor = document.getElementById("del-item").value;
+    if (!cat || !valor) {
+      document.getElementById("excluir-status").innerText = "❌ Selecione a categoria e o item.";
+      return;
+    }
+    const nome = cat === "persianas" && precos.persianas[valor] ? precos.persianas[valor].nome : valor;
+    if (!confirm(`Tem certeza que deseja excluir "${nome}" da categoria "${cat}"?`)) return;
+    try {
+      if (cat === "persianas") {
+        await db.collection("persianas").doc(valor).delete();
+      } else {
+        await db.collection("precos").doc(cat).update({ [valor]: firebase.firestore.FieldValue.delete() });
+      }
+      document.getElementById("excluir-status").innerText = "✅ Item excluído.";
+      carregar();
+    } catch (err) {
+      document.getElementById("excluir-status").innerText = "❌ Erro ao excluir: " + err.message;
+    }
+  }
+</script>
+</body>
+</html>

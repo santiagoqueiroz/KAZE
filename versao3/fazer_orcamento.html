@@ -1,0 +1,359 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+ <head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1" name="viewport"/>
+  <title>
+   Orçamento de Persianas e Cortinas - KAZE
+  </title>
+  <link href="style.css" rel="stylesheet"/>
+ </head>
+ <body>
+  <a href="painel.html" class="botao-voltar">← Voltar</a>
+  <div class="container">
+   <h2>
+    Selecionar Cliente
+   </h2>
+   <button onclick="salvarOrcamento()">💾 Salvar Orçamento</button>
+   <label for="cliente">
+    Cliente:
+   </label>
+   <select id="cliente" onchange="mostrarDadosCliente()">
+    <option value="">
+     Selecione...
+    </option>
+   </select>
+   <div class="info-box" id="dados-cliente" style="display:none;">
+    <p>
+     <strong>
+      Nome:
+     </strong>
+     <span id="nome">
+     </span>
+    </p>
+    <p>
+     <strong>
+      Telefone:
+     </strong>
+     <span id="telefone">
+     </span>
+    </p>
+    <p>
+     <strong>
+      CPF/CNPJ:
+     </strong>
+     <span id="cpf">
+     </span>
+    </p>
+    <p>
+     <strong>
+      Endereço:
+     </strong>
+     <span id="endereco">
+     </span>
+    </p>
+    <p>
+     <strong>
+      Bairro:
+     </strong>
+     <span id="bairro">
+     </span>
+    </p>
+    <p>
+     <strong>
+      Cidade:
+     </strong>
+     <span id="cidade">
+     </span>
+    </p>
+    <p>
+     <strong>
+      Email:
+     </strong>
+     <span id="email">
+     </span>
+    </p>
+   </div>
+   <table id="tabela-itens">
+    <thead>
+     <tr>
+      <th>
+       Produto
+      </th>
+      <th>
+       Largura
+      </th>
+      <th>
+       Altura
+      </th>
+      <th>
+       Qtd
+      </th>
+      <th>
+       V. Unit.
+      </th>
+      <th>
+       Total
+      </th>
+      <th>
+      </th>
+     </tr>
+    </thead>
+    <tbody id="lista-itens">
+    </tbody>
+   </table>
+   <div id="total-geral" style="text-align:right; margin-top:10px; font-size:18px; display:none;">
+    Total geral:
+    <strong id="soma-final">
+     R$ 0,00
+    </strong>
+    <br/>
+    Total à vista:
+    <strong id="total-vista">
+     R$ 0,00
+    </strong>
+   </div>
+   <div class="botoes">
+    <button onclick="abrirJanelaPersiana()">
+     + Adicionar Persiana
+    </button>
+    <button onclick="abrirJanelaCortina()">
+     + Adicionar Cortina
+    </button>
+    <button onclick="abrirJanelaBlackout()">
+     + Adicionar Blackout
+    </button>
+    <button onclick="abrirJanelaCortinaBK()">
+     + Cortina + Blackout
+    </button>
+    <button onclick="abrirJanelaCortinaForro()">
+     + Cortina + Forro
+    </button>
+     <button onclick="abrirJanelaManual()">+ Adicionar Item Manual</button>
+   </div>
+     <div class="modal" id="janelaItem">
+      <div class="conteudo">
+        <h3>Adicionar Persiana</h3>
+        <label for="tipo">Tipo:</label>
+        <select id="tipo"></select>
+
+        <div class="linha-campos">
+          <div class="campo-pequeno">
+            <label for="largura">Largura (m):</label>
+            <input id="largura" step="0.01" type="number" />
+          </div>
+          <div class="campo-pequeno">
+            <label for="altura">Altura (m):</label>
+            <input id="altura" step="0.01" type="number" />
+          </div>
+          <div class="campo-pequeno">
+            <label for="desconto">Desconto (R$):</label>
+            <input id="desconto" step="0.01" type="number" value="0" />
+          </div>
+        </div>
+
+        <label for="ambiente">Ambiente:</label>
+        <input id="ambiente" type="text" />
+
+        <button onclick="calcularPersiana()" style="margin-top: 10px;">Calcular</button>
+        <div id="resultado" style="margin-top:15px;"></div>
+        <button onclick="confirmarItemPersiana()" style="margin-top: 10px;">Adicionar ao orçamento</button>
+        <button onclick="fecharJanelaItem()">Fechar</button>
+      </div>
+    </div>
+
+    <div class="modal" id="janelaCortina">
+      <div class="conteudo">
+        <h3>Adicionar Cortina</h3>
+        <div class="linha-campos">
+          <div class="campo-pequeno">
+            <label for="larguraC">Largura (m):</label>
+            <input id="larguraC" step="0.01" type="number" />
+          </div>
+          <div class="campo-pequeno">
+            <label for="alturaC">Altura (m):</label>
+            <input id="alturaC" step="0.01" type="number" />
+          </div>
+          <div class="campo-pequeno">
+            <label for="barraExtra">Barra (m):</label>
+            <input id="barraExtra" step="0.01" type="number" value="0.40" />
+          </div>
+          <div class="campo-pequeno">
+            <label for="xBarraAlta">Multiplicador:</label>
+            <input id="xBarraAlta" step="0.01" type="number" value="1.4" />
+          </div>
+          <div class="campo-pequeno">
+            <label for="descontoC">Desconto (R$):</label>
+            <input id="descontoC" step="0.01" type="number" value="0" />
+          </div>
+        </div>
+
+        <label for="tecido">Tecido:</label>
+        <select id="tecido"></select>
+        <label for="trilho">Trilho:</label>
+        <select id="trilho"></select>
+
+        <label for="ambienteC">Ambiente:</label>
+        <input id="ambienteC" type="text" />
+
+        <button onclick="calcularCortina()" style="margin-top: 10px;">Calcular</button>
+        <div id="resultadoC" style="margin-top:15px;"></div>
+        <button onclick="confirmarItemCortina()" style="margin-top: 10px;">Adicionar ao orçamento</button>
+        <button onclick="fecharJanelaCortina()">Fechar</button>
+      </div>
+    </div>
+
+    <div class="modal" id="janelaBlackout">
+      <div class="conteudo">
+        <h3>Adicionar Blackout</h3>
+
+        <div class="linha-campos">
+          <div class="campo-pequeno">
+            <label for="larguraBK">Largura (m):</label>
+            <input id="larguraBK" step="0.01" type="number" />
+          </div>
+          <div class="campo-pequeno">
+            <label for="alturaBK">Altura (m):</label>
+            <input id="alturaBK" step="0.01" type="number" />
+          </div>
+          <div class="campo-pequeno">
+            <label for="descontoBK">Desconto (R$):</label>
+            <input id="descontoBK" step="0.01" type="number" value="0" />
+          </div>
+        </div>
+
+        <label for="tecidoBK">Tecido:</label>
+        <select id="tecidoBK"></select>
+        <label for="trilhoBK">Trilho:</label>
+        <select id="trilhoBK"></select>
+
+        <label for="ambienteBK">Ambiente:</label>
+        <input id="ambienteBK" type="text" />
+
+        <button onclick="calcularBlackout()" style="margin-top: 10px;">Calcular</button>
+        <div id="resultadoBK" style="margin-top:15px;"></div>
+        <button onclick="confirmarItemBlackout()" style="margin-top: 10px;">Adicionar ao orçamento</button>
+        <button onclick="fecharJanelaBlackout()">Fechar</button>
+      </div>
+    </div>
+
+    <div class="modal" id="janelaCortinaBK">
+      <div class="conteudo">
+        <h3>Cortina + Blackout</h3>
+
+        <div class="linha-campos">
+          <div class="campo-pequeno">
+            <label for="larguraCBK">Largura (m):</label>
+            <input id="larguraCBK" type="number" step="0.01" />
+          </div>
+          <div class="campo-pequeno">
+            <label for="alturaCBK">Altura (m):</label>
+            <input id="alturaCBK" type="number" step="0.01" />
+          </div>
+          <div class="campo-pequeno">
+            <label for="barraExtra">Barra (m):</label>
+            <input id="barraExtra" type="number" step="0.01" value="0.40" />
+          </div>
+          <div class="campo-pequeno">
+            <label for="xBarraAlta">Multiplicador:</label>
+            <input id="xBarraAlta" type="number" step="0.01" value="1.4" />
+          </div>
+          <div class="campo-pequeno">
+            <label for="descontoCBK">Desconto (R$):</label>
+            <input id="descontoCBK" type="number" step="0.01" value="0" />
+          </div>
+        </div>
+
+        <label for="tecidoC">Tecido (Cortina):</label>
+        <select id="tecidoC"></select>
+        <label for="tecidoBK_CBK">Tecido (BK):</label>
+        <select id="tecidoBK_CBK"></select>
+        <label for="trilhoCBK">Trilho:</label>
+        <select id="trilhoCBK"></select>
+
+        <label for="ambienteCBK">Ambiente:</label>
+        <input id="ambienteCBK" type="text" />
+
+        <button onclick="calcularCortinaBK()" style="margin-top: 10px;">Calcular</button>
+        <div id="resultadoCBK" style="margin-top:15px;"></div>
+        <button onclick="confirmarItemCortinaBK()" style="margin-top: 10px;">Adicionar ao orçamento</button>
+        <button onclick="fecharJanelaCortinaBK()">Fechar</button>
+      </div>
+    </div>
+   
+    <div class="modal" id="janelaCortinaForro">
+      <div class="conteudo">
+        <h3>Cortina + Forro</h3>
+
+        <div class="linha-campos">
+          <div class="campo-pequeno">
+            <label for="larguraCF">Largura (m):</label>
+            <input id="larguraCF" type="number" step="0.01" />
+          </div>
+          <div class="campo-pequeno">
+            <label for="alturaCF">Altura (m):</label>
+            <input id="alturaCF" type="number" step="0.01" />
+          </div>
+       <div class="campo-pequeno">
+            <label for="barraExtraCF">Barra (m):</label>
+            <input id="barraExtraCF" type="number" step="0.01" value="0.40" />
+          </div>
+          <div class="campo-pequeno">
+            <label for="xBarraAltaCF">Multiplicador:</label>
+            <input id="xBarraAltaCF" type="number" step="0.01" value="1.4" />
+          </div>
+          <div class="campo-pequeno">
+            <label for="descontoCF">Desconto (R$):</label>
+            <input id="descontoCF" type="number" step="0.01" value="0" />
+          </div>  
+        </div>
+
+        <label for="tecidoC_CF">Tecido (Cortina):</label>
+        <select id="tecidoC_CF"></select>
+        <label for="tecidoF_CF">Tecido (Forro):</label>
+        <select id="tecidoF_CF"></select>
+        <label for="trilhoCF">Trilho:</label>
+        <select id="trilhoCF"></select>
+
+        <label for="ambienteCF">Ambiente:</label>
+        <input id="ambienteCF" type="text" />
+
+        <button onclick="calcularCortinaForro()" style="margin-top: 10px;">Calcular</button>
+        <div id="resultadoCF" style="margin-top:15px;"></div>
+        <button onclick="confirmarItemCortinaForro()" style="margin-top: 10px;">Adicionar ao orçamento</button>
+        <button onclick="fecharJanelaCortinaForro()">Fechar</button>
+      </div>
+    </div>
+   <div class="modal" id="janelaManual">
+      <div class="conteudo">
+        <h3>Adicionar Item Manual</h3>
+        <label for="nomeManual">Nome:</label>
+        <input id="nomeManual" type="text" />
+        <div class="linha-campos">
+         <div class="campo-pequeno">
+            <label for="larguraManual">Largura (m):</label>
+            <input id="larguraManual" type="number" step="0.01" />
+          </div>
+          <div class="campo-pequeno">
+            <label for="alturaManual">Altura (m):</label>
+            <input id="alturaManual" type="number" step="0.01" />
+          </div>
+          <div class="campo-pequeno">
+            <label for="quantidadeManual">Quantidade:</label>
+            <input id="quantidadeManual" type="number" />
+          </div>
+          <div class="campo-pequeno">
+            <label for="valorManual">Valor (R$):</label>
+            <input id="valorManual" type="number" step="0.01" />
+          </div>
+        </div>
+        <button onclick="confirmarItemManual()">Adicionar ao orçamento</button>
+        <button onclick="fecharJanelaManual()">Fechar</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="main.js" type="module"></script>
+</body>
+</html>

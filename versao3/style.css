@@ -1,0 +1,229 @@
+body {
+  font-family: 'Bahnschrift', sans-serif;
+  background: #faebd7;
+  margin: 0;
+  padding: 20px;
+}
+
+.container {
+  max-width: 700px;
+  margin: auto;
+  background: white;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 0 10px rgba(0,0,0,0.1);
+  box-sizing: border-box;
+}
+
+h2 {
+  margin-top: 0;
+  text-align: center;
+}
+
+label {
+  font-weight: bold;
+  display: block;
+  margin-top: 20px;
+}
+
+select, input {
+  width: 100%;
+  padding: 10px;
+  margin-top: 5px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  box-sizing: border-box;
+}
+
+.info-box {
+  background: #f1f1f1;
+  padding: 15px;
+  margin-top: 20px;
+  border-radius: 6px;
+}
+
+.info-box p {
+  margin: 5px 0;
+}
+
+#dados-cliente span {
+  text-transform: uppercase;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+  overflow-x: auto;
+  display: table;
+}
+
+th, td {
+  border: 1px solid #ccc;
+  padding: 8px;
+  text-align: center;
+}
+
+th {
+  background-color: #eee;
+}
+
+.botoes {
+  margin-top: 20px;
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+button {
+  flex: 1;
+  padding: 14px;
+  font-size: 16px;
+  border-radius: 8px;
+  background-color: #915c83;
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+
+button:hover {
+  background-color: #7a4b6e;
+}
+
+.modal {
+  display: none;
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.6);
+  z-index: 999;
+  justify-content: center;
+  align-items: center;
+}
+
+.modal .conteudo {
+  background: white;
+  padding: 20px;
+  border-radius: 10px;
+  max-width: 90%;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-sizing: border-box;
+}
+
+#resultadoBK {
+  overflow-x: auto;
+  word-break: break-word;
+  max-width: 100%;
+}
+
+#resultadoBK table {
+  width: 100% !important;
+  table-layout: fixed;
+  word-break: break-word;
+  font-size: 14px;
+}
+
+@media (max-width: 600px) {
+  .container {
+    padding: 10px;
+  }
+
+  input, select {
+    font-size: 16px;
+    padding: 12px;
+  }
+
+  h2 {
+    font-size: 22px;
+  }
+
+  .botoes {
+    flex-direction: column;
+  }
+
+  button {
+    width: 100%;
+    margin-bottom: 10px;
+  }
+
+  table {
+    font-size: 14px;
+    display: block;
+  }
+
+  th, td {
+    white-space: nowrap;
+  }
+}
+
+.linha-campos {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+}
+
+.linha-campos .campo-pequeno {
+  flex: 1;
+  min-width: 100px;
+}
+
+.linha-campos label {
+  margin-top: 0;
+}
+
+@media (max-width: 768px) {
+  table {
+    display: block;
+    overflow-x: auto;
+    width: 100%;
+  }
+
+  thead, tbody, th, td, tr {
+    display: block;
+  }
+
+  thead tr {
+    display: none; /* esconde cabeçalho */
+  }
+
+  td {
+    text-align: left;
+    padding-left: 50%;
+    position: relative;
+    border: 1px solid #ccc;
+  }
+
+  td::before {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    width: 45%;
+    white-space: nowrap;
+    font-weight: bold;
+  }
+
+  /* rótulos das colunas */
+  td:nth-of-type(1)::before { content: "Produto"; }
+  td:nth-of-type(2)::before { content: "Largura"; }
+  td:nth-of-type(3)::before { content: "Altura"; }
+  td:nth-of-type(4)::before { content: "Qtd"; }
+  td:nth-of-type(5)::before { content: "V. Unit."; }
+  td:nth-of-type(6)::before { content: "Total"; }
+}
+.botao-voltar {
+  display: inline-block;
+  background-color: #915c83;
+  color: white;
+  padding: 10px 16px;
+  border-radius: 8px;
+  text-decoration: none;
+  font-weight: bold;
+  margin-bottom: 20px;
+}
+
+.botao-voltar:hover {
+  background-color: #7a4b6e;
+}
+
