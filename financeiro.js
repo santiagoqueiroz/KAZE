@@ -118,13 +118,24 @@ async function boot(){
 }
 
 function setupDefaults(){
-  const now=new Date();
-  const ym=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,"0")}`;
-  if(els.mesInicio) els.mesInicio.value=ym;
-  if(els.mesFim) els.mesFim.value=ym;
-  if(els.filtroTipo) els.filtroTipo.value="despesa";
-  if(els.tipo) els.tipo.value="despesa";
+  const now = new Date();
+  const firstOfCurrent = new Date(now.getFullYear(), now.getMonth(), 1);
+
+  const start = new Date(firstOfCurrent); // mês anterior
+  start.setMonth(start.getMonth() - 1);
+
+  const end = new Date(firstOfCurrent);   // mês atual + 3
+  end.setMonth(end.getMonth() + 3);
+
+  const fmtMonth = (d) => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}`;
+
+  if (els.mesInicio) els.mesInicio.value = fmtMonth(start);
+  if (els.mesFim)    els.mesFim.value    = fmtMonth(end);
+
+  if (els.filtroTipo) els.filtroTipo.value = "despesa";
+  if (els.tipo)       els.tipo.value       = "despesa";
 }
+
 
 // ===== categorias =====
 async function seedCategoriasIfEmpty(){
