@@ -24,57 +24,32 @@
     #calendar{background:#fff;border:1px solid #eee;border-radius:8px;padding:8px}
     .charts{display:grid;gap:12px;grid-template-columns:1fr 1fr}
     @media (max-width: 900px){ .grid-2, .charts{grid-template-columns:1fr} }
-    .top-actions {
-    display: flex;
-    gap: 8px;
-    margin-bottom: 12px;
-  }
 
+    .top-actions{display:flex;gap:8px;margin:8px 0 12px 0}
 
-    /* Botão principal */
-    /* TODOS os botões roxos por padrão (exceto o X do modal) */
-button:not(.close-x),
-.btn,
-.btn-primary,
-.btn-pagar,
-.btn-excluir,
-#btnAplicarFiltros,
-#btnSalvar,
-#btnCancelarModal,
-#btnAbrirModal {
-  padding: 8px 12px;
-  border: 1px solid #6d2752;
-  border-radius: 8px;
-  background: #6d2752;
-  color: #fff;
-  cursor: pointer;
-}
-
-/* Sem mudança de cor no hover */
-button:not(.close-x):hover,
-.btn:hover,
-.btn-primary:hover,
-.btn-pagar:hover,
-.btn-excluir:hover,
-#btnAplicarFiltros:hover,
-#btnSalvar:hover,
-#btnCancelarModal:hover,
-#btnAbrirModal:hover {
-  background: #6d2752;
-  border-color: #6d2752;
-  color: #fff;
-}
-
-/* O X do modal continua minimalista */
-.close-x{
-  border: none;
-  background: transparent;
-  font-size: 20px;
-  line-height: 20px;
-  cursor: pointer;
-}
-
-    .btn-ghost{background:transparent}
+    /* Botões: todos roxos */
+    button,
+    .btn,
+    .btn-primary,
+    .btn-pagar,
+    .btn-excluir,
+    #btnAplicarFiltros,
+    #btnSalvar,
+    #btnCancelarModal,
+    #btnAbrirModal,
+    #btnAddCategoria,
+    .btn-salvar-cat,
+    .btn-excluir-cat,
+    #btnFecharCategorias {
+      padding:8px 12px;
+      border:1px solid #6d2752;
+      border-radius:8px;
+      background:#6d2752;
+      color:#fff;
+      cursor:pointer;
+    }
+    /* Botão compacto */
+    .btn-sm{padding:4px 8px;font-size:12px;border-radius:6px}
 
     /* Modal */
     .modal{position:fixed;inset:0;display:none;z-index:1000}
@@ -84,21 +59,28 @@ button:not(.close-x):hover,
     .modal-header{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;border-bottom:1px solid #eee}
     .modal-body{padding:16px}
     .modal-footer{display:flex;gap:8px;justify-content:flex-end;padding:12px 16px;border-top:1px solid #eee}
-    .close-x{border:none;background:transparent;font-size:20px;line-height:20px;cursor:pointer}
     .field{display:block}
     .field input,.field select{width:100%}
+
+    /* Lista de categorias */
+    .cat-row{display:grid;grid-template-columns:1fr auto auto;gap:8px;align-items:center;margin-bottom:8px}
+    .cat-add{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;margin-top:12px}
+    .muted{font-size:12px;color:#666}
+    label.inline{display:flex;align-items:center;gap:8px}
   </style>
 </head>
 <body>
-    <div class="top-actions">
+  <!-- Fora da .container para ficar acima dos cards -->
+  <div class="top-actions">
     <button onclick="location.href='painel.html'" class="btn">← Voltar</button>
-    <button id="btnAbrirModal" class="btn btn-primary">+ Lançamento</button>
+    <button id="btnAbrirModal" class="btn">+ Lançamento</button>
   </div>
-    <div class="container">
+
+  <div class="container">
     <h1>Financeiro</h1>
     <p>Cadastre e acompanhe <b>despesas/receitas</b>, visualize no <b>calendário</b> e veja <b>gráficos</b>.</p>
 
-    <!-- Totais & Filtros + Botão Novo -->
+    <!-- Totais & Filtros -->
     <div class="card">
       <div class="totais" id="totais"></div>
       <div class="grid grid-2" style="margin-top:8px">
@@ -126,7 +108,6 @@ button:not(.close-x):hover,
           <select id="filtroCategoria"></select>
           &nbsp;&nbsp;
           <button id="btnAplicarFiltros" class="btn">Aplicar</button>
-          &nbsp;&nbsp;
         </div>
       </div>
     </div>
@@ -166,7 +147,6 @@ button:not(.close-x):hover,
     <div class="modal-panel">
       <div class="modal-header">
         <h3 style="margin:0">Novo lançamento</h3>
-        
       </div>
       <div class="modal-body">
         <div class="grid grid-2">
@@ -174,10 +154,16 @@ button:not(.close-x):hover,
             <label for="descricao">Descrição</label><br/>
             <input id="descricao" placeholder="Ex.: Aluguel"/>
           </div>
+
           <div class="field">
-            <label for="categoria">Categoria</label><br/>
+            <label for="categoria" class="inline">
+              Categoria
+              <button id="btnEditarCategorias" type="button" class="btn btn-sm">Editar Categorias</button>
+            </label>
             <select id="categoria"></select>
+            <div class="muted">Somente categorias de <b>despesa</b> serão listadas.</div>
           </div>
+
           <div class="field">
             <label for="valor">Valor (R$)</label><br/>
             <input id="valor" type="number" step="0.01" />
@@ -215,7 +201,28 @@ button:not(.close-x):hover,
       </div>
       <div class="modal-footer">
         <button id="btnCancelarModal" class="btn">Cancelar</button>
-        <button id="btnSalvar" class="btn btn-primary">Salvar</button>
+        <button id="btnSalvar" class="btn">Salvar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: Editar Categorias -->
+  <div id="modalCategorias" class="modal" inert role="dialog" aria-modal="true">
+    <div class="modal-backdrop" id="catBackdrop"></div>
+    <div class="modal-panel">
+      <div class="modal-header">
+        <h3 style="margin:0">Editar Categorias (Despesas)</h3>
+      </div>
+      <div class="modal-body">
+        <div id="listaCategorias"></div>
+
+        <div class="cat-add">
+          <input id="novaCategoriaNome" placeholder="Nova categoria (ex.: Energia)"/>
+          <button id="btnAddCategoria">Adicionar</button>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button id="btnFecharCategorias">Fechar</button>
       </div>
     </div>
   </div>
