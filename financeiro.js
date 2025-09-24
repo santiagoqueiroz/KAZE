@@ -1,8 +1,9 @@
-// FINANCEIRO.JS — inicialização própria (ESM, Firebase v10.12.2)
+// FINANCEIRO.JS — Firebase v10.x
 import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {
-  getFirestore, collection, doc, getDoc, getDocs, query, where, orderBy,
-  writeBatch, updateDoc, deleteDoc, Timestamp
+  getFirestore, collection, doc, getDoc, getDocs, addDoc,
+  query, where, orderBy, writeBatch, updateDoc, deleteDoc,
+  Timestamp
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
@@ -15,7 +16,6 @@ const firebaseConfig = {
   appId: "1:336054068300:web:6125e8eecc08d667fac0e9"
 };
 
-// Usa o app [DEFAULT] se já existir; senão cria
 const app  = getApps().length ? getApp() : initializeApp(firebaseConfig);
 const db   = getFirestore(app);
 const auth = getAuth(app);
@@ -23,6 +23,7 @@ const auth = getAuth(app);
 // ===== helpers =====
 const $ = (id) => document.getElementById(id);
 const els = {
+  // filtros
   totais: $("totais"),
   filtroStatus: $("filtroStatus"),
   filtroTipo: $("filtroTipo"),
@@ -31,7 +32,12 @@ const els = {
   mesFim: $("mesFim"),
   btnAplicarFiltros: $("btnAplicarFiltros"),
 
-  // Campos do formulário (agora dentro do modal)
+  // modal lançamento
+  modal: $("modalNovo"),
+  modalBackdrop: $("modalBackdrop"),
+  btnAbrirModal: $("btnAbrirModal"),
+  btnCancelarModal: $("btnCancelarModal"),
+  btnSalvar: $("btnSalvar"),
   descricao: $("descricao"),
   categoria: $("categoria"),
   valor: $("valor"),
@@ -40,17 +46,18 @@ const els = {
   formaPgto: $("formaPgto"),
   status: $("status"),
   recorrencia: $("recorrencia"),
-  btnSalvar: $("btnSalvar"),
+  btnEditarCategorias: $("btnEditarCategorias"),
 
-  // Tabela
+  // lista
   tbody: $("tbody"),
 
-  // Modal
-  modal: $("modalNovo"),
-  btnAbrirModal: $("btnAbrirModal"),
-  btnFecharModal: $("btnFecharModal"),
-  btnCancelarModal: $("btnCancelarModal"),
-  modalBackdrop: $("modalBackdrop"),
+  // modal categorias
+  modalCategorias: $("modalCategorias"),
+  catBackdrop: $("catBackdrop"),
+  listaCategorias: $("listaCategorias"),
+  novaCategoriaNome: $("novaCategoriaNome"),
+  btnAddCategoria: $("btnAddCategoria"),
+  btnFecharCategorias: $("btnFecharCategorias"),
 };
 
 const COL_CATEGORIAS   = "categorias";
@@ -61,35 +68,24 @@ function ymd(d){ const x=new Date(d); const m=String(x.getMonth()+1).padStart(2,
 function monthRangeStr(ym){ const [y,m]=ym.split("-").map(Number); return [ymd(new Date(y,m-1,1)), ymd(new Date(y,m,0))]; }
 function addMonths(dateStr,n){ const d=new Date(dateStr); d.setMonth(d.getMonth()+n); return ymd(d); }
 
-// ===== modal controls =====
-function openModal(){
-  els.modal?.removeAttribute("inert");   // <<< novo
-  els.modal?.classList.add("is-open");
-  if(els.tipo) els.tipo.value = "despesa";
-  setTimeout(()=>els.descricao?.focus(), 10);
+// ===== modal controls (genérico) =====
+function openModal(node){
+  node?.removeAttribute("inert");
+  node?.classList.add("is-open");
 }
-
-function closeModal(){
-  if (document.activeElement && els.modal.contains(document.activeElement)) {
-    document.activeElement.blur();   // <<< novo: tira foco antes de ocultar
+function closeModal(node){
+  if (document.activeElement && node?.contains(document.activeElement)) {
+    document.activeElement.blur();
   }
-  els.modal?.setAttribute("inert","");   // <<< novo
-  els.modal?.classList.remove("is-open");
-}
-
-function wireModal(){
-  els.btnAbrirModal?.addEventListener("click", openModal);
-  els.btnCancelarModal?.addEventListener("click", closeModal);
-  els.modalBackdrop?.addEventListener("click", closeModal);
-  document.addEventListener("keydown", (e)=>{
-    if(e.key === "Escape" && els.modal?.classList.contains("is-open")) closeModal();
-  });
+  node?.setAttribute("inert","");
+  node?.classList.remove("is-open");
 }
 
 // ===== boot =====
 async function boot(){
   setupDefaults();
-  await loadCategorias();
+  await seedCategoriasIfEmpty();
+  await populateCategoriasSelect();
 
   onAuthStateChanged(auth, (user)=>{
     if(!user){
@@ -99,9 +95,26 @@ async function boot(){
     refreshAll();
   });
 
+  // filtros
   els.btnAplicarFiltros?.addEventListener("click", ()=>refreshAll());
+
+  // modal lançamento
+  els.btnAbrirModal?.addEventListener("click", ()=>{ openModal(els.modal); setTimeout(()=>els.descricao?.focus(), 10); });
+  els.btnCancelarModal?.addEventListener("click", ()=>closeModal(els.modal));
+  els.modalBackdrop?.addEventListener("click", ()=>closeModal(els.modal));
+  document.addEventListener("keydown", (e)=>{ if(e.key==="Escape" && els.modal?.classList.contains("is-open")) closeModal(els.modal); });
   els.btnSalvar?.addEventListener("click", ()=>salvarLancamento());
-  wireModal();
+
+  // modal categorias
+  els.btnEditarCategorias?.addEventListener("click", async ()=>{
+    await renderCategoriasManager();
+    openModal(els.modalCategorias);
+    setTimeout(()=>els.novaCategoriaNome?.focus(), 10);
+  });
+  els.btnFecharCategorias?.addEventListener("click", ()=>closeModal(els.modalCategorias));
+  els.catBackdrop?.addEventListener("click", ()=>closeModal(els.modalCategorias));
+  document.addEventListener("keydown", (e)=>{ if(e.key==="Escape" && els.modalCategorias?.classList.contains("is-open")) closeModal(els.modalCategorias); });
+  els.btnAddCategoria?.addEventListener("click", ()=>addCategoria());
 }
 
 function setupDefaults(){
@@ -113,8 +126,8 @@ function setupDefaults(){
   if(els.tipo) els.tipo.value="despesa";
 }
 
-// ===== categorias (somente 'despesa') =====
-async function loadCategorias(){
+// ===== categorias =====
+async function seedCategoriasIfEmpty(){
   const chk = await getDocs(query(collection(db, COL_CATEGORIAS)));
   if(chk.empty){
     const batch = writeBatch(db);
@@ -130,24 +143,74 @@ async function loadCategorias(){
     });
     await batch.commit();
   }
-
+}
+async function getCategoriasDespesa(){
   const snap = await getDocs(query(
     collection(db, COL_CATEGORIAS),
     where("tipo","==","despesa"),
     orderBy("nome")
   ));
-
+  return snap.docs.map(d=>({ id:d.id, ...d.data() }));
+}
+async function populateCategoriasSelect(){
+  const list = await getCategoriasDespesa();
   if(els.filtroCategoria){
     const opts = ['<option value="">Todas</option>']
-      .concat(snap.docs.map(d=>`<option value="${d.id}">${d.data().nome}</option>`));
+      .concat(list.map(d=>`<option value="${d.id}">${d.nome}</option>`));
     els.filtroCategoria.innerHTML = opts.join("");
   }
   if(els.categoria){
-    els.categoria.innerHTML = snap.docs.map(d=>`<option value="${d.id}">${d.data().nome}</option>`).join("");
+    els.categoria.innerHTML = list.map(d=>`<option value="${d.id}">${d.nome}</option>`).join("");
   }
 }
 
-// ===== CRUD: lançamentos (despesa) =====
+async function renderCategoriasManager(){
+  const list = await getCategoriasDespesa();
+  if(!els.listaCategorias) return;
+
+  els.listaCategorias.innerHTML = list.length
+    ? list.map(c => `
+      <div class="cat-row" data-id="${c.id}">
+        <input class="cat-nome" value="${c.nome}"/>
+        <button type="button" class="btn-salvar-cat" data-id="${c.id}">Salvar</button>
+        <button type="button" class="btn-excluir-cat" data-id="${c.id}">Excluir</button>
+      </div>
+    `).join("")
+    : `<div class="muted">Nenhuma categoria cadastrada.</div>`;
+
+  // Wire per-row buttons
+  els.listaCategorias.querySelectorAll(".btn-salvar-cat").forEach(b=>{
+    b.addEventListener("click", async ()=>{
+      const id = b.getAttribute("data-id");
+      const row = els.listaCategorias.querySelector(`.cat-row[data-id="${id}"]`);
+      const nome = row.querySelector(".cat-nome").value.trim();
+      if(!nome) return;
+      await updateDoc(doc(db, COL_CATEGORIAS, id), { nome });
+      await populateCategoriasSelect();
+      await renderCategoriasManager();
+    });
+  });
+  els.listaCategorias.querySelectorAll(".btn-excluir-cat").forEach(b=>{
+    b.addEventListener("click", async ()=>{
+      const id = b.getAttribute("data-id");
+      if(!confirm("Excluir esta categoria?")) return;
+      await deleteDoc(doc(db, COL_CATEGORIAS, id));
+      await populateCategoriasSelect();
+      await renderCategoriasManager();
+    });
+  });
+}
+
+async function addCategoria(){
+  const nome = (els.novaCategoriaNome?.value||"").trim();
+  if(!nome) return;
+  await addDoc(collection(db, COL_CATEGORIAS), { nome, tipo:"despesa" });
+  els.novaCategoriaNome.value = "";
+  await populateCategoriasSelect();
+  await renderCategoriasManager();
+}
+
+// ===== CRUD: lançamentos =====
 async function salvarLancamento(){
   const descricao = (els.descricao?.value||"").trim();
   const categoriaId = els.categoria?.value||"";
@@ -192,7 +255,7 @@ async function salvarLancamento(){
   if(els.data) els.data.value="";
 
   await refreshAll();
-  closeModal();
+  closeModal(els.modal);
   alert("Despesa(s) salva(s) com sucesso!");
 }
 
