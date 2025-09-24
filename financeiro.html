@@ -32,8 +32,48 @@
 
 
     /* Botão principal */
-    .btn{padding:8px 12px;border:1px solid #ddd;border-radius:8px;background:#fafafa;cursor:pointer}
-    .btn-primary{background:#6d2752;color:#fff;border-color:#6d2752}
+    /* TODOS os botões roxos por padrão (exceto o X do modal) */
+button:not(.close-x),
+.btn,
+.btn-primary,
+.btn-pagar,
+.btn-excluir,
+#btnAplicarFiltros,
+#btnSalvar,
+#btnCancelarModal,
+#btnAbrirModal {
+  padding: 8px 12px;
+  border: 1px solid #6d2752;
+  border-radius: 8px;
+  background: #6d2752;
+  color: #fff;
+  cursor: pointer;
+}
+
+/* Sem mudança de cor no hover */
+button:not(.close-x):hover,
+.btn:hover,
+.btn-primary:hover,
+.btn-pagar:hover,
+.btn-excluir:hover,
+#btnAplicarFiltros:hover,
+#btnSalvar:hover,
+#btnCancelarModal:hover,
+#btnAbrirModal:hover {
+  background: #6d2752;
+  border-color: #6d2752;
+  color: #fff;
+}
+
+/* O X do modal continua minimalista */
+.close-x{
+  border: none;
+  background: transparent;
+  font-size: 20px;
+  line-height: 20px;
+  cursor: pointer;
+}
+
     .btn-ghost{background:transparent}
 
     /* Modal */
@@ -52,7 +92,7 @@
 <body>
   <div class="container">
   <div class="top-actions">
-    <button onclick="painel.html" class="btn">← Voltar</button>
+    <button onclick="location.href='painel.html'" class="btn">← Voltar</button>
     <button id="btnAbrirModal" class="btn btn-primary">+ Lançamento</button>
   </div>
     
@@ -127,7 +167,7 @@
     <div class="modal-panel">
       <div class="modal-header">
         <h3 style="margin:0">Novo lançamento</h3>
-        <button id="btnFecharModal" class="close-x" aria-label="Fechar">×</button>
+        
       </div>
       <div class="modal-body">
         <div class="grid grid-2">
