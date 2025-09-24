@@ -31,6 +31,7 @@ const els = {
   mesFim: $("mesFim"),
   btnAplicarFiltros: $("btnAplicarFiltros"),
 
+  // Campos do formulário (agora dentro do modal)
   descricao: $("descricao"),
   categoria: $("categoria"),
   valor: $("valor"),
@@ -41,7 +42,15 @@ const els = {
   recorrencia: $("recorrencia"),
   btnSalvar: $("btnSalvar"),
 
+  // Tabela
   tbody: $("tbody"),
+
+  // Modal
+  modal: $("modalNovo"),
+  btnAbrirModal: $("btnAbrirModal"),
+  btnFecharModal: $("btnFecharModal"),
+  btnCancelarModal: $("btnCancelarModal"),
+  modalBackdrop: $("modalBackdrop"),
 };
 
 const COL_CATEGORIAS   = "categorias";
@@ -51,6 +60,29 @@ function fmtMoney(n){ return (Number(n)||0).toLocaleString("pt-BR",{style:"curre
 function ymd(d){ const x=new Date(d); const m=String(x.getMonth()+1).padStart(2,"0"); const dd=String(x.getDate()).padStart(2,"0"); return `${x.getFullYear()}-${m}-${dd}`; }
 function monthRangeStr(ym){ const [y,m]=ym.split("-").map(Number); return [ymd(new Date(y,m-1,1)), ymd(new Date(y,m,0))]; }
 function addMonths(dateStr,n){ const d=new Date(dateStr); d.setMonth(d.getMonth()+n); return ymd(d); }
+
+// ===== modal controls =====
+function openModal(){
+  els.modal?.classList.add("is-open");
+  els.modal?.setAttribute("aria-hidden","false");
+  // defaulta tipo despesa
+  if(els.tipo) els.tipo.value = "despesa";
+  // foca primeiro campo
+  setTimeout(()=>els.descricao?.focus(), 10);
+}
+function closeModal(){
+  els.modal?.classList.remove("is-open");
+  els.modal?.setAttribute("aria-hidden","true");
+}
+function wireModal(){
+  els.btnAbrirModal?.addEventListener("click", openModal);
+  els.btnFecharModal?.addEventListener("click", closeModal);
+  els.btnCancelarModal?.addEventListener("click", closeModal);
+  els.modalBackdrop?.addEventListener("click", closeModal);
+  document.addEventListener("keydown", (e)=>{
+    if(e.key === "Escape" && els.modal?.classList.contains("is-open")) closeModal();
+  });
+}
 
 // ===== boot =====
 async function boot(){
@@ -67,6 +99,7 @@ async function boot(){
 
   els.btnAplicarFiltros?.addEventListener("click", ()=>refreshAll());
   els.btnSalvar?.addEventListener("click", ()=>salvarLancamento());
+  wireModal();
 }
 
 function setupDefaults(){
@@ -148,13 +181,16 @@ async function salvarLancamento(){
 
   await batch.commit();
 
+  // limpa campos
   if(els.descricao) els.descricao.value="";
   if(els.valor) els.valor.value="";
   if(els.formaPgto) els.formaPgto.value="";
   if(els.status) els.status.value="a_pagar";
   if(els.recorrencia) els.recorrencia.value="";
+  if(els.data) els.data.value="";
 
   await refreshAll();
+  closeModal();
   alert("Despesa(s) salva(s) com sucesso!");
 }
 
