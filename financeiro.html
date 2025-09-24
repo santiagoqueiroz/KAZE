@@ -24,6 +24,12 @@
     #calendar{background:#fff;border:1px solid #eee;border-radius:8px;padding:8px}
     .charts{display:grid;gap:12px;grid-template-columns:1fr 1fr}
     @media (max-width: 900px){ .grid-2, .charts{grid-template-columns:1fr} }
+    .top-actions {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+
 
     /* Botão principal */
     .btn{padding:8px 12px;border:1px solid #ddd;border-radius:8px;background:#fafafa;cursor:pointer}
@@ -46,6 +52,10 @@
 <body>
   <div class="container">
     <h1>Financeiro</h1>
+    <div class="top-actions">
+  <button onclick="history.back()" class="btn">← Voltar</button>
+</div>
+
     <p>Cadastre e acompanhe <b>despesas/receitas</b>, visualize no <b>calendário</b> e veja <b>gráficos</b>.</p>
 
     <!-- Totais & Filtros + Botão Novo -->
