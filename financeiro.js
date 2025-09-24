@@ -79,7 +79,6 @@ function closeModal(){
 
 function wireModal(){
   els.btnAbrirModal?.addEventListener("click", openModal);
-  els.btnFecharModal?.addEventListener("click", closeModal);
   els.btnCancelarModal?.addEventListener("click", closeModal);
   els.modalBackdrop?.addEventListener("click", closeModal);
   document.addEventListener("keydown", (e)=>{
