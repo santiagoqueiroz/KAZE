@@ -63,17 +63,20 @@ function addMonths(dateStr,n){ const d=new Date(dateStr); d.setMonth(d.getMonth(
 
 // ===== modal controls =====
 function openModal(){
+  els.modal?.removeAttribute("inert");   // <<< novo
   els.modal?.classList.add("is-open");
-  els.modal?.setAttribute("aria-hidden","false");
-  // defaulta tipo despesa
   if(els.tipo) els.tipo.value = "despesa";
-  // foca primeiro campo
   setTimeout(()=>els.descricao?.focus(), 10);
 }
+
 function closeModal(){
+  if (document.activeElement && els.modal.contains(document.activeElement)) {
+    document.activeElement.blur();   // <<< novo: tira foco antes de ocultar
+  }
+  els.modal?.setAttribute("inert","");   // <<< novo
   els.modal?.classList.remove("is-open");
-  els.modal?.setAttribute("aria-hidden","true");
 }
+
 function wireModal(){
   els.btnAbrirModal?.addEventListener("click", openModal);
   els.btnFecharModal?.addEventListener("click", closeModal);
