@@ -65,7 +65,9 @@ export function calcularCortina() {
   const multiplicadorFinalBarra = altura > 3.5 ? xBarraAlta : 1;
 
   const qtdTecidoBase = arred((largura * 3.1) + 0.7);
-  const qtdTiras = (qtdTecidoBase / 3) % 1 < 0.4 ? Math.floor(qtdTecidoBase / 3) : Math.ceil(qtdTecidoBase / 3);
+  //const qtdTiras = (qtdTecidoBase / 3) % 1 < 0.4 ? Math.floor(qtdTecidoBase / 3) : Math.ceil(qtdTecidoBase / 3);
+  const divisor = nomeTecido.toUpperCase().includes("VELUDO 1,40") ? 1.40 : 3;
+  const qtdTiras = (qtdTecidoBase / divisor) % 1 < 0.4 ? Math.floor(qtdTecidoBase / divisor) : Math.ceil(qtdTecidoBase / divisor);
   const alturaTira = arred(altura + 0.12 + barraExtra);
   let qtdTecidoTotal = altura > 2.6 ? arred(qtdTiras * alturaTira) : arred(qtdTecidoBase);
 
