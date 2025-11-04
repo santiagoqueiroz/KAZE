@@ -111,7 +111,9 @@ function calcularCortinaBK() {
   // Parte da CORTINA
   const alturaTira = arred(altura + 0.12 + barraExtra);
   const qtdBase = arred((largura * 3.1) + 0.7);
-  const qtdTiras = (qtdBase / 3) % 1 < 0.4 ? Math.floor(qtdBase / 3) : Math.ceil(qtdBase / 3);
+  //const qtdTiras = (qtdBase / 3) % 1 < 0.4 ? Math.floor(qtdBase / 3) : Math.ceil(qtdBase / 3);
+  const divisor = nomeC.toUpperCase().includes("VELUDO 1,40") ? 1.40 : 3;
+  const qtdTiras = (qtdBase / divisor) % 1 < 0.4 ? Math.floor(qtdBase / divisor) : Math.ceil(qtdBase / divisor);
   const qtdTotalC = arred(altura > 2.6 ? (qtdTiras * alturaTira) : qtdBase);
   const valorTecidoC = arred(qtdTotalC * precoC);
   const entrela = arred(qtdBase * parametros["ENTRETELA"]);
