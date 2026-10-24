@@ -14,29 +14,35 @@
       "versao3/**",
       "teste/**",
       "README.md",
-      "firestore.rules"
+      "firestore.rules",
+      "index.html"
     ],
     "cleanUrls": false,
     "redirects": [
       {
-        "source": "/",
-        "destination": "/sistema",
-        "type": 302
-      },
-      {
-        "source": "/app.html",
-        "destination": "/sistema",
+        "source": "/sistema",
+        "destination": "/",
         "type": 302
       },
       {
         "source": "/sistema/",
-        "destination": "/sistema",
+        "destination": "/",
+        "type": 302
+      },
+      {
+        "source": "/app.html",
+        "destination": "/",
+        "type": 302
+      },
+      {
+        "source": "/index.html",
+        "destination": "/",
         "type": 302
       }
     ],
     "rewrites": [
       {
-        "source": "/sistema",
+        "source": "/",
         "destination": "/app.html"
       }
     ],
@@ -72,7 +78,7 @@
         ]
       },
       {
-        "source": "/sistema",
+        "source": "/",
         "headers": [
           {
             "key": "Cache-Control",

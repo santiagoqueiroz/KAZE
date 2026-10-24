@@ -4,7 +4,7 @@ Aplicação web para gerenciamento de clientes, orçamentos de cortinas e persia
 
 ## Sistema novo (app.html), em testes
 
-- **app.html** – Sistema novo numa página só: clientes, orçamentos (rascunho, salvar, ver, imagem, imprimir), pedidos aprovados e a seção Dados. Funciona junto com as páginas antigas: lê e grava os mesmos documentos. Versão de testes: `https://kaze-8836b.web.app/sistema` (no Firebase Hosting, `/sistema` serve o app.html e o endereço principal leva para lá; o login antigo continua em `/index.html`). A barra de endereço mostra sempre só `/sistema`: a tela atual fica no histórico do navegador, não no endereço.
+- **app.html** – Sistema novo numa página só: clientes, orçamentos (rascunho, salvar, ver, imagem, imprimir), pedidos aprovados e a seção Dados. Funciona junto com as páginas antigas: lê e grava os mesmos documentos. No Firebase Hosting o app.html abre na raiz do site: `https://kaze-8836b.web.app` e, depois de configurado o domínio, `https://sistema.kazecortinas.com.br`. O index.html (login antigo) não é publicado no Firebase, e `/index.html`, `/app.html` e `/sistema` levam para a raiz. A barra de endereço mostra sempre só o endereço do sistema: a tela atual fica no histórico do navegador, não no endereço. O site oficial antigo (GitHub Pages) não usa o firebase.json e não muda.
 - **app.js** – Lógica do app.html.
 - **app.css** – Visual do app.html (roxo, compacto, menu embaixo no celular).
 - **calculos.js** – Cálculo de preço de cortina, blackout, cortina + blackout, cortina + forro, persiana e item avulso. Mesmas fórmulas dos scripts antigos (conferido com 80 mil combinações sorteadas, sem diferença de centavo).
