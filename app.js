@@ -627,16 +627,61 @@ function atualizarItem() {
 $("form-item").addEventListener("input", atualizarItem);
 $("form-item").addEventListener("change", atualizarItem);
 
-// Campos da janela a partir de um item gravado. Itens do sistema antigo abrem como item avulso.
+// Itens do sistema antigo guardam só o nome ("Sala - Cortina LINHO CRU - TRILHO SUÍÇO"), no mesmo formato de nomeItem.
+// Reconhece produto e materiais pelos nomes das tabelas de preço; null se algum nome não estiver nas tabelas.
+function reconhecerAntigo(produto) {
+  const p = String(produto || "").trim();
+  const nomes = (mapa) => Object.keys(mapa).sort((x, y) => y.length - x.length);
+  const tirarFim = (texto, fim) => (texto.endsWith(fim) ? texto.slice(0, -fim.length) : null);
+  // Antes do produto vem o ambiente e " - " (o sistema antigo deixava só "- " quando não havia ambiente)
+  const ambiente = (resto) => {
+    if (resto === null) return null;
+    if (resto === "" || resto.trim() === "-") return "";
+    return resto.endsWith(" - ") ? resto.slice(0, -3).trim() : null;
+  };
+  for (const pe of nomes(tabelas.persianas)) {
+    const amb = ambiente(tirarFim(p, "Persiana " + pe));
+    if (amb !== null) return { tipo: "persiana", ambiente: amb, persiana: pe };
+  }
+  for (const tr of nomes(tabelas.trilhos)) {
+    const semTrilho = tirarFim(p, " - " + tr);
+    if (semTrilho === null) continue;
+    for (const [tipo, campo, rotulo, mapa] of [["cortinaBK", "bk", "Blackout", tabelas.tecidosBK], ["cortinaForro", "forro", "Forro", tabelas.tecidos]]) {
+      for (const n of nomes(mapa)) {
+        const semCamada = tirarFim(semTrilho, ` + ${rotulo} ${n}`);
+        if (semCamada === null) continue;
+        for (const te of nomes(tabelas.tecidos)) {
+          const amb = ambiente(tirarFim(semCamada, "Cortina " + te));
+          if (amb !== null) return { tipo, ambiente: amb, tecido: te, [campo]: n, trilho: tr };
+        }
+      }
+    }
+    for (const [tipo, campo, rotulo, mapa] of [["cortina", "tecido", "Cortina", tabelas.tecidos], ["blackout", "bk", "Blackout", tabelas.tecidosBK]]) {
+      for (const n of nomes(mapa)) {
+        const amb = ambiente(tirarFim(semTrilho, `${rotulo} ${n}`));
+        if (amb !== null) return { tipo, ambiente: amb, [campo]: n, trilho: tr };
+      }
+    }
+  }
+  return null;
+}
+
+// Campos da janela a partir de um item gravado. Itens do sistema antigo voltam para o cálculo do produto
+// quando o nome é reconhecido (antigo: "recalculado"); os demais abrem como item avulso (antigo: "avulso").
 function camposDoItem(i) {
   const e = i.entrada;
   if (e && MATERIAIS[e.tipo]) {
     return { tipo: e.tipo, v: { "f-ambiente": e.ambiente, "f-descricao": e.descricao, "f-largura": paraCampo(e.largura || ""), "f-altura": paraCampo(e.altura || ""), "f-qtd": String(e.qtd || 1), "f-tecido": e.tecido, "f-bk": e.bk, "f-forro": e.forro, "f-trilho": e.trilho, "f-persiana": e.persiana, "f-valor": paraCampo(e.valor), "f-desconto": e.desconto ? paraCampo(e.desconto) : "", "f-barra": paraCampo(e.barra ?? 0.4), "f-mult": paraCampo(e.mult ?? 1.4) } };
   }
   const qtd = Number(i.qtd) || 1, l = Number(i.largura), a = Number(i.altura);
-  return { tipo: "avulso", antigo: true, v: { "f-descricao": i.produto, "f-largura": l > 0 ? paraCampo(l) : "", "f-altura": a > 0 ? paraCampo(a) : "", "f-qtd": String(qtd), "f-valor": paraCampo(centavos((Number(i.total) || 0) / qtd)), "f-barra": "0,4", "f-mult": "1,4" } };
+  const medidas = { "f-largura": l > 0 ? paraCampo(l) : "", "f-altura": a > 0 ? paraCampo(a) : "", "f-qtd": String(qtd), "f-barra": "0,4", "f-mult": "1,4" };
+  const r = reconhecerAntigo(i.produto);
+  if (r) return { tipo: r.tipo, antigo: "recalculado", v: { ...medidas, "f-ambiente": r.ambiente, "f-tecido": r.tecido, "f-bk": r.bk, "f-forro": r.forro, "f-trilho": r.trilho, "f-persiana": r.persiana } };
+  return { tipo: "avulso", antigo: "avulso", v: { ...medidas, "f-descricao": i.produto, "f-valor": paraCampo(centavos((Number(i.total) || 0) / qtd)) } };
 }
 async function abrirItem({ tipo, item }) {
+  // Para reconhecer um item antigo, as tabelas de preço precisam ter carregado
+  if (item && !item.entrada && pTabelas) await pTabelas;
   estadoItem = { tipo: tipo || "cortina", editando: item || null, salvando: false };
   let v = { "f-qtd": "1", "f-barra": "0,4", "f-mult": "1,4" }, antigo = false;
   if (item) ({ tipo: estadoItem.tipo, v, antigo } = camposDoItem(item));
@@ -648,7 +693,9 @@ async function abrirItem({ tipo, item }) {
     if (el.tagName === "SELECT") { if (v[id]) { opcoesCom(el, v[id]); el.value = v[id]; } else el.selectedIndex = 0; }
     else el.value = v[id] ?? "";
   }
-  $("j-antigo").innerHTML = antigo ? '<div class="info"><span>Item feito no sistema antigo: dá para ajustar a descrição, o valor e a quantidade, ou refazer o item escolhendo o produto.</span></div>' : "";
+  $("j-antigo").innerHTML = antigo === "recalculado"
+    ? `<div class="info"><span>Item feito no sistema antigo, gravado com ${real(Number(item.total) || 0)}. O valor abaixo foi recalculado com os preços de hoje. Se esse item tinha desconto, preencha o campo Desconto.</span></div>`
+    : antigo ? '<div class="info"><span>Item feito no sistema antigo: dá para ajustar a descrição, o valor e a quantidade, ou refazer o item escolhendo o produto.</span></div>' : "";
   $("j-titulo").textContent = item ? "Editar item" : "Adicionar item";
   $("j-confirmar").innerHTML = item ? "Salvar alterações" : 'Adicionar<span class="so-largo">&nbsp;ao orçamento</span>';
   $("j-outro").hidden = !!item;
