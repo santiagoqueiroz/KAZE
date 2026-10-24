@@ -4,7 +4,7 @@ Aplicação web para gerenciamento de clientes, orçamentos de cortinas e persia
 
 ## Sistema novo (app.html), em testes
 
-- **app.html** – Sistema novo numa página só: clientes, orçamentos (rascunho, salvar, ver, imagem, imprimir), pedidos aprovados e a seção Dados. Funciona junto com as páginas antigas: lê e grava os mesmos documentos. Versão de testes: `https://kaze-8836b.web.app/app.html`.
+- **app.html** – Sistema novo numa página só: clientes, orçamentos (rascunho, salvar, ver, imagem, imprimir), pedidos aprovados e a seção Dados. Funciona junto com as páginas antigas: lê e grava os mesmos documentos. Versão de testes: `https://kaze-8836b.web.app` (o endereço principal leva ao app.html; o login antigo continua em `/index.html`).
 - **app.js** – Lógica do app.html.
 - **app.css** – Visual do app.html (roxo, compacto, menu embaixo no celular).
 - **calculos.js** – Cálculo de preço de cortina, blackout, cortina + blackout, cortina + forro, persiana e item avulso. Mesmas fórmulas dos scripts antigos (conferido com 80 mil combinações sorteadas, sem diferença de centavo).
