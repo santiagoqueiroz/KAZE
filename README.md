@@ -1,35 +1,62 @@
 # KAZE
 
-Este repositório contém uma aplicação web simples para gerenciamento de clientes e geração de orçamentos de cortinas e persianas utilizando o Firebase como backend. A seguir está uma descrição de todos os arquivos presentes no projeto.
+Aplicação web para gerenciamento de clientes, orçamentos de cortinas e persianas, tabela de preços e controle financeiro da Kazê Cortinas. Roda inteiramente no navegador e usa o Firebase (Authentication + Firestore, projeto `kaze-8836b`) como backend.
 
-## Páginas HTML
+## Sistema novo (app.html), em testes
 
-- **index.html** – Tela de login que autentica o usuário no Firebase e redireciona para o painel principal.
-- **painel.html** – Menu principal exibido após o login, com links para todas as outras páginas.
-- **cadastrar_cliente.html** – Formulário para cadastro de novos clientes no Firestore.
-- **consultar_clientes.html** – Lista todos os clientes salvos e permite exclusão de registros.
-- **fazer_orcamento.html** – Página para criar e salvar orçamentos de cortinas/persianas; utiliza os cálculos dos scripts JavaScript.
-- **consultar_orcamento.html** – Permite consultar e imprimir um orçamento em aberto de determinado cliente.
-- **orcamentos_salvos.html** – Apresenta a lista de orçamentos já finalizados e gravados no Firestore.
-- **precos_nomeerrado.html** – Interface administrativa para edição manual das tabelas de preços armazenadas no Firestore.
+- **app.html** – Sistema novo numa página só: clientes, orçamentos (rascunho, salvar, ver, imagem, imprimir), pedidos aprovados e a seção Dados. Funciona junto com as páginas antigas: lê e grava os mesmos documentos. Versão de testes: `https://kaze-8836b.web.app/app.html`.
+- **app.js** – Lógica do app.html.
+- **app.css** – Visual do app.html (roxo, compacto, menu embaixo no celular).
+- **calculos.js** – Cálculo de preço de cortina, blackout, cortina + blackout, cortina + forro, persiana e item avulso. Mesmas fórmulas dos scripts antigos (conferido com 80 mil combinações sorteadas, sem diferença de centavo).
+- **perfis.js** – Quem é do financeiro (vê Financeiro, Dados, preço de custo e "Ver o cálculo"). Os demais usuários não veem esses itens.
+- **logo_kaze_app.jpg** – Logo com fundo branco puro, usado no app e na imagem do orçamento.
+
+### Dados no Firestore usados pelo app
+
+- **clientes/{id}.orcamentoAtivo** – Rascunho do orçamento do cliente (itens, `baseadoEm` quando é cópia, `atualizadoEm`). Ao salvar, vira um documento em `orcamentos` e o rascunho é apagado.
+- **orcamentos/{id}** – Mesmo formato das páginas antigas, mais: `numero` (sequencial), `baseadoEm`, `criadoEm`, `usuarioEmail`, `regras` (markup e custo cartão usados). Cada item novo guarda também `tipo`, `ambiente`, `desconto`, `custo` e `entrada` (o que foi digitado, para editar depois).
+- **contadores/orcamentos** – Último número de orçamento usado (`ultimo`).
+- **pedidos/{id do orçamento}** – Pedido aprovado: `aprovadoEm` (data e hora do servidor), `aprovadoPor`/`aprovadoPorEmail`, `forma` (cartao, pix, debito, dinheiro, transferencia), `parcelas`, `valorTabela`, `valorFechado`, `desconto`, `observacao`, `status`, cópia dos itens e do cliente (nome, bairro, cidade), `orcamentoFeitoEm` e `orcamentoPor`. Serve de base para a seção Dados e para gráficos futuros.
+
+### Regras do Firestore (firestore.rules)
+
+Só as contas da equipe acessam os dados; preços só os editores. Pedido aprovado não pode ser alterado; só o financeiro cancela uma aprovação ou exclui um orçamento aprovado. A numeração só sobe de 1 em 1. Publicar com `firebase deploy --only firestore:rules` (vale para o site oficial também, porque o banco é o mesmo). Enquanto as regras novas não forem publicadas, o app funciona, mas não aprova pedidos e salva orçamentos sem número.
+
+## Páginas HTML (sistema antigo)
+
+- **index.html** – Tela de login (Firebase Auth); redireciona para o painel.
+- **painel.html** – Menu principal após o login.
+- **cadastrar_cliente.html** – Cadastro de novos clientes.
+- **consultar_clientes.html** – Lista de clientes, com edição e exclusão.
+- **editar_cliente.html** – Edição dos dados de um cliente.
+- **fazer_orcamento.html** – Montagem do orçamento ativo de um cliente (usa `main.js` e os scripts de cálculo).
+- **consultar_orcamento.html** – Consulta e impressão de um orçamento salvo.
+- **orcamentos_salvos.html** – Lista de orçamentos finalizados, com exclusão.
+- **precos.html** – Edição das tabelas de preços (`precos` e `persianas`). Só os editores autorizados nas regras do Firestore conseguem salvar.
+- **financeiro.html** – Lançamentos de despesas/receitas e categorias (usa `financeiro.js`).
 
 ## Scripts JavaScript
 
-- **main.js** – Arquivo principal. Inicializa o Firebase, faz controle de autenticação e manipula os orçamentos (adicionar itens, calcular totais e salvar).
-- **persianas.js** – Funções para carregar preços de persianas do Firestore e calcular o valor conforme dimensões e desconto.
-- **cortina.js** – Implementa o cálculo detalhado de cortinas de tecido, obtendo preços e parâmetros do Firestore.
-- **blackout.js** – Responsável pelo cálculo de cortinas do tipo blackout.
-- **cortina+bk.js** – Calcula orçamentos combinando cortina de tecido e blackout em um único produto.
+- **main.js** – Lógica de `fazer_orcamento.html`: autenticação, itens do orçamento ativo, totais e gravação.
+- **persianas.js** – Preços e cálculo de persianas.
+- **cortina.js** – Cálculo de cortinas de tecido.
+- **blackout.js** – Cálculo de cortinas blackout.
+- **cortina+bk.js** – Cálculo de cortina de tecido + blackout.
+- **cortina+forro.js** – Cálculo de cortina com forro.
+- **financeiro.js** – Lógica da página financeiro.
+- **ambiente.js** – Mostra o selo "Em desenvolvimento" quando o site não está no endereço oficial (GitHub Pages).
 
 ## Outros arquivos
 
-- **style.css** – Estilos compartilhados entre as páginas.
-- **favicon.ico**, **logo_kaze.jpg** e **logo_kaze.png** – Imagens utilizadas na interface.
+- **style.css** – Estilos compartilhados.
+- **favicon.ico**, **logo_kaze.jpg**, **logo_kaze.png** – Imagens.
+- **firebase.json** / **.firebaserc** – Configuração do Firebase Hosting (versão de testes em `kaze-8836b.web.app`).
 
 ## Diretórios auxiliares
 
-- **versao1/** – Guarda uma versão anterior da aplicação contendo arquivos equivalentes (HTML, CSS e scripts) utilizados como referência histórica.
-- **versao2/** – Guarda uma versão anterior da aplicação contendo arquivos equivalentes (HTML, CSS e scripts) utilizados como referência histórica. 23-07-25
-- **teste/** – Conjunto de arquivos de teste e protótipos diversos utilizados durante o desenvolvimento.
+- **versao1/**, **versao2/**, **versao3/** – Versões anteriores, guardadas como referência histórica (não são publicadas no Firebase Hosting).
+- **teste/** – Protótipos usados durante o desenvolvimento (não publicados).
 
-Para utilizar a aplicação localmente basta abrir `index.html` em um navegador com acesso à internet (para carregar o Firebase). É necessário possuir credenciais válidas de usuário cadastradas no projeto Firebase indicado nos scripts.
+## Como usar
+
+Abra o site publicado e entre com um usuário cadastrado no Firebase Authentication do projeto. Para publicar a versão de testes: `firebase deploy --only hosting`.

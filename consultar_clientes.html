@@ -115,7 +115,10 @@
   </div>
 
   <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { app, auth, db } from "./firebase-config.js";
+    import { mensagemErro } from "./erros.js";
+    import { esc } from "./seguranca.js";
+    const nomesClientes = {};
     import {
       getFirestore, collection, getDocs, query, orderBy
     } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
@@ -123,18 +126,7 @@
       getAuth, onAuthStateChanged
     } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyD5kVoWRWZB6xtacyu6lH--QFXry_MPKps",
-      authDomain: "kaze-8836b.firebaseapp.com",
-      projectId: "kaze-8836b",
-      storageBucket: "kaze-8836b.firebasestorage.app",
-      messagingSenderId: "336054068300",
-      appId: "1:336054068300:web:6125e8eecc08d667fac0e9"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-    const auth = getAuth(app);
+ 
 
     onAuthStateChanged(auth, async (user) => {
       if (!user) {
@@ -152,32 +144,47 @@
 
         querySnapshot.forEach((doc) => {
           const c = doc.data();
+          nomesClientes[doc.id] = c.nome || "(sem nome)";
           const linha = document.createElement("tr");
          linha.innerHTML = `
-            <td>${c.nome || ""}</td>
-            <td>${c.telefone || ""}</td>
-            <td>${c.cpfOuCnpj || ""}</td>
-            <td>${c.endereco || ""}</td>
-            <td>${c.bairro || ""}</td>
-            <td>${c.cidade || ""}</td>
-            <td>${c.email || ""}</td>
-            <td>
-              <button onclick="editarCliente('${doc.id}')">Editar</button>
-              <button onclick="excluirCliente('${doc.id}')">Excluir</button>
-            </td>
+            <td>${esc(c.nome)}</td>
+            <td>${esc(c.telefone)}</td>
+            <td>${esc(c.cpfOuCnpj)}</td>
+            <td>${esc(c.endereco)}</td>
+            <td>${esc(c.bairro)}</td>
+            <td>${esc(c.cidade)}</td>
+            <td>${esc(c.email)}</td>
+            <td></td>
           `;
+          // Botões criados sem HTML, para o id nunca ser interpretado como código
+          const acoes = linha.lastElementChild;
+          const btnEditar = document.createElement("button");
+          btnEditar.textContent = "Editar";
+          btnEditar.addEventListener("click", () => editarCliente(doc.id));
+          const btnExcluir = document.createElement("button");
+          btnExcluir.textContent = "Excluir";
+          btnExcluir.addEventListener("click", () => excluirCliente(doc.id));
+          acoes.append(btnEditar, " ", btnExcluir);
 
           tabela.appendChild(linha);
         });
       } catch (erro) {
         console.error("Erro ao buscar clientes:", erro);
+        alert("Não foi possível carregar os clientes. " + mensagemErro(erro));
       }
     });
 
     import { deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
     window.excluirCliente = async function(id) {
-      if (!confirm("Tem certeza que deseja excluir este cliente?")) return;
+      const nome = nomesClientes[id] || "este cliente";
+      const ok = confirm(
+        `Excluir o cliente "${nome}"?\n\n` +
+        "O orçamento em aberto dele também será apagado. " +
+        "Orçamentos já salvos continuam em Orçamentos Salvos.\n\n" +
+        "Essa ação não pode ser desfeita."
+      );
+      if (!ok) return;
     
       try {
         await deleteDoc(doc(db, "clientes", id));
@@ -185,7 +192,7 @@
         location.reload(); // atualiza a tabela
       } catch (err) {
         console.error("Erro ao excluir:", err);
-        alert("Erro ao excluir cliente.");
+        alert("Não foi possível excluir o cliente. " + mensagemErro(err));
       }
     }
     
@@ -194,5 +201,6 @@
     }
 
   </script>
+  <script src="ambiente.js"></script>
 </body>
 </html>

@@ -112,26 +112,16 @@
   </div>
 
   <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-    import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-    import { getAuth } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+    import { app, auth, db } from "./firebase-config.js";
+    import { mensagemErro } from "./erros.js";
+    import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import { getAuth } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyD5kVoWRWZB6xtacyu6lH--QFXry_MPKps",
-      authDomain: "kaze-8836b.firebaseapp.com",
-      projectId: "kaze-8836b",
-      storageBucket: "kaze-8836b.firebasestorage.app",
-      messagingSenderId: "336054068300",
-      appId: "1:336054068300:web:6125e8eecc08d667fac0e9"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-    const auth = getAuth(app);
+ 
 
     auth.onAuthStateChanged((user) => {
       if (!user) {
-        window.location.href = "login.html";
+        window.location.href = "index.html";
       }
     });
 
@@ -162,10 +152,11 @@
         form.reset();
       } catch (err) {
         console.error(err);
-        mensagem.textContent = 'Erro ao cadastrar cliente.';
+        mensagem.textContent = 'Erro ao cadastrar cliente. ' + mensagemErro(err);
         mensagem.style.color = 'red';
       }
     });
   </script>
+  <script src="ambiente.js"></script>
 </body>
 </html>

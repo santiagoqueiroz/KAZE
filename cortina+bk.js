@@ -1,11 +1,10 @@
 // cortina+bk.js
-import { getApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { app, auth, db } from "./firebase-config.js";
+import { esc } from "./seguranca.js";
+import { regras } from "./regras-preco.js";
 import { getAuth } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { getFirestore, getDoc, doc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-const app = getApp();
-const auth = getAuth(app);
-const db = getFirestore(app);
 
 let tecidos = {};
 let tecidosBK = {};
@@ -76,7 +75,7 @@ function somarLinhas(linhas) {
 
 function gerarTabela(produto, linhas, totalFinal) {
   return `
-    <h2>${produto}</h2>
+    <h2>${esc(produto)}</h2>
     <table>
       <tr><th>Item</th><th>Valor (R$)</th></tr>
       ${linhas.map(l => `<tr><td>${l.label}</td><td>${formatarReais(l.valor)}</td></tr>`).join('')}
@@ -201,15 +200,15 @@ function calcularCortinaBK() {
   const subtotalCombinado = arred(subtotalC + subtotalBK);
   const simples = arred(subtotalCombinado * 0.06);
   const base = arred(subtotalCombinado + simples);
-  const valorComMarkup = arred(base * 2.4);
-  const valorCorrigido = arred(valorComMarkup / 0.879);
+  const valorComMarkup = arred(base * regras.markup);
+  const valorCorrigido = arred(valorComMarkup / regras.fatorVista);
   const totalFinal = arred(valorCorrigido - desconto);
 
 
   const produto = `${ambiente} - Cortina ${nomeC} + Blackout ${nomeBK} - ${nomeTrilho}`;
   const linhasCombinadas = [...linhasCortina, ...linhasBKFiltradas];
   const resumoHTML = `
-    <h2>${produto}</h2>
+    <h2>${esc(produto)}</h2>
     <p>Desconto: ${formatarReais(desconto)}</p>
     <p><strong>Valor final: ${formatarReais(totalFinal)}</strong></p>`;
 

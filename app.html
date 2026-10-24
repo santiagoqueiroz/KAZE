@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#915c83">
+<title>Kazê · Sistema</title>
+<link rel="icon" href="favicon.ico">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Barlow+Semi+Condensed:wght@500;600&display=swap">
+<link rel="stylesheet" href="app.css">
+</head>
+<body>
+
+<div class="carregando" id="carregando">Carregando…</div>
+
+<!-- Entrar -->
+<section class="entrar" id="entrar" hidden>
+  <form id="form-entrar" novalidate>
+    <img src="logo_kaze_app.jpg" alt="Kazê Cortinas e Persianas">
+    <div class="campo"><label for="e-email">E-mail</label><input id="e-email" type="email" autocomplete="username" required></div>
+    <div class="campo"><label for="e-senha">Senha</label><input id="e-senha" type="password" autocomplete="current-password" required></div>
+    <button class="btn btn-primario" type="submit" id="e-entrar">Entrar</button>
+    <p class="erro" id="e-msg" role="alert"></p>
+    <button class="btn btn-secundario btn-p" type="button" id="e-esqueci">Esqueci minha senha</button>
+  </form>
+</section>
+
+<div class="tela-app" id="app" hidden>
+<header class="topo">
+  <div class="topo-int">
+    <button class="marca" type="button" data-ir="inicio" aria-label="Início"><img src="logo_kaze_app.jpg" alt="Kazê"></button>
+    <nav class="nav">
+      <button type="button" data-ir="inicio" data-area="inicio"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11 12 4l9 7"/><path d="M5 10v10h14V10"/></svg>Início</button>
+      <button type="button" data-ir="clientes" data-area="clientes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 19c1.2-3.4 3.6-5 6.5-5s5.3 1.6 6.5 5"/><circle cx="17" cy="9" r="2.5"/><path d="M16.5 14c2.4 0 4.2 1.3 5 3.8"/></svg>Clientes</button>
+      <button type="button" data-ir="orcamentos" data-area="orcamentos"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 4h16v16H4z"/><path d="M8 4v16M12 4v16M16 4v16"/></svg>Orçamentos</button>
+      <button type="button" data-ir="financeiro" data-area="financeiro" data-financeiro><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="3" y="6" width="18" height="12" rx="2"/><circle cx="12" cy="12" r="2.6"/></svg>Financeiro</button>
+    </nav>
+    <div class="usuario"><span id="selo-ambiente-lugar"></span><span id="usuario-nome"></span><button class="btn btn-secundario btn-p" type="button" id="btn-sair">Sair</button></div>
+  </div>
+</header>
+
+<section class="tela" data-tela="inicio">
+  <main>
+    <div class="cabecalho"><div><span class="rotulo" id="hoje"></span><h1 id="ola">Olá!</h1></div></div>
+    <div class="areas">
+      <button class="area" type="button" data-ir="clientes">
+        <div class="icone"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 19c1.2-3.4 3.6-5 6.5-5s5.3 1.6 6.5 5"/><circle cx="17" cy="9" r="2.5"/><path d="M16.5 14c2.4 0 4.2 1.3 5 3.8"/></svg></div>
+        <div><strong>Clientes</strong><span id="resumo-clientes"></span></div>
+      </button>
+      <button class="area" type="button" data-ir="orcamentos">
+        <div class="icone"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M4 4h16v16H4z"/><path d="M8 4v16M12 4v16M16 4v16"/></svg></div>
+        <div><strong>Orçamentos</strong><span id="resumo-orcamentos"></span></div>
+      </button>
+      <button class="area" type="button" data-ir="financeiro" data-financeiro>
+        <div class="icone"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><rect x="3" y="6" width="18" height="12" rx="2"/><circle cx="12" cy="12" r="2.6"/><path d="M6.5 9.5v5M17.5 9.5v5"/></svg></div>
+        <div><strong>Financeiro</strong><span>Preços e dados de vendas</span></div>
+      </button>
+    </div>
+    <div class="cartao" id="bloco-rascunhos-inicio" hidden>
+      <div class="cartao-topo"><h2>Rascunhos em aberto</h2><span class="suave pequeno">Continue de onde parou</span></div>
+      <div class="lista" id="lista-rascunhos-inicio"></div>
+    </div>
+  </main>
+</section>
+
+<section class="tela" data-tela="clientes" hidden>
+  <main>
+    <div class="cabecalho">
+      <div><h1>Clientes</h1><p class="suave pequeno" id="contagem-clientes"></p></div>
+      <button class="btn btn-primario" type="button" id="btn-novo-cliente">+ Novo cliente</button>
+    </div>
+    <div class="busca"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input id="busca-clientes" type="search" placeholder="Buscar por nome, telefone, CPF/CNPJ ou bairro" aria-label="Buscar clientes"></div>
+    <div class="lista" id="lista-clientes"></div>
+  </main>
+</section>
+
+<section class="tela" data-tela="orcamentos" hidden>
+  <main>
+    <div class="cabecalho"><div><h1>Orçamentos</h1></div></div>
+    <button class="novo-grande" type="button" id="btn-novo-orc-grande">
+      <span class="icone"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></span>
+      <span><strong>Novo orçamento</strong><span>Escolha o cliente e comece</span></span>
+    </button>
+    <div class="cartao">
+      <h2>Recentes</h2>
+      <div class="lista" id="lista-recentes"></div>
+    </div>
+    <div class="cartao">
+      <div class="cartao-topo"><h2>Por cliente</h2><span class="suave pequeno">Toque para ver todos os orçamentos do cliente</span></div>
+      <div class="busca"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input id="busca-orc" type="search" placeholder="Buscar cliente" aria-label="Buscar cliente"></div>
+      <div class="lista" id="lista-clientes-orc"></div>
+    </div>
+  </main>
+</section>
+
+<section class="tela" data-tela="cliente-orc" hidden>
+  <main>
+    <div class="cabecalho">
+      <div><div class="migalha"><button type="button" data-ir="orcamentos">Orçamentos</button><span>›</span><span id="co-migalha"></span></div><h1 id="co-nome"></h1><p class="suave pequeno" id="co-contato"></p></div>
+      <button class="btn btn-primario" type="button" id="btn-novo-orc">+ Novo orçamento</button>
+    </div>
+    <div id="co-aviso"></div>
+    <div class="tempo" id="co-lista"></div>
+  </main>
+</section>
+
+<section class="tela" data-tela="editor" hidden>
+  <main>
+    <div class="cabecalho">
+      <div><div class="migalha"><button type="button" data-ir="orcamentos">Orçamentos</button><span>›</span><button type="button" id="ed-voltar-cliente"></button><span>›</span><span>Rascunho</span></div><h1 id="ed-titulo"></h1><p class="suave pequeno" id="ed-sub"></p></div>
+      <button class="btn btn-perigo btn-p" type="button" id="btn-descartar">Descartar rascunho</button>
+    </div>
+    <div id="ed-confirma"></div>
+    <div class="orc">
+      <div class="coluna">
+        <div class="cartao">
+          <h2>Adicionar item</h2>
+          <div class="produtos">
+            <button class="produto" type="button" data-produto="cortina">Cortina <small>Tecido + trilho</small></button>
+            <button class="produto" type="button" data-produto="blackout">Blackout <small>Tecido BK</small></button>
+            <button class="produto" type="button" data-produto="cortinaBK">Cortina + BK <small>Duas camadas</small></button>
+            <button class="produto" type="button" data-produto="cortinaForro">Cortina + Forro <small>Com forro</small></button>
+            <button class="produto" type="button" data-produto="persiana">Persiana <small>Por tipo</small></button>
+            <button class="produto" type="button" data-produto="avulso">Item avulso <small>Valor manual</small></button>
+          </div>
+        </div>
+        <div class="cartao">
+          <div class="cartao-topo"><h2>Itens</h2><span class="suave pequeno" id="ed-qtd-itens"></span></div>
+          <div class="itens" id="ed-itens"></div>
+        </div>
+      </div>
+      <aside class="cartao totais">
+        <span class="rotulo">Resumo</span>
+        <div class="linha-total"><span class="so-largo">Parcelado</span><strong id="ed-total">R$ 0,00</strong></div>
+        <div class="linha-total vista"><span>À vista</span><strong id="ed-vista">R$ 0,00</strong></div>
+        <span class="salvo" id="ed-salvo">Rascunho guardado</span>
+        <button class="btn btn-primario" type="button" id="btn-salvar-orc">Salvar orçamento</button>
+        <p class="suave pequeno so-largo">Salvar cria um orçamento novo na lista do cliente. O rascunho é guardado sozinho a cada mudança.</p>
+      </aside>
+    </div>
+  </main>
+</section>
+
+<section class="tela" data-tela="ver" hidden>
+  <main>
+    <div class="migalha"><button type="button" data-ir="orcamentos">Orçamentos</button><span>›</span><button type="button" id="ver-voltar-cliente"></button><span>›</span><span id="ver-migalha"></span></div>
+    <div id="ver-aprovado"></div>
+    <div class="cartao barra-ver">
+      <label class="parcelas">Parcelas <select id="ver-parcelas"><option value="1">1x</option><option value="2">2x</option><option value="3">3x</option><option value="4">4x</option><option value="5">5x</option><option value="6">6x</option><option value="7">7x</option><option value="8">8x</option><option value="9">9x</option><option value="10">10x</option><option value="11">11x</option><option value="12">12x</option></select></label>
+      <div class="acoes"><button class="btn btn-primario" type="button" id="ver-imagem">Salvar imagem</button><button class="btn btn-secundario" type="button" id="ver-imprimir">Imprimir</button></div>
+      <div class="acoes direita"><button class="btn btn-aprovar" type="button" id="ver-aprovar">Aprovar pedido</button><button class="btn btn-secundario" type="button" id="ver-editar">Editar como novo</button><button class="btn btn-perigo" type="button" id="ver-excluir">Excluir</button></div>
+    </div>
+    <div id="ver-confirma"></div>
+    <div class="folha" id="folha"></div>
+    <details class="cartao interno"><summary>Medidas, só para a equipe (não saem na imagem)</summary><div class="itens" id="ver-medidas"></div></details>
+    <div class="folha" id="folha-img" aria-hidden="true"></div>
+  </main>
+</section>
+
+<section class="tela" data-tela="financeiro" hidden>
+  <main>
+    <div class="cabecalho"><div><h1>Financeiro</h1></div></div>
+    <div class="modulos">
+      <a class="modulo" href="precos.html"><strong>Preços</strong><span class="suave pequeno">Tecidos, trilhos, parâmetros, persianas e regras de preço</span></a>
+      <button class="modulo" type="button" data-ir="dados"><strong>Dados</strong><span class="suave pequeno">Pedidos aprovados, conversão e vendas por período</span></button>
+      <button class="modulo" type="button" disabled><strong>Lançamentos</strong><span class="suave pequeno">Em breve</span></button>
+    </div>
+  </main>
+</section>
+
+<section class="tela" data-tela="dados" hidden>
+  <main>
+    <div class="cabecalho">
+      <div><div class="migalha"><button type="button" data-ir="financeiro">Financeiro</button><span>›</span><span>Dados</span></div><h1>Dados</h1></div>
+      <button class="btn btn-secundario" type="button" id="dados-csv">Baixar planilha</button>
+    </div>
+    <div class="periodos" id="dados-periodos">
+      <button type="button" data-periodo="mes" aria-pressed="true">Este mês</button>
+      <button type="button" data-periodo="mesPassado" aria-pressed="false">Mês passado</button>
+      <button type="button" data-periodo="90" aria-pressed="false">Últimos 90 dias</button>
+      <button type="button" data-periodo="ano" aria-pressed="false">Este ano</button>
+      <button type="button" data-periodo="tudo" aria-pressed="false">Tudo</button>
+    </div>
+    <div id="dados-aviso"></div>
+    <div class="numeros" id="dados-numeros"></div>
+    <div class="grade-dados">
+      <div class="cartao"><h2>Por produto</h2><div class="tabela" id="dados-produtos"></div></div>
+      <div class="cartao"><h2>Forma de pagamento</h2><div class="tabela" id="dados-formas"></div></div>
+      <div class="cartao"><h2>Por bairro</h2><div class="tabela" id="dados-bairros"></div></div>
+      <div class="cartao largo"><h2>Por pessoa</h2><div class="tabela" id="dados-pessoas"></div></div>
+    </div>
+    <div class="cartao">
+      <div class="cartao-topo"><h2>Pedidos aprovados</h2><span class="suave pequeno" id="dados-qtd-pedidos"></span></div>
+      <div class="lista" id="dados-pedidos"></div>
+    </div>
+  </main>
+</section>
+</div>
+
+<!-- Cliente -->
+<div class="janela-fundo" id="janela-cliente" hidden>
+  <form class="janela" id="form-cliente" novalidate role="dialog" aria-modal="true" aria-labelledby="jc-titulo">
+    <header><h2 id="jc-titulo">Novo cliente</h2><div class="acoes"><button class="btn btn-secundario btn-p" type="button" id="jc-orcamentos" hidden></button><button class="btn btn-secundario btn-p" type="button" id="jc-fechar">Fechar</button></div></header>
+    <div class="campos">
+      <div class="campo largo"><label for="c-nome">Nome completo ou razão social *</label><input id="c-nome" maxlength="80" autocomplete="off"><small id="c-nome-msg"></small></div>
+      <div class="campo"><label for="c-tel">Telefone *</label><input id="c-tel" inputmode="numeric" placeholder="(68) 99999-9999" maxlength="15"><small id="c-tel-msg"></small></div>
+      <div class="campo"><label for="c-doc">CPF ou CNPJ</label><input id="c-doc" inputmode="numeric" placeholder="000.000.000-00" maxlength="18"><small id="c-doc-msg"></small></div>
+      <div class="campo largo"><label for="c-end">Endereço</label><input id="c-end" maxlength="120" placeholder="Rua, número, complemento"></div>
+      <div class="campo"><label for="c-bairro">Bairro</label><input id="c-bairro" maxlength="60"></div>
+      <div class="campo"><label for="c-cidade">Cidade</label><input id="c-cidade" maxlength="60"></div>
+      <div class="campo largo"><label for="c-email">E-mail</label><input id="c-email" type="email" maxlength="80" placeholder="nome@exemplo.com"><small id="c-email-msg"></small></div>
+    </div>
+    <div id="jc-confirma"></div>
+    <footer><button class="btn btn-primario" type="submit" id="jc-salvar">Salvar cliente</button><button class="btn btn-secundario" type="button" id="jc-cancelar">Cancelar</button><button class="btn btn-perigo" type="button" id="jc-excluir" hidden>Excluir cliente</button></footer>
+  </form>
+</div>
+
+<!-- Novo orçamento: escolher o cliente -->
+<div class="janela-fundo" id="janela-escolher" hidden>
+  <div class="janela" role="dialog" aria-modal="true" aria-labelledby="je-titulo">
+    <header><div><h2 id="je-titulo">Novo orçamento</h2><p class="suave pequeno">Para qual cliente?</p></div><button class="btn btn-secundario btn-p" type="button" id="je-fechar">Fechar</button></header>
+    <div class="busca"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input id="je-busca" type="search" placeholder="Buscar por nome, telefone ou CPF/CNPJ" aria-label="Buscar cliente"></div>
+    <div id="je-aviso"></div>
+    <div class="lista rolagem" id="je-lista"></div>
+    <footer><button class="btn btn-secundario" type="button" id="je-novo-cliente">+ Cadastrar cliente novo</button></footer>
+  </div>
+</div>
+
+<!-- Item do orçamento -->
+<div class="janela-fundo" id="janela-item" hidden>
+  <form class="janela painel-item" id="form-item" novalidate role="dialog" aria-modal="true" aria-labelledby="j-titulo">
+    <header><h2 id="j-titulo">Adicionar item</h2><button class="btn btn-secundario btn-p" type="button" id="j-fechar">Fechar</button></header>
+
+    <div class="corpo">
+      <div id="j-antigo"></div>
+      <div class="bloco">
+        <span class="rotulo">Produto</span>
+        <div class="tipos" id="tipos">
+          <button type="button" data-tipo="cortina">Cortina</button>
+          <button type="button" data-tipo="blackout">Blackout</button>
+          <button type="button" data-tipo="cortinaBK">Cortina + BK</button>
+          <button type="button" data-tipo="cortinaForro">Cortina + Forro</button>
+          <button type="button" data-tipo="persiana">Persiana</button>
+          <button type="button" data-tipo="avulso">Item avulso</button>
+        </div>
+      </div>
+
+      <div class="bloco">
+        <div class="campo largo"><label for="f-ambiente">Ambiente</label><input id="f-ambiente" maxlength="40" autocomplete="off" placeholder="Ex.: Sala"></div>
+        <div class="atalhos" id="atalhos"></div>
+        <div class="campo largo" data-so="avulso"><label for="f-descricao">Descrição *</label><input id="f-descricao" maxlength="120" placeholder="Ex.: Instalação extra"></div>
+      </div>
+
+      <div class="bloco">
+        <span class="rotulo">Medidas</span>
+        <div class="campos tres">
+          <div class="campo"><label for="f-largura">Largura <span data-so="avulso">(opcional)</span></label><div class="medida"><input id="f-largura" inputmode="decimal" placeholder="0,00"><span>m</span></div></div>
+          <div class="campo"><label for="f-altura">Altura <span data-so="avulso">(opcional)</span></label><div class="medida"><input id="f-altura" inputmode="decimal" placeholder="0,00"><span>m</span></div></div>
+          <div class="campo"><label for="f-qtd">Quantidade</label><input id="f-qtd" inputmode="numeric" value="1"></div>
+        </div>
+      </div>
+
+      <div class="bloco">
+        <span class="rotulo">Materiais</span>
+        <div class="campos duas">
+          <div class="campo" data-tipos="cortina cortinaBK cortinaForro"><label for="f-tecido">Tecido da cortina</label><select id="f-tecido"></select></div>
+          <div class="campo" data-tipos="blackout cortinaBK"><label for="f-bk">Tecido blackout</label><select id="f-bk"></select></div>
+          <div class="campo" data-tipos="cortinaForro"><label for="f-forro">Tecido do forro</label><select id="f-forro"></select></div>
+          <div class="campo" data-tipos="cortina blackout cortinaBK cortinaForro"><label for="f-trilho">Trilho</label><select id="f-trilho"></select></div>
+          <div class="campo" data-tipos="persiana"><label for="f-persiana">Tipo de persiana</label><select id="f-persiana"></select></div>
+          <div class="campo" data-tipos="avulso"><label for="f-valor">Valor unitário *</label><div class="medida reais"><input id="f-valor" inputmode="decimal" placeholder="0,00"><span>R$</span></div></div>
+        </div>
+      </div>
+
+      <div class="campos">
+        <div class="campo"><label for="f-desconto">Desconto (R$)</label><input id="f-desconto" inputmode="decimal" placeholder="0,00"></div>
+      </div>
+
+      <details id="ajustes" data-tipos="cortina cortinaBK cortinaForro">
+        <summary>Ajustes de costura</summary>
+        <div class="campos">
+          <div class="campo"><label for="f-barra">Barra</label><div class="medida"><input id="f-barra" inputmode="decimal" value="0,40"><span>m</span></div></div>
+          <div class="campo"><label for="f-mult">Multiplicador da barra alta</label><input id="f-mult" inputmode="decimal" value="1,4"><small>Só vale para altura acima de 3,50 m.</small></div>
+        </div>
+      </details>
+
+      <div id="avisos" class="bloco"></div>
+
+      <details id="calculo" data-financeiro>
+        <summary>Ver o cálculo</summary>
+        <table class="conta" id="conta"></table>
+      </details>
+    </div>
+
+    <footer class="rodape">
+      <div id="resultado"></div>
+      <div class="botoes">
+        <button class="btn btn-primario" type="submit" id="j-confirmar">Adicionar<span class="so-largo">&nbsp;ao orçamento</span></button>
+        <button class="btn btn-secundario" type="button" id="j-outro">Adicionar e fazer outro</button>
+      </div>
+    </footer>
+  </form>
+</div>
+
+<!-- Imagem do orçamento -->
+<div class="janela-fundo" id="janela-imagem" hidden>
+  <div class="janela larga" role="dialog" aria-modal="true" aria-labelledby="ji-titulo">
+    <header><div><h2 id="ji-titulo">Imagem do orçamento</h2><p class="suave pequeno" id="ji-nome"></p></div><button class="btn btn-secundario btn-p" type="button" id="ji-fechar">Fechar</button></header>
+    <img class="img-prev" id="img-gerada" alt="Imagem do orçamento gerada">
+    <footer><button class="btn btn-primario" type="button" id="ji-compartilhar" hidden>Compartilhar</button><button class="btn btn-secundario" type="button" id="ji-baixar">Baixar imagem</button><span class="suave pequeno" id="ji-msg"></span></footer>
+  </div>
+</div>
+
+<!-- Aprovar pedido -->
+<div class="janela-fundo" id="janela-aprovar" hidden>
+  <form class="janela" id="form-aprovar" novalidate role="dialog" aria-modal="true" aria-labelledby="ja-titulo">
+    <header><div><h2 id="ja-titulo">Aprovar pedido</h2><p class="suave pequeno" id="ja-sub"></p></div><button class="btn btn-secundario btn-p" type="button" id="ja-fechar">Fechar</button></header>
+    <div class="bloco">
+      <span class="rotulo">Como o cliente vai pagar</span>
+      <div class="formas">
+        <button class="forma" type="button" data-forma="cartao" aria-pressed="true"><span class="suave pequeno">Cartão de crédito</span><strong id="ja-cartao"></strong></button>
+        <button class="forma" type="button" data-forma="vista" aria-pressed="false"><span class="suave pequeno">À vista</span><strong id="ja-vista"></strong></button>
+      </div>
+    </div>
+    <div class="campos">
+      <div class="campo" id="ja-campo-parcelas"><label for="ja-parcelas">Parcelas</label><select id="ja-parcelas"></select></div>
+      <div class="campo" id="ja-campo-meio" hidden><label for="ja-meio">Pago com</label><select id="ja-meio"><option value="pix">PIX</option><option value="debito">Débito</option><option value="dinheiro">Dinheiro</option><option value="transferencia">Transferência</option></select></div>
+      <div class="campo"><label for="ja-valor">Valor fechado</label><div class="medida reais"><input id="ja-valor" inputmode="decimal"><span>R$</span></div><small id="ja-valor-msg"></small></div>
+      <div class="campo largo"><label for="ja-obs">Observação (opcional)</label><input id="ja-obs" maxlength="200" placeholder="Ex.: entrada de 50% e o resto na instalação"></div>
+    </div>
+    <p class="suave pequeno">A data e a hora da aprovação são gravadas automaticamente.</p>
+    <div id="ja-confirma"></div>
+    <footer><button class="btn btn-aprovar" type="submit" id="ja-confirmar">Confirmar aprovação</button><button class="btn btn-secundario" type="button" id="ja-cancelar">Cancelar</button></footer>
+  </form>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" defer></script>
+<script type="module" src="app.js"></script>
+<script src="ambiente.js" defer></script>
+</body>
+</html>
