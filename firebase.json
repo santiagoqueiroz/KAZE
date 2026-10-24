@@ -20,8 +20,24 @@
     "redirects": [
       {
         "source": "/",
-        "destination": "/app.html",
+        "destination": "/sistema",
         "type": 302
+      },
+      {
+        "source": "/app.html",
+        "destination": "/sistema",
+        "type": 302
+      },
+      {
+        "source": "/sistema/",
+        "destination": "/sistema",
+        "type": 302
+      }
+    ],
+    "rewrites": [
+      {
+        "source": "/sistema",
+        "destination": "/app.html"
       }
     ],
     "headers": [
@@ -48,6 +64,15 @@
       },
       {
         "source": "**/*.@(html|js|css)",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "no-cache"
+          }
+        ]
+      },
+      {
+        "source": "/sistema",
         "headers": [
           {
             "key": "Cache-Control",

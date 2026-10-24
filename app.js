@@ -106,12 +106,13 @@ const agoraTs = () => { const d = new Date(); return { toDate: () => d, toMillis
 // ---------- Navegação ----------
 const AREA = { inicio: "inicio", clientes: "clientes", orcamentos: "orcamentos", "cliente-orc": "orcamentos", editor: "orcamentos", ver: "orcamentos", financeiro: "financeiro", dados: "financeiro" };
 let atual = { tela: "inicio" };
-// modo: "push" cria uma entrada no histórico (botão voltar), "replace" substitui a atual
+// modo: "push" cria uma entrada no histórico (botão voltar), "replace" substitui a atual.
+// A barra de endereço mostra sempre só o endereço do sistema; a tela fica guardada no histórico.
 function ir(tela, extra = {}, modo = "push") {
   if (!financeiro && AREA[tela] === "financeiro") tela = "inicio";
   atual = { tela, ...extra };
-  if (modo === "push") history.pushState(atual, "", "#" + tela);
-  else history.replaceState(atual, "", "#" + tela);
+  if (modo === "push") history.pushState(atual, "", location.pathname);
+  else history.replaceState(atual, "", location.pathname);
   mostrar(true);
   window.scrollTo(0, 0);
 }
