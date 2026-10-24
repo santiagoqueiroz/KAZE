@@ -1,7 +1,7 @@
 // Configuração única do Firebase: todas as páginas importam app, auth e db daqui
 import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getAuth } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { getFirestore } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getFirestore, initializeFirestore, persistentLocalCache, persistentMultipleTabManager } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 export const firebaseConfig = {
   apiKey: "AIzaSyD5kVoWRWZB6xtacyu6lH--QFXry_MPKps",
@@ -14,4 +14,9 @@ export const firebaseConfig = {
 
 export const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
 export const auth = getAuth(app);
-export const db = getFirestore(app);
+// Páginas com <meta name="kaze-cache"> (o sistema novo) guardam uma cópia dos dados no aparelho:
+// ao reabrir em menos de 30 minutos, o banco só manda (e só cobra) o que mudou
+const comCache = !!document.querySelector('meta[name="kaze-cache"]');
+export const db = comCache
+  ? initializeFirestore(app, { localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() }) })
+  : getFirestore(app);

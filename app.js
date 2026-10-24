@@ -8,8 +8,8 @@ import { TIPOS, calcularItem } from "./calculos.js";
 import { ehFinanceiro, nomePessoa, emailPessoa } from "./perfis.js";
 import { onAuthStateChanged, signInWithEmailAndPassword, signOut, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import {
-  collection, doc, getDoc, getDocs, setDoc, updateDoc, deleteDoc, onSnapshot,
-  runTransaction, writeBatch, serverTimestamp, deleteField
+  collection, doc, getDoc, getDocs, setDoc, updateDoc, deleteDoc, onSnapshot, query, where, getCountFromServer,
+  runTransaction, writeBatch, serverTimestamp, deleteField, terminate, clearIndexedDbPersistence
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 // ---------- Utilidades ----------
@@ -97,6 +97,9 @@ function rascunhoDe(c) {
     if (!carregado.orcamentos) return null;
     const k = chaveItem(r.itens);
     if (orcsDoCliente(c.id).some((o) => chaveItem(o.itens || []) === k)) return null;
+    // Sem todos os orçamentos do cliente lidos, só conta se o orçamento em aberto é recente
+    // (o que veio antes do corte provavelmente é sobra de um orçamento antigo)
+    if (!orcsCompletos.has(c.id) && !(r.dataCriacao?.toDate?.()?.toISOString() >= corteRecentes)) return null;
   }
   return r;
 }
@@ -174,6 +177,8 @@ $("e-esqueci").onclick = async () => {
 };
 $("btn-sair").onclick = async () => {
   await signOut(auth);
+  // Apaga a cópia dos dados guardada neste aparelho (computador compartilhado)
+  try { await terminate(db); await clearIndexedDbPersistence(db); } catch (erro) { console.warn("Cópia local não apagada:", erro); }
   location.replace(location.pathname);
 };
 
@@ -210,17 +215,85 @@ function erroLeitura(erro) {
   avisouAcesso = true;
   alert(semPermissao(erro) ? "Sua conta não tem acesso aos dados do sistema. Peça ao responsável para liberar." : mensagemErro(erro));
 }
+// Cada documento entregue pelo banco conta como uma leitura paga. Por isso o app não lê todos os orçamentos:
+// fica ao vivo só com os dos últimos JANELA_DIAS dias, lê os de um cliente quando ele é aberto
+// e os mais antigos de um período só quando o período é pedido em Dados.
+const JANELA_DIAS = 35;
+const corteRecentes = new Date(Date.now() - JANELA_DIAS * 864e5).toISOString();
+let lidosDesde = corteRecentes; // todos os orçamentos com dataHora a partir daqui já foram lidos ("" = todos)
+let totalOrcs = null;           // contagem feita no servidor (custa 1 leitura a cada mil orçamentos)
+const orcsCompletos = new Set(); // clientes com todos os orçamentos lidos
+// Fontes dos orçamentos: listas lidas uma vez (períodos de Dados) e listas ao vivo (recentes, por cliente).
+// A lista usada pelo app junta as duas; a ao vivo vale por cima.
+const fontesFixas = new Map(), fontesVivas = new Map();
+function juntarOrcs() {
+  orcamentos = new Map();
+  for (const fontes of [fontesFixas, fontesVivas]) for (const m of fontes.values()) for (const [id, o] of m) orcamentos.set(id, o);
+  redesenhar();
+}
+function guardarOrcs(fontes, nome, docs) {
+  fontes.set(nome, new Map(docs.map((d) => [d.id, comId(d)])));
+  juntarOrcs();
+}
+// Tira da memória um orçamento excluído por este aparelho (as listas lidas uma vez não ficam sabendo sozinhas)
+function esquecerOrcs(ids) {
+  for (const fontes of [fontesFixas, fontesVivas]) for (const m of fontes.values()) ids.forEach((id) => m.delete(id));
+  juntarOrcs();
+  contarOrcs();
+}
+function contarOrcs() {
+  getCountFromServer(collection(db, "orcamentos")).then((s) => { totalOrcs = s.data().count; redesenhar(); }).catch((e) => console.warn("Contagem de orçamentos indisponível:", e));
+}
+// Orçamentos de um cliente, ao vivo enquanto o app está aberto (guarda os últimos 30 clientes abertos)
+const ouvindoCliente = new Map();
+function carregarOrcsDoCliente(id) {
+  if (!id) return;
+  if (ouvindoCliente.has(id)) { const parar = ouvindoCliente.get(id); ouvindoCliente.delete(id); ouvindoCliente.set(id, parar); return; }
+  const nome = "cliente:" + id;
+  ouvindoCliente.set(id, onSnapshot(query(collection(db, "orcamentos"), where("clienteId", "==", id)), (s) => {
+    orcsCompletos.add(id);
+    guardarOrcs(fontesVivas, nome, s.docs);
+    if (!$("janela-cliente").hidden && editando === id) rotuloOrcsCliente(id);
+  }, erroLeitura));
+  if (ouvindoCliente.size > 30) {
+    const [velho, parar] = ouvindoCliente.entries().next().value;
+    parar(); ouvindoCliente.delete(velho); orcsCompletos.delete(velho); fontesVivas.delete("cliente:" + velho);
+  }
+}
+// Um orçamento fora do que está em memória (ex.: pedido antigo aberto em Dados)
+async function buscarOrc(id) {
+  const s = await getDoc(doc(db, "orcamentos", id)).catch(() => null);
+  if (!s?.exists()) return false;
+  guardarOrcs(fontesFixas, "avulso:" + id, [s]);
+  return true;
+}
+// Garante em memória todos os orçamentos feitos a partir de "inicio" (Date; null = desde sempre)
+let lendoPeriodo = null;
+function carregarDesde(inicio) {
+  const desde = inicio ? inicio.toISOString() : "";
+  if (lidosDesde === "" || (desde && desde >= lidosDesde)) return Promise.resolve();
+  if (lendoPeriodo) return lendoPeriodo.then(() => carregarDesde(inicio));
+  const ate = lidosDesde;
+  // "Desde sempre" lê a coleção inteira, inclusive orçamentos muito antigos sem dataHora
+  const q = desde ? query(collection(db, "orcamentos"), where("dataHora", ">=", desde), where("dataHora", "<", ate)) : collection(db, "orcamentos");
+  lendoPeriodo = getDocs(q).then((s) => {
+    lidosDesde = desde;
+    guardarOrcs(fontesFixas, "desde:" + desde, s.docs);
+  }).finally(() => { lendoPeriodo = null; });
+  return lendoPeriodo;
+}
+
 function ouvirDados() {
   onSnapshot(collection(db, "clientes"), (s) => {
     clientes = new Map(s.docs.map((d) => [d.id, comId(d)]));
     carregado.clientes = true;
     redesenhar();
   }, erroLeitura);
-  onSnapshot(collection(db, "orcamentos"), (s) => {
-    orcamentos = new Map(s.docs.map((d) => [d.id, comId(d)]));
+  onSnapshot(query(collection(db, "orcamentos"), where("dataHora", ">=", corteRecentes)), (s) => {
     carregado.orcamentos = true;
-    redesenhar();
+    guardarOrcs(fontesVivas, "recentes", s.docs);
   }, erroLeitura);
+  contarOrcs();
   onSnapshot(collection(db, "pedidos"), (s) => {
     pedidos = new Map(s.docs.map((d) => [d.id, comId(d)]));
     carregado.pedidos = true; pedidosBloqueados = false;
@@ -253,14 +326,16 @@ function linhaRascunho(c) {
   const r = rascunhoDe(c), d = dataRascunho(r);
   return `<button class="linha" type="button" data-rascunho="${esc(c.id)}"><div><div class="nome">${esc(c.nome)} <span class="chip areia">Rascunho</span></div><div class="det">${plural(r.itens.length, "item", "itens")}${d ? ` · guardado ${dataCurta(d)} às ${hora(d)}` : ""}</div></div><div class="valor">${real(calcularTotais(r.itens).totalGeral)}</div></button>`;
 }
+// As listas mostram só os mais recentes; os demais ficam na página de cada cliente
+const MAX_LISTA = 10;
 function comRascunho() {
-  return [...clientes.values()].filter(rascunhoDe).sort((a, b) => (dataRascunho(rascunhoDe(b))?.getTime() || 0) - (dataRascunho(rascunhoDe(a))?.getTime() || 0));
+  return [...clientes.values()].filter(rascunhoDe).sort((a, b) => (dataRascunho(rascunhoDe(b))?.getTime() || 0) - (dataRascunho(rascunhoDe(a))?.getTime() || 0)).slice(0, MAX_LISTA);
 }
 function ligarRascunhos(el) { el.querySelectorAll("[data-rascunho]").forEach((b) => { b.onclick = () => ir("editor", { cliente: b.dataset.rascunho }); }); }
 function rInicio() {
   $("hoje").textContent = new Date().toLocaleDateString("pt-BR", { weekday: "long", day: "numeric", month: "long" });
   $("resumo-clientes").textContent = carregado.clientes ? plural(clientes.size, "cliente", "clientes") : "Carregando…";
-  $("resumo-orcamentos").textContent = carregado.orcamentos ? plural(orcamentos.size, "orçamento salvo", "orçamentos salvos") : "Carregando…";
+  $("resumo-orcamentos").textContent = totalOrcs !== null ? plural(totalOrcs, "orçamento salvo", "orçamentos salvos") : "";
   const lista = comRascunho();
   $("bloco-rascunhos-inicio").hidden = !lista.length;
   $("lista-rascunhos-inicio").innerHTML = lista.map(linhaRascunho).join("");
@@ -279,7 +354,7 @@ function listaClientes(el, termo, aoClicar, comOrcamentos) {
     if (l !== letra && !t) { letra = l; html += `<div class="letra">${esc(l)}</div>`; }
     const det = [c.telefone, [c.bairro, c.cidade].filter(Boolean).join(", ")].filter(Boolean).map(esc).join(" · ");
     let lado = "";
-    if (comOrcamentos) lado = (rascunhoDe(c) ? '<span class="chip areia">Rascunho</span> ' : "") + `<span class="chip">${orcsDoCliente(c.id).length}</span>`;
+    if (comOrcamentos && rascunhoDe(c)) lado = '<span class="chip areia">Rascunho</span>';
     html += `<button class="linha" type="button" data-cliente="${esc(c.id)}"><div><div class="nome">${esc(c.nome || "(sem nome)")}</div><div class="det">${det}</div></div><div>${lado}</div></button>`;
   }
   el.innerHTML = html;
@@ -295,7 +370,7 @@ $("busca-clientes").addEventListener("input", rClientes);
 const chipAprovado = (o) => (pedidos.has(o.id) ? ' <span class="chip ok">Aprovado</span>' : "");
 function rOrcamentos() {
   const rasc = comRascunho();
-  const rec = [...orcamentos.values()].sort(recentes).slice(0, 8);
+  const rec = [...orcamentos.values()].sort(recentes).slice(0, MAX_LISTA);
   let html = rasc.map(linhaRascunho).join("") + rec.map((o) => `<button class="linha" type="button" data-orc="${esc(o.id)}"><div><div class="nome">${esc(clienteDoOrc(o).nome)}${chipAprovado(o)}</div><div class="det">${numOrc(o)} · ${dataCurta(dataOrc(o))} · ${plural((o.itens || []).length, "item", "itens")}</div></div><div class="valor">${real(totalDe(o))}</div></button>`).join("");
   if (!html) html = `<div class="vazio">${carregado.orcamentos ? "Nenhum orçamento ainda." : "Carregando…"}</div>`;
   $("lista-recentes").innerHTML = html;
@@ -308,6 +383,7 @@ $("busca-orc").addEventListener("input", rOrcamentos);
 function rClienteOrc(navegou) {
   const c = cliente(atual.cliente);
   if (!c) { if (carregado.clientes) ir("orcamentos", {}, "replace"); return; }
+  carregarOrcsDoCliente(c.id);
   $("co-migalha").textContent = c.nome;
   $("co-nome").textContent = c.nome;
   $("co-contato").textContent = [c.telefone, [c.endereco, c.bairro].filter(Boolean).join(", ")].filter(Boolean).join(" · ");
@@ -332,7 +408,7 @@ function rClienteOrc(navegou) {
       <div class="caixa"></div>
     </div>`;
   }).join("");
-  if (!html) html = `<div class="cartao vazio">Este cliente ainda não tem orçamentos. Use "+ Novo orçamento".</div>`;
+  if (!html) html = orcsCompletos.has(c.id) ? `<div class="cartao vazio">Este cliente ainda não tem orçamentos. Use "+ Novo orçamento".</div>` : '<div class="cartao vazio">Carregando orçamentos…</div>';
   $("co-lista").innerHTML = html;
   $("co-lista").querySelector("[data-continuar]")?.addEventListener("click", () => ir("editor", { cliente: c.id }));
   $("co-lista").querySelectorAll("[data-ver]").forEach((b) => { b.onclick = () => ir("ver", { orc: b.dataset.ver }); });
@@ -350,6 +426,7 @@ $("btn-novo-orc").onclick = () => comecarRascunho(atual.cliente, null);
 async function excluirOrcamento(o, caixa) {
   try {
     await deleteDoc(doc(db, "orcamentos", o.id));
+    esquecerOrcs([o.id]);
     if (atual.tela === "ver") ir("cliente-orc", { cliente: o.clienteId }, "replace");
   } catch (erro) {
     avisar(caixa, `Não foi possível excluir. ${erroTexto(erro)}`, "confirma");
@@ -408,6 +485,7 @@ function detalheItem(i) {
 function rEditor(navegou) {
   const c = cliente(atual.cliente), r = c?.orcamentoAtivo;
   if (!c || !r) { if (carregado.clientes) ir(c ? "cliente-orc" : "orcamentos", c ? { cliente: c.id } : {}, "replace"); return; }
+  carregarOrcsDoCliente(c.id); // para achar o orçamento em que a cópia se baseou
   const itens = r.itens || [], base = r.baseadoEm && orcamentos.get(r.baseadoEm), d = dataRascunho(r);
   $("ed-voltar-cliente").textContent = c.nome;
   $("ed-voltar-cliente").onclick = () => ir("cliente-orc", { cliente: c.id });
@@ -460,6 +538,7 @@ $("btn-salvar-orc").onclick = async () => {
   btn.disabled = true; btn.textContent = "Salvando…";
   try {
     const novo = await salvarOrcamento(id);
+    contarOrcs();
     ir("cliente-orc", { cliente: id, destaque: novo }, "replace");
   } catch (erro) {
     avisar($("ed-confirma"), erro.vazio ? "O rascunho está sem itens." : `O orçamento não foi salvo. ${erroTexto(erro)}`, "confirma");
@@ -781,7 +860,11 @@ const formaTexto = (p) => (p.forma === "cartao" ? `Cartão em ${p.parcelas || 1}
 
 function rVer(navegou) {
   const o = orcamentos.get(atual.orc);
-  if (!o) { if (carregado.orcamentos) ir("orcamentos", {}, "replace"); return; }
+  if (!o) {
+    const id = atual.orc;
+    if (carregado.orcamentos) buscarOrc(id).then((achou) => { if (!achou && atual.orc === id) ir("orcamentos", {}, "replace"); });
+    return;
+  }
   const c = clienteDoOrc(o), ped = pedidos.get(o.id);
   $("ver-voltar-cliente").textContent = c.nome;
   $("ver-voltar-cliente").onclick = () => (c.id ? ir("cliente-orc", { cliente: c.id }) : ir("orcamentos"));
@@ -937,7 +1020,7 @@ async function aprovarPedido(o, escolha) {
 }
 
 // ---------- Dados ----------
-let periodo = "mes";
+let periodo = "mes", falhouDesde = null;
 function intervalo(p) {
   const h = new Date(), ano = h.getFullYear(), mes = h.getMonth();
   if (p === "mes") return [new Date(ano, mes, 1), null];
@@ -970,6 +1053,14 @@ function dadosDoPeriodo() {
   return { orcs, peds };
 }
 function rDados() {
+  // Períodos mais antigos que os orçamentos em memória são lidos agora (uma vez por abertura do app)
+  const ini = intervalo(periodo)[0], desde = ini ? ini.toISOString() : "", aviso = $("dados-carregando");
+  const lido = lidosDesde === "" || (desde && desde >= lidosDesde);
+  aviso.hidden = lido;
+  if (!lido && falhouDesde !== desde) {
+    aviso.textContent = "Lendo os orçamentos do período…";
+    carregarDesde(ini).catch((erro) => { falhouDesde = desde; aviso.textContent = `Não foi possível ler os orçamentos do período. ${mensagemErro(erro)}`; });
+  }
   const { orcs, peds } = dadosDoPeriodo();
   $("dados-aviso").innerHTML = pedidosBloqueados ? '<div class="info"><span>Os pedidos aprovados ainda não aparecem porque falta publicar as regras novas do banco de dados.</span></div>' : "";
   const clientesOrc = new Set(orcs.map((o) => o.clienteId));
@@ -1001,7 +1092,11 @@ function rDados() {
     return `<button class="linha" type="button" data-pedido="${esc(p.id)}"><div><div class="nome">${esc(p.cliente?.nome || "")}</div><div class="det">${d ? `${dataCurta(d)} às ${hora(d)}` : ""} · ${p.numero ? `Nº ${String(p.numero).padStart(4, "0")}` : `Ref. ${esc(p.id.slice(0, 6).toUpperCase())}`} · ${esc(formaTexto(p))} · por ${esc(nomePessoa(p.aprovadoPor, p.aprovadoPorEmail))}</div></div><div class="valor">${real(p.valorFechado)}</div></button>`;
   }).join("") : '<div class="vazio">Nenhum pedido aprovado no período.</div>';
   $("dados-pedidos").querySelectorAll("[data-pedido]").forEach((b) => {
-    b.onclick = () => (orcamentos.has(b.dataset.pedido) ? ir("ver", { orc: b.dataset.pedido }) : alert("O orçamento deste pedido foi excluído. O pedido continua nos dados."));
+    b.onclick = async () => {
+      const id = b.dataset.pedido;
+      if (orcamentos.has(id) || (await buscarOrc(id))) ir("ver", { orc: id });
+      else alert("O orçamento deste pedido foi excluído. O pedido continua nos dados.");
+    };
   });
 }
 $("dados-periodos").onclick = (e) => {
@@ -1085,10 +1180,13 @@ function abrirJanelaCliente(id, depoisDeSalvar = null) {
   $("jc-confirma").innerHTML = "";
   $("jc-excluir").hidden = !id;
   $("jc-orcamentos").hidden = !id;
-  $("jc-orcamentos").textContent = `Orçamentos (${id ? orcsDoCliente(id).length : 0})`;
+  if (id) { carregarOrcsDoCliente(id); rotuloOrcsCliente(id); }
   $("jc-salvar").disabled = false;
   $("janela-cliente").hidden = false;
   if (!id) $("c-nome").focus();
+}
+function rotuloOrcsCliente(id) {
+  $("jc-orcamentos").textContent = orcsCompletos.has(id) ? `Orçamentos (${orcsDoCliente(id).length})` : "Orçamentos";
 }
 const fecharJanelaCliente = () => { $("janela-cliente").hidden = true; };
 $("btn-novo-cliente").onclick = () => abrirJanelaCliente(null);
@@ -1097,6 +1195,7 @@ $("jc-cancelar").onclick = fecharJanelaCliente;
 $("jc-orcamentos").onclick = () => { const id = editando; fecharJanelaCliente(); ir("cliente-orc", { cliente: id }); };
 $("janela-cliente").addEventListener("click", (e) => { if (e.target === $("janela-cliente")) fecharJanelaCliente(); });
 $("jc-excluir").onclick = () => {
+  if (!orcsCompletos.has(editando)) { avisar($("jc-confirma"), "Carregando os orçamentos deste cliente. Tente de novo em instantes."); return; }
   const c = cliente(editando), orcs = orcsDoCliente(c.id), aprovados = orcs.filter((o) => pedidos.has(o.id)).length;
   if (aprovados && !financeiro) { avisar($("jc-confirma"), "Clientes com pedido aprovado não podem ser excluídos."); return; }
   const n = orcs.length;
@@ -1107,6 +1206,7 @@ $("jc-excluir").onclick = () => {
       orcs.forEach((o) => lote.delete(doc(db, "orcamentos", o.id)));
       lote.delete(doc(db, "clientes", c.id));
       await lote.commit();
+      esquecerOrcs(orcs.map((o) => o.id));
       fecharJanelaCliente();
       if (atual.tela !== "clientes") ir("clientes", {}, "replace");
     } catch (erro) {
