@@ -1,0 +1,89 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Equipe: só estas contas (pelo UID do Firebase Authentication) acessam os dados.
+    // Para incluir alguém: crie o usuário em Authentication e acrescente o UID aqui.
+    function isEquipe() {
+      return request.auth != null && request.auth.uid in [
+        "Of6EQJcUgmVmTgY9DHMmpCuz2ZI2", // kazecortinas@gmail.com
+        "P2oPjDGLhzUPNgzGv1fFUrYktyv2", // santiagoqueiroz@gmail.com
+        "geH02TKyVHYZ5l6SNc9lfTb2Obr1", // fernandamika.y@gmail.com
+        "kURbAVp5HLg8SLafs675GT6vS5S2", // exemplo@kaze.com
+        "oD4HblNE01alR2GWhCKL5RdZQ3r2"  // fernanda@kaze.com
+      ];
+    }
+
+    // Quem pode alterar preços e regras de preço
+    function isPriceEditor() {
+      return request.auth != null && request.auth.uid in [
+        "P2oPjDGLhzUPNgzGv1fFUrYktyv2", // santiagoqueiroz@gmail.com
+        "geH02TKyVHYZ5l6SNc9lfTb2Obr1"  // fernandamika.y@gmail.com
+      ];
+    }
+
+    // clientes (inclui o orçamento em aberto, em orcamentoAtivo)
+    match /clientes/{id} {
+      allow read, write: if isEquipe();
+    }
+
+    // tipos_persiana
+    match /tipos_persiana/{id} {
+      allow read, write: if isEquipe();
+    }
+
+    // Tabelas de preço e regras de preço (markup, custo cartão)
+    match /precos/{id} {
+      allow read: if isEquipe();
+      allow write: if isPriceEditor();
+    }
+
+    // Persianas (também são preços)
+    match /persianas/{id} {
+      allow read: if isEquipe();
+      allow write: if isPriceEditor();
+    }
+
+    // Orçamentos salvos: não podem ser alterados depois de salvos;
+    // quem salva precisa ser o próprio usuário logado.
+    // Orçamento que virou pedido aprovado só pode ser excluído pelo financeiro.
+    match /orcamentos/{id} {
+      allow read: if isEquipe();
+      allow create: if isEquipe() && request.resource.data.usuarioId == request.auth.uid;
+      allow delete: if isEquipe()
+        && (!exists(/databases/$(database)/documents/pedidos/$(id)) || isPriceEditor());
+    }
+
+    // Numeração dos orçamentos (contadores/orcamentos): só pode subir de 1 em 1
+    match /contadores/{id} {
+      allow read: if isEquipe();
+      allow create: if isEquipe() && request.resource.data.ultimo == 1;
+      allow update: if isEquipe() && request.resource.data.ultimo == resource.data.ultimo + 1;
+    }
+
+    // Pedidos aprovados: o id é o do orçamento aprovado (um pedido por orçamento).
+    // A data e a hora da aprovação são as do servidor e quem aprova é o usuário logado.
+    // Não podem ser alterados; cancelar a aprovação (excluir) é só do financeiro.
+    match /pedidos/{id} {
+      allow read: if isEquipe();
+      allow create: if isEquipe()
+        && request.resource.data.orcamentoId == id
+        && request.resource.data.aprovadoPor == request.auth.uid
+        && request.resource.data.aprovadoEm == request.time
+        && request.resource.data.valorFechado is number
+        && request.resource.data.valorFechado > 0
+        && exists(/databases/$(database)/documents/orcamentos/$(id));
+      allow delete: if isPriceEditor();
+    }
+
+    // Financeiro: categorias e lançamentos
+    match /categorias/{id} {
+      allow read, write: if isEquipe();
+    }
+    match /lancamentos/{id} {
+      allow read, write: if isEquipe();
+    }
+
+    // Qualquer outra coleção fica bloqueada (padrão do Firestore)
+  }
+}

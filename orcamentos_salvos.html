@@ -25,7 +25,8 @@
   </div>
 
   <script type="module">
-    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
+    import { app, auth, db } from "./firebase-config.js";
+    import { mensagemErro } from "./erros.js";
     import {
       getFirestore, collection, getDocs, doc, getDoc
     } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
@@ -33,18 +34,7 @@
       getAuth, onAuthStateChanged
     } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyD5kVoWRWZB6xtacyu6lH--QFXry_MPKps",
-      authDomain: "kaze-8836b.firebaseapp.com",
-      projectId: "kaze-8836b",
-      storageBucket: "kaze-8836b.firebasestorage.app",
-      messagingSenderId: "336054068300",
-      appId: "1:336054068300:web:6125e8eecc08d667fac0e9"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-    const auth = getAuth(app);
+ 
 
     const select = document.getElementById("orcamentoSelecionado");
     const detalhes = document.getElementById("detalhesOrcamento");
@@ -130,7 +120,8 @@ window.excluirOrcamento = async () => {
   const id = select.value;
   if (!id) return alert("Nenhum orçamento selecionado.");
 
-  const confirmar = confirm("Tem certeza que deseja excluir este orçamento?");
+  const rotulo = select.options[select.selectedIndex]?.textContent || "";
+  const confirmar = confirm(`Excluir o orçamento "${rotulo}"?\n\nEssa ação não pode ser desfeita.`);
   if (!confirmar) return;
 
   try {
@@ -144,12 +135,13 @@ window.excluirOrcamento = async () => {
     select.value = "";
   } catch (e) {
     console.error("Erro ao excluir:", e);
-    alert("Erro ao excluir o orçamento.");
+    alert("Não foi possível excluir o orçamento. " + mensagemErro(e));
   }
 };
 
 
     
   </script>
+  <script src="ambiente.js"></script>
 </body>
 </html>

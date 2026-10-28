@@ -1,11 +1,14 @@
 
 // 📦 Importação de módulos do Firebase e scripts locais
-  import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
+  import { app, auth, db } from "./firebase-config.js";
+  import { mensagemErro } from "./erros.js";
+  import { esc } from "./seguranca.js";
+  import { calcularTotais, carregarRegras } from "./regras-preco.js";
 // 📦 Importação de módulos do Firebase e scripts locais
   import {
 // 🔥 Inicializa o Firestore (banco de dados)
     getFirestore, collection, getDocs, query, orderBy,
-    doc, getDoc, updateDoc, serverTimestamp
+    doc, getDoc, updateDoc, serverTimestamp, runTransaction
   } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 // 📦 Importação de módulos do Firebase e scripts locais
   import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
@@ -23,21 +26,10 @@
   window.calcularCortinaBK = calcularCortinaBK;
   window.calcularCortinaForro = calcularCortinaForro;
 
-  const firebaseConfig = {
-    apiKey: "AIzaSyD5kVoWRWZB6xtacyu6lH--QFXry_MPKps",
-    authDomain: "kaze-8836b.firebaseapp.com",
-    projectId: "kaze-8836b",
-    storageBucket: "kaze-8836b.firebasestorage.app",
-    messagingSenderId: "336054068300",
-    appId: "1:336054068300:web:6125e8eecc08d667fac0e9"
-  };
-
+ 
 // 🚀 Inicializa o app Firebase
-  const app = initializeApp(firebaseConfig);
 // 🔥 Inicializa o Firestore (banco de dados)
-  const db = getFirestore(app);
 // 🔐 Inicializa autenticação do Firebase
-  const auth = getAuth(app);
 
 // 📁 Objeto para armazenar dados dos clientes
 const clientes = {};
@@ -53,6 +45,7 @@ let clienteSelecionado = null;
 // 👤 Verifica se o usuário está logado e carrega clientes
   onAuthStateChanged(auth, async (user) => {
     if (!user) return window.location.href = "index.html";
+    await carregarRegras();
     const q = query(collection(db, "clientes"), orderBy("nome"));
     const snapshot = await getDocs(q);
     snapshot.forEach((doc) => {
@@ -113,8 +106,40 @@ document.getElementById("dados-cliente").style.display = "block";
     clienteSelecionado = null;
   }
 
+// 🔒 Grava itens do orçamento dentro de uma transação: lê a versão mais recente do
+// Firestore antes de gravar, para duas abas/pessoas não apagarem itens uma da outra
+  async function alterarItensOrcamento(alterar) {
+    const ref = doc(db, "clientes", clienteSelecionado);
+    return runTransaction(db, async (t) => {
+      const snap = await t.get(ref);
+      if (!snap.exists()) throw Object.assign(new Error("Cliente não encontrado"), { code: "not-found" });
+      const itens = [...(snap.data().orcamentoAtivo?.itens || [])];
+      const resultado = alterar(itens);
+      if (resultado === false) return null; // nada a gravar
+      t.update(ref, { "orcamentoAtivo.itens": itens });
+      return itens;
+    });
+  }
+
+  function adicionarItemOrcamento(item) {
+    return alterarItensOrcamento((itens) => { itens.push(item); });
+  }
+
+  // Representação do item independente da ordem dos campos (para comparar itens)
+  function chaveItem(valor) {
+    if (Array.isArray(valor)) return "[" + valor.map(chaveItem).join(",") + "]";
+    if (valor && typeof valor === "object") {
+      return "{" + Object.keys(valor).sort().map((k) => JSON.stringify(k) + ":" + chaveItem(valor[k])).join(",") + "}";
+    }
+    return JSON.stringify(valor);
+  }
+
+  // Itens exibidos na tela (usados para identificar qual item remover)
+  let itensNaTela = [];
+
 // 📦 Exibe os itens do orçamento e calcula os totais
   function mostrarItens(itens) {
+    itensNaTela = itens || [];
     corpoItens.innerHTML = "";
     
     if (!itens || itens.length === 0) {
@@ -122,14 +147,10 @@ document.getElementById("dados-cliente").style.display = "block";
       document.getElementById("total-geral").style.display = "none";
       return;
     }
-if (!itens || itens.length === 0) {
-      document.getElementById("tabela-itens").style.display = "none";
-      return;
-    }
     itens.forEach((item, index) => {
       const tr = document.createElement("tr");
       tr.innerHTML = `
-        <td>${item.produto}</td>
+        <td>${esc(item.produto)}</td>
         <td>${parseFloat(item.largura).toFixed(2)}</td>
         <td>${parseFloat(item.altura).toFixed(2)}</td>
         <td>${parseInt(item.qtd)}</td>
@@ -141,10 +162,9 @@ if (!itens || itens.length === 0) {
     });
     document.getElementById("tabela-itens").style.display = "table";
 
-    const totalGeral = itens.reduce((soma, item) => soma + parseFloat(item.total), 0);
+    const { totalGeral, totalVista } = calcularTotais(itens);
     document.getElementById("soma-final").textContent = totalGeral.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
     document.getElementById("total-geral").style.display = "block";
-    const totalVista = totalGeral * 0.879;
 document.getElementById("total-vista").textContent = totalVista.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 
 
@@ -173,7 +193,7 @@ document.getElementById("total-vista").textContent = totalVista.toLocaleString('
       const r = calcularPersianaCalc(largura, altura, tipo, desconto);
       window.resultadoPersiana = { ...r, desconto: desconto };
       const resumo = `
-        <h2>${ambiente} - Persiana ${tipo}</h2>
+        <h2>${esc(ambiente)} - Persiana ${esc(tipo)}</h2>
         <p>Desconto: ${formatarReais(desconto)}</p>
         <p><strong>Valor final: ${formatarReais(r.total)}</strong></p>`;
       document.getElementById("resultado").innerHTML = resumo;
@@ -201,11 +221,7 @@ document.getElementById("total-vista").textContent = totalVista.toLocaleString('
       unit: unit,
       total: total
     };
-    const ref = doc(db, "clientes", clienteSelecionado);
-    const snap = await getDoc(ref);
-    const itens = snap.data().orcamentoAtivo?.itens || [];
-    itens.push(item);
-    await updateDoc(ref, { "orcamentoAtivo.itens": itens });
+    const itens = await adicionarItemOrcamento(item);
 // 📦 Exibe os itens do orçamento e calcula os totais
     mostrarItens(itens);
     fecharJanelaItem();
@@ -288,11 +304,7 @@ window.abrirJanelaManual = function () {
       total: total
     };
 
-    const ref = doc(db, "clientes", clienteSelecionado);
-    const snap = await getDoc(ref);
-    const itens = snap.data().orcamentoAtivo?.itens || [];
-    itens.push(item);
-    await updateDoc(ref, { "orcamentoAtivo.itens": itens });
+    const itens = await adicionarItemOrcamento(item);
 // 📦 Exibe os itens do orçamento e calcula os totais
     mostrarItens(itens);
     fecharJanelaCortina();
@@ -324,11 +336,7 @@ window.confirmarItemBlackout = async function () {
     total: total
   };
 
-  const ref = doc(db, "clientes", clienteSelecionado);
-  const snap = await getDoc(ref);
-  const itens = snap.data().orcamentoAtivo?.itens || [];
-  itens.push(item);
-  await updateDoc(ref, { "orcamentoAtivo.itens": itens });
+  const itens = await adicionarItemOrcamento(item);
 
   mostrarItens(itens);
   fecharJanelaBlackout();
@@ -360,11 +368,7 @@ window.confirmarItemCortinaBK = async function () {
     total: total
   };
 
-  const ref = doc(db, "clientes", clienteSelecionado);
-  const snap = await getDoc(ref);
-  const itens = snap.data().orcamentoAtivo?.itens || [];
-  itens.push(item);
-  await updateDoc(ref, { "orcamentoAtivo.itens": itens });
+  const itens = await adicionarItemOrcamento(item);
   mostrarItens(itens);
   fecharJanelaCortinaBK();
 };
@@ -394,11 +398,7 @@ window.confirmarItemCortinaBK = async function () {
     total: total
   };
 
-  const ref = doc(db, "clientes", clienteSelecionado);
-  const snap = await getDoc(ref);
-  const itens = snap.data().orcamentoAtivo?.itens || [];
-  itens.push(item);
-  await updateDoc(ref, { "orcamentoAtivo.itens": itens });
+  const itens = await adicionarItemOrcamento(item);
   mostrarItens(itens);
   fecharJanelaCortinaForro();
 };
@@ -422,11 +422,7 @@ window.confirmarItemCortinaBK = async function () {
       total: quantidade * valor
     };
 
-    const ref = doc(db, "clientes", clienteSelecionado);
-    const snap = await getDoc(ref);
-    const itens = snap.data().orcamentoAtivo?.itens || [];
-    itens.push(item);
-    await updateDoc(ref, { "orcamentoAtivo.itens": itens });
+    const itens = await adicionarItemOrcamento(item);
     mostrarItens(itens);
     fecharJanelaManual();
   };
@@ -435,17 +431,26 @@ window.confirmarItemCortinaBK = async function () {
 
   window.removerItem = async function (index) {
   if (!clienteSelecionado) return;
-  const ref = doc(db, "clientes", clienteSelecionado);
-  const snap = await getDoc(ref);
-  const dados = snap.data();
-  const itens = dados.orcamentoAtivo?.itens || [];
+  const alvo = itensNaTela[index];
+  if (!alvo) return;
+  if (!confirm(`Remover o item "${alvo.produto}" do orçamento?`)) return;
 
-  if (index >= 0 && index < itens.length) {
-    itens.splice(index, 1); // remove o item
-    await updateDoc(ref, { "orcamentoAtivo.itens": itens });
-// 📦 Exibe os itens do orçamento e calcula os totais
-    mostrarItens(itens);
+  // Remove o item que está na tela, procurando-o na versão atual do Firestore
+  // (a posição pode ter mudado se alguém alterou o orçamento em outra aba)
+  let encontrado = true;
+  const itens = await alterarItensOrcamento((atuais) => {
+    const i = atuais.findIndex((it) => chaveItem(it) === chaveItem(alvo));
+    if (i === -1) { encontrado = false; return false; }
+    atuais.splice(i, 1);
+  });
+  if (!encontrado) {
+    alert("Esse item já tinha sido removido ou alterado em outra tela. A lista foi atualizada.");
+    const snap = await getDoc(doc(db, "clientes", clienteSelecionado));
+    mostrarItens(snap.data()?.orcamentoAtivo?.itens || []);
+    return;
   }
+// 📦 Exibe os itens do orçamento e calcula os totais
+  mostrarItens(itens);
 };
 
 // Salvar orçamento
@@ -462,11 +467,7 @@ window.salvarOrcamento = async function () {
 
   if (itens.length === 0) return alert("Não há itens no orçamento para salvar.");
 
-  const totalGeralText = document.getElementById("soma-final").textContent || "R$ 0,00";
-  const totalVistaText = document.getElementById("total-vista").textContent || "R$ 0,00";
-
-  const totalGeral = parseFloat(totalGeralText.replace("R$", "").replace(/\./g, "").replace(",", "."));
-  const totalVista = parseFloat(totalVistaText.replace("R$", "").replace(/\./g, "").replace(",", "."));
+  const { totalGeral, totalVista } = calcularTotais(itens);
 
   const orcamento = {
     clienteId: clienteSelecionado,
@@ -491,7 +492,7 @@ window.salvarOrcamento = async function () {
     alert("Orçamento salvo com sucesso!");
   } catch (erro) {
     console.error("Erro ao salvar orçamento:", erro);
-    alert("Erro ao salvar. Verifique o console.");
+    alert("Não foi possível salvar o orçamento. " + mensagemErro(erro));
   }
 };
 

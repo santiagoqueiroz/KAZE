@@ -3,9 +3,6 @@
 <head>
   <meta charset="UTF-8">
   <title>Editar Preços no Firestore</title>
-  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
   <style>
     body { font-family: sans-serif; margin: 20px; background: #f5f5f5; }
     h2 { background: #333; color: #fff; padding: 10px; margin-top: 30px; }
@@ -16,16 +13,18 @@
   </style>
 </head>
 <body>
-<div id="login">
-  <h2>Login</h2>
-  <input id="email" type="email" placeholder="Email"><br><br>
-  <input id="senha" type="password" placeholder="Senha"><br><br>
-  <button onclick="logar()">Entrar</button>
-  <p id="login-erro" style="color:red;"></p>
-</div>
 
 <div id="conteudo" style="display:none;">
+  <p><a href="painel.html">← Voltar ao painel</a></p>
   <h1>Editar Preços no Firestore</h1>
+  <div class="grupo" id="grupo-regras">
+    <h2>REGRAS DE PREÇO</h2>
+    <label><span>Markup (multiplicador sobre o custo, ex.: 2,4)</span><input type="text" id="regra-markup" inputmode="decimal"></label>
+    <label><span>Custo cartão (ex.: 0,879)</span><input type="text" id="regra-custo-cartao" inputmode="decimal"></label>
+    <p style="font-size: 13px; color: #555;">Vale para os orçamentos calculados a partir de agora. Orçamentos já salvos não mudam.</p>
+    <button onclick="salvarRegras()">💾 Salvar regras</button>
+    <p id="regras-status"></p>
+  </div>
   <div id="grupos"></div>
   <button onclick="salvar()">📂 Salvar alterações</button>
   <p id="status"></p>
@@ -71,72 +70,103 @@
   <p id="excluir-status"></p>
 </div>
 
-<script>
-  const firebaseConfig = {
-    apiKey: "AIzaSyD5kVoWRWZB6xtacyu6lH--QFXry_MPKps",
-    authDomain: "kaze-8836b.firebaseapp.com",
-    projectId: "kaze-8836b",
-    storageBucket: "kaze-8836b.appspot.com",
-    messagingSenderId: "336054068300",
-    appId: "1:336054068300:web:6125e8eecc08d667fac0e9"
-  };
+<script type="module">
+  import { auth, db } from "./firebase-config.js";
+  import { esc } from "./seguranca.js";
+  import { mensagemErro } from "./erros.js";
+  import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+  import {
+    doc, getDoc, getDocs, setDoc, updateDoc, addDoc, deleteDoc,
+    collection, writeBatch, deleteField
+  } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-  firebase.initializeApp(firebaseConfig);
-  const auth = firebase.auth();
-  const db = firebase.firestore();
   const categorias = ["tecidos", "tecidos_bk", "parametros", "trilhos"];
   const precos = {};
 
-  auth.onAuthStateChanged(user => {
-    if (user) {
-      document.getElementById("login").style.display = "none";
-      document.getElementById("conteudo").style.display = "block";
-      carregar();
+  // Mesmo login das outras páginas: sem usuário, volta para a tela de login
+  onAuthStateChanged(auth, user => {
+    if (!user) {
+      window.location.href = "index.html";
+      return;
     }
+    document.getElementById("conteudo").style.display = "block";
+    carregar().catch(err => {
+      document.getElementById("status").innerText = "❌ Não foi possível carregar os preços. " + mensagemErro(err);
+    });
+    carregarRegras();
   });
-
-  function logar() {
-    const email = document.getElementById("email").value;
-    const senha = document.getElementById("senha").value;
-    auth.signInWithEmailAndPassword(email, senha)
-      .catch(err => {
-        document.getElementById("login-erro").innerText = "Erro: " + err.message;
-      });
-  }
 
   async function carregar() {
     const container = document.getElementById("grupos");
     container.innerHTML = "";
     for (const categoria of categorias) {
-      const doc = await db.collection("precos").doc(categoria).get();
-      const dados = doc.data();
+      const snapCat = await getDoc(doc(db, "precos", categoria));
+      const dados = snapCat.data() || {};
       precos[categoria] = dados;
       const div = document.createElement("div");
       div.className = "grupo";
-      div.innerHTML = `<h2>${categoria.toUpperCase()}</h2>`;
+      div.innerHTML = `<h2>${esc(categoria.toUpperCase())}</h2>`;
       for (const [nome, valor] of Object.entries(dados).sort((a, b) => a[0].localeCompare(b[0]))) {
-        const v = valor.toFixed(2).replace('.', ',');
-        div.innerHTML += `<label><span>${nome}</span><input type="text" value="${v}" data-cat="${categoria}" data-nome="${nome}" oninput="mascarar(this)"></label>`;
+        const v = (Number(valor) || 0).toFixed(2).replace('.', ',');
+        div.innerHTML += `<label><span>${esc(nome)}</span><input type="text" value="${esc(v)}" data-cat="${esc(categoria)}" data-nome="${esc(nome)}" oninput="mascarar(this)"></label>`;
       }
       container.appendChild(div);
     }
     
-    const snap = await db.collection("persianas").get();
+    const snap = await getDocs(collection(db, "persianas"));
     precos.persianas = {};
     const divP = document.createElement("div");
     divP.className = "grupo";
     divP.innerHTML = `<h2>PERSIANAS</h2>`;
    const docs = [];
-snap.forEach(doc => docs.push({ id: doc.id, ...doc.data() }));
-docs.sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'));
+snap.forEach(d => docs.push({ id: d.id, ...d.data() }));
+docs.sort((a, b) => (a.nome || "").localeCompare(b.nome || "", 'pt-BR'));
 
 for (const { id, nome, preco } of docs) {
   precos.persianas[id] = { nome, preco };
   const v = (preco || 0).toFixed(2).replace('.', ',');
-  divP.innerHTML += `<label><span>${nome}</span><input type="text" data-cat="persianas" data-id="${id}" value="${v}" oninput="mascarar(this)"></label>`;
+  divP.innerHTML += `<label><span>${esc(nome)}</span><input type="text" data-cat="persianas" data-id="${esc(id)}" value="${esc(v)}" oninput="mascarar(this)"></label>`;
 }
 
 container.appendChild(divP);
+  }
+
+  // Regras de preço (precos/regras): markup e custo cartão
+  const REGRAS_PADRAO = { markup: 2.4, custoCartao: 0.879 };
+  const paraTexto = (n) => String(n).replace('.', ',');
+  const paraNumero = (t) => parseFloat(String(t).trim().replace(',', '.'));
+
+  async function carregarRegras() {
+    let dados = {};
+    try {
+      const snap = await getDoc(doc(db, "precos", "regras"));
+      if (snap.exists()) dados = snap.data();
+    } catch (err) {
+      document.getElementById("regras-status").innerText = "⚠️ Não foi possível carregar as regras. " + mensagemErro(err);
+    }
+    document.getElementById("regra-markup").value = paraTexto(dados.markup ?? REGRAS_PADRAO.markup);
+    document.getElementById("regra-custo-cartao").value = paraTexto(dados.custoCartao ?? REGRAS_PADRAO.custoCartao);
+  }
+
+  async function salvarRegras() {
+    const status = document.getElementById("regras-status");
+    const markup = paraNumero(document.getElementById("regra-markup").value);
+    const custoCartao = paraNumero(document.getElementById("regra-custo-cartao").value);
+    if (!(markup >= 1 && markup <= 10)) {
+      status.innerText = "❌ Markup deve ser um número entre 1 e 10.";
+      return;
+    }
+    if (!(custoCartao >= 0.5 && custoCartao <= 1)) {
+      status.innerText = "❌ Custo cartão deve ser um número entre 0,5 e 1 (ex.: 0,879).";
+      return;
+    }
+    if (!confirm(`Salvar markup ${paraTexto(markup)} e custo cartão ${paraTexto(custoCartao)}?`)) return;
+    try {
+      await setDoc(doc(db, "precos", "regras"), { markup, custoCartao });
+      status.innerText = "✅ Regras salvas.";
+    } catch (err) {
+      status.innerText = "❌ Erro ao salvar as regras. " + mensagemErro(err);
+    }
   }
 
   function mascarar(campo) {
@@ -162,15 +192,18 @@ container.appendChild(divP);
       }
     }
     try {
+      // Grava tudo em um único lote: ou salva todas as tabelas, ou nenhuma
+      const lote = writeBatch(db);
       for (const cat of categorias) {
-        await db.collection("precos").doc(cat).set(precos[cat]);
+        lote.set(doc(db, "precos", cat), precos[cat]);
       }
       for (const { id, preco } of persianasUpdates) {
-        await db.collection("persianas").doc(id).update({ preco });
+        lote.update(doc(db, "persianas", id), { preco });
       }
+      await lote.commit();
       document.getElementById("status").innerText = "✅ Alterações salvas com sucesso.";
     } catch (err) {
-      document.getElementById("status").innerText = "❌ Erro ao salvar: " + err.message;
+      document.getElementById("status").innerText = "❌ Erro ao salvar. " + mensagemErro(err);
     }
   }
 
@@ -185,16 +218,16 @@ container.appendChild(divP);
     }
     try {
       if (cat === "persianas") {
-        await db.collection("persianas").add({ nome, preco: valor });
+        await addDoc(collection(db, "persianas"), { nome, preco: valor });
       } else {
-        await db.collection("precos").doc(cat).update({ [nome]: valor });
+        await updateDoc(doc(db, "precos", cat), { [nome]: valor });
       }
       document.getElementById("novo-status").innerText = "✅ Item adicionado!";
       carregar();
       document.getElementById("novo-nome").value = "";
       document.getElementById("novo-valor").value = "";
     } catch (err) {
-      document.getElementById("novo-status").innerText = "❌ Erro ao adicionar: " + err.message;
+      document.getElementById("novo-status").innerText = "❌ Erro ao adicionar. " + mensagemErro(err);
     }
   }
 
@@ -207,7 +240,7 @@ container.appendChild(divP);
       return;
     }
    if (cat === "persianas") {
-      for (const [id, dados] of Object.entries(precos.persianas).sort((a, b) => a[1].nome.localeCompare(b[1].nome))) {
+      for (const [id, dados] of Object.entries(precos.persianas).sort((a, b) => (a[1].nome || "").localeCompare(b[1].nome || ""))) {
         const opt = document.createElement("option");
         opt.value = id;
         opt.innerText = dados.nome;
@@ -234,16 +267,20 @@ container.appendChild(divP);
     if (!confirm(`Tem certeza que deseja excluir "${nome}" da categoria "${cat}"?`)) return;
     try {
       if (cat === "persianas") {
-        await db.collection("persianas").doc(valor).delete();
+        await deleteDoc(doc(db, "persianas", valor));
       } else {
-        await db.collection("precos").doc(cat).update({ [valor]: firebase.firestore.FieldValue.delete() });
+        await updateDoc(doc(db, "precos", cat), { [valor]: deleteField() });
       }
       document.getElementById("excluir-status").innerText = "✅ Item excluído.";
       carregar();
     } catch (err) {
-      document.getElementById("excluir-status").innerText = "❌ Erro ao excluir: " + err.message;
+      document.getElementById("excluir-status").innerText = "❌ Erro ao excluir. " + mensagemErro(err);
     }
   }
+
+  // Funções chamadas pelos botões da página (onclick/oninput/onchange)
+  Object.assign(window, { salvar, salvarRegras, adicionarNovo, atualizarListaExclusao, excluir, mascarar });
 </script>
+  <script src="ambiente.js"></script>
 </body>
 </html>

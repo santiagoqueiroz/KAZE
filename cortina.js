@@ -1,8 +1,9 @@
 // Versão do cortina.js com dados puxados do Firebase Firestore
 import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-import { getApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { app, auth, db } from "./firebase-config.js";
+import { esc } from "./seguranca.js";
+import { regras } from "./regras-preco.js";
 
-const db = getFirestore(getApp());
 
 
 let tecidos = {};  // será preenchido do Firestore
@@ -102,8 +103,8 @@ export function calcularCortina() {
   const subtotal = arred(valorTecido + trilho + entrela + deslizante + terminal + costura + barra + instalacao + bucha);
   const simples = arred(subtotal * 0.06);
   const baseMaisSimples = arred(subtotal + simples);
-  const totalVista = arred(baseMaisSimples * 2.4);
-  const totalCorrigido = arred(totalVista / 0.879);
+  const totalVista = arred(baseMaisSimples * regras.markup);
+  const totalCorrigido = arred(totalVista / regras.fatorVista);
   const totalFinal = arred(totalCorrigido - desconto);
 
   const produto = `${ambiente} - Cortina ${nomeTecido} - ${nomeTrilho}`;
@@ -121,7 +122,7 @@ export function calcularCortina() {
   ];
 
   const resumo = `
-    <h2>${produto}</h2>
+    <h2>${esc(produto)}</h2>
     <p>Desconto: ${formatarReais(desconto)}</p>
     <p><strong>Valor final: ${formatarReais(totalFinal)}</strong></p>`;
 

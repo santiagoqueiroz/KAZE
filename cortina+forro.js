@@ -1,10 +1,9 @@
-import { getApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { app, auth, db } from "./firebase-config.js";
+import { esc } from "./seguranca.js";
+import { regras } from "./regras-preco.js";
 import { getAuth } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { getFirestore, getDoc, doc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-const app = getApp();
-const auth = getAuth(app);
-const db = getFirestore(app);
 
 let tecidos = {};
 let trilhos = {};
@@ -135,15 +134,15 @@ function calcularCortinaForro() {
   const subtotal = somarLinhas(todasAsLinhas);
   const simples = arred(subtotal * 0.06);
   const base = arred(subtotal + simples);
-  const valorComMarkup = arred(base * 2.4);
-  const valorCorrigido = arred(valorComMarkup / 0.879);
+  const valorComMarkup = arred(base * regras.markup);
+  const valorCorrigido = arred(valorComMarkup / regras.fatorVista);
   const totalFinal = arred(valorCorrigido - desconto);
 
   const produto = `${ambiente} - Cortina ${nomeTecidoC} + Forro ${nomeTecidoF} - ${nomeTrilho}`;
   window.produtoCortinaForro = produto;
 
   const resumoHTML = `
-    <h2>${produto}</h2>
+    <h2>${esc(produto)}</h2>
     <p>Desconto: ${formatarReais(desconto)}</p>
     <p><strong>Valor final: ${formatarReais(totalFinal)}</strong></p>
   `;
