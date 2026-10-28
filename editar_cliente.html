@@ -114,6 +114,7 @@
   <script type="module">
     import { app, auth, db } from "./firebase-config.js";
     import { mensagemErro } from "./erros.js";
+    import { chavesBusca, lembrarCliente } from "./busca-clientes.js";
     import { getFirestore, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
@@ -172,7 +173,9 @@
       const dados = Object.fromEntries(formData.entries());
 
       try {
+        dados.busca = chavesBusca(dados); // para a busca de clientes achar pelo nome novo
         await updateDoc(doc(db, "clientes", id), dados);
+        lembrarCliente({ id, ...dados });
         mensagem.textContent = 'Cliente atualizado com sucesso!';
         mensagem.style.color = 'green';
         setTimeout(() => {

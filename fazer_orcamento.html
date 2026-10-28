@@ -16,14 +16,10 @@
     Selecionar Cliente
    </h2>
    <button onclick="salvarOrcamento()">💾 Salvar Orçamento</button>
-   <label for="cliente">
+   <label>
     Cliente:
    </label>
-   <select id="cliente" onchange="mostrarDadosCliente()">
-    <option value="">
-     Selecione...
-    </option>
-   </select>
+   <div id="busca-cliente"></div>
    <div class="info-box" id="dados-cliente" style="display:none;">
     <p>
      <strong>

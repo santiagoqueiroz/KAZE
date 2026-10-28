@@ -114,6 +114,7 @@
   <script type="module">
     import { app, auth, db } from "./firebase-config.js";
     import { mensagemErro } from "./erros.js";
+    import { chavesBusca, lembrarCliente } from "./busca-clientes.js";
     import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
     import { getAuth } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
@@ -141,11 +142,13 @@
       const dados = Object.fromEntries(formData.entries());
 
       try {
-        await addDoc(collection(db, "clientes"), {
+        const ref = await addDoc(collection(db, "clientes"), {
           ...dados,
+          busca: chavesBusca(dados), // para a busca de clientes achar este cliente
           criadoPor: user.uid,
           criadoEm: new Date()
         });
+        lembrarCliente({ id: ref.id, ...dados });
 
         mensagem.textContent = 'Cliente cadastrado com sucesso!';
         mensagem.style.color = 'green';

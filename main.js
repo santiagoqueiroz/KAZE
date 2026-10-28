@@ -20,6 +20,7 @@
   import { preencherSelects as preencherSelectsCBK, calcularCortinaBK } from './cortina+bk.js';
   import { preencherSelectsCF, calcularCortinaForro } from './cortina+forro.js';
   import { addDoc } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+  import { caixaBuscaCliente } from './busca-antiga.js';
 
   window.calcularCortina = calcularCortina;
   window.calcularBlackout = calcularBlackout;
@@ -39,27 +40,21 @@ let clienteSelecionado = null;
     return parseFloat(v).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
   }
 
-  const select = document.getElementById("cliente");
   const corpoItens = document.getElementById("lista-itens");
 
-// 👤 Verifica se o usuário está logado e carrega clientes
+// 👤 Verifica se o usuário está logado e liga a busca de clientes
+// (não lê mais todos os clientes: cada cliente lido conta como uma leitura paga)
   onAuthStateChanged(auth, async (user) => {
     if (!user) return window.location.href = "index.html";
-    await carregarRegras();
-    const q = query(collection(db, "clientes"), orderBy("nome"));
-    const snapshot = await getDocs(q);
-    snapshot.forEach((doc) => {
-      clientes[doc.id] = doc.data();
-      const opt = document.createElement("option");
-      opt.value = doc.id;
-      opt.textContent = clientes[doc.id].nome || "(sem nome)";
-      select.appendChild(opt);
+    caixaBuscaCliente(document.getElementById("busca-cliente"), (c) => {
+      clientes[c.id] = c;
+      mostrarDadosCliente(c.id);
     });
+    await carregarRegras();
   });
 
 // 📋 Mostra os dados do cliente selecionado
-  window.mostrarDadosCliente = async function () {
-    const id = select.value;
+  window.mostrarDadosCliente = async function (id) {
 // 🧹 Esconde dados e limpa seleção
     if (!clientes[id]) return esconderTudo();
     clienteSelecionado = id;

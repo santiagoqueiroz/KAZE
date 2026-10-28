@@ -95,6 +95,9 @@
   <div class="container">
     <h1>Clientes Cadastrados</h1>
 
+    <div id="busca-cliente"></div>
+    <p><button type="button" id="verTodos" style="display:none">Ver todos os clientes</button></p>
+
     <table id="tabelaClientes">
       <thead>
         <tr>
@@ -118,7 +121,9 @@
     import { app, auth, db } from "./firebase-config.js";
     import { mensagemErro } from "./erros.js";
     import { esc } from "./seguranca.js";
-    const nomesClientes = {};
+    import { caixaBuscaCliente } from "./busca-antiga.js";
+    import { lembrarCliente, esquecerCliente } from "./busca-clientes.js";
+    const nomesClientes = {}, clientesMostrados = {};
     import {
       getFirestore, collection, getDocs, query, orderBy
     } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
@@ -138,13 +143,12 @@
 
       const tabela = document.querySelector("#tabelaClientes tbody");
 
-      try {
-        const q = query(collection(db, "clientes"), orderBy("nome"));
-        const querySnapshot = await getDocs(q);
-
-        querySnapshot.forEach((doc) => {
-          const c = doc.data();
-          nomesClientes[doc.id] = c.nome || "(sem nome)";
+      // A tabela mostra só o resultado da busca (ou os últimos pesquisados): não lê todos os clientes
+      const desenharTabela = (lista) => {
+        tabela.innerHTML = "";
+        lista.forEach((c) => {
+          clientesMostrados[c.id] = c;
+          nomesClientes[c.id] = c.nome || "(sem nome)";
           const linha = document.createElement("tr");
          linha.innerHTML = `
             <td>${esc(c.nome)}</td>
@@ -160,18 +164,34 @@
           const acoes = linha.lastElementChild;
           const btnEditar = document.createElement("button");
           btnEditar.textContent = "Editar";
-          btnEditar.addEventListener("click", () => editarCliente(doc.id));
+          btnEditar.addEventListener("click", () => editarCliente(c.id));
           const btnExcluir = document.createElement("button");
           btnExcluir.textContent = "Excluir";
-          btnExcluir.addEventListener("click", () => excluirCliente(doc.id));
+          btnExcluir.addEventListener("click", () => excluirCliente(c.id));
           acoes.append(btnEditar, " ", btnExcluir);
 
           tabela.appendChild(linha);
         });
-      } catch (erro) {
-        console.error("Erro ao buscar clientes:", erro);
-        alert("Não foi possível carregar os clientes. " + mensagemErro(erro));
-      }
+      };
+      caixaBuscaCliente(document.getElementById("busca-cliente"), () => {}, { aoListar: desenharTabela });
+
+      // Lista inteira só quando pedida (cada cliente conta como uma leitura do banco)
+      const btnTodos = document.getElementById("verTodos");
+      btnTodos.style.display = "inline-block";
+      btnTodos.addEventListener("click", async () => {
+        if (!confirm("Carregar todos os clientes? Cada cliente conta como uma leitura do banco.")) return;
+        btnTodos.disabled = true; btnTodos.textContent = "Carregando...";
+        try {
+          const snap = await getDocs(query(collection(db, "clientes"), orderBy("nome")));
+          desenharTabela(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
+          btnTodos.style.display = "none";
+        } catch (erro) {
+          console.error("Erro ao buscar clientes:", erro);
+          alert("Não foi possível carregar os clientes. " + mensagemErro(erro));
+        } finally {
+          btnTodos.disabled = false; btnTodos.textContent = "Ver todos os clientes";
+        }
+      });
     });
 
     import { deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
@@ -188,6 +208,7 @@
     
       try {
         await deleteDoc(doc(db, "clientes", id));
+        esquecerCliente(id);
         alert("Cliente excluído.");
         location.reload(); // atualiza a tabela
       } catch (err) {
@@ -197,6 +218,7 @@
     }
     
     window.editarCliente = function(id) {
+      lembrarCliente(clientesMostrados[id]);
       window.location.href = `editar_cliente.html?id=${id}`;
     }
 
