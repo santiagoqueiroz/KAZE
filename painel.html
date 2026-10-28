@@ -96,6 +96,7 @@
   <script type="module">
     import { app, auth, db } from "./firebase-config.js";
     import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import { apagarRecentes } from "./busca-clientes.js";
 
  
 
@@ -107,6 +108,7 @@
 
     window.logout = function () {
       signOut(auth).then(() => {
+        apagarRecentes(); // últimos clientes pesquisados neste aparelho
         window.location.href = "index.html";
       });
     }

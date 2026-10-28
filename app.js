@@ -6,6 +6,7 @@ import { esc } from "./seguranca.js";
 import { regras, carregarRegras, centavos, calcularTotais } from "./regras-preco.js";
 import { TIPOS, calcularItem } from "./calculos.js";
 import { ehFinanceiro, nomePessoa, emailPessoa } from "./perfis.js";
+import { chavesBusca, conferirBusca, consultarClientes as consultarNoBanco, chaveDe, termoDe, podeBuscar, combina, clientesRecentes, lembrarCliente, esquecerCliente, apagarRecentes } from "./busca-clientes.js";
 import { onAuthStateChanged, signInWithEmailAndPassword, signOut, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import {
   collection, doc, getDoc, getDocs, setDoc, updateDoc, deleteDoc, onSnapshot, query, where, orderBy, limit, getCountFromServer,
@@ -177,6 +178,7 @@ $("e-esqueci").onclick = async () => {
 };
 $("btn-sair").onclick = async () => {
   await signOut(auth);
+  apagarRecentes();
   // Apaga a cópia dos dados guardada neste aparelho (computador compartilhado)
   try { await terminate(db); await clearIndexedDbPersistence(db); } catch (erro) { console.warn("Cópia local não apagada:", erro); }
   location.replace(location.pathname);
@@ -259,39 +261,13 @@ async function lerCliente(id) {
   if (!id) return null;
   if (cliente(id)) return cliente(id);
   const s = await getDoc(doc(db, "clientes", id));
-  if (!s.exists()) { semCliente.add(id); return null; }
+  if (!s.exists()) { semCliente.add(id); esquecerCliente(id); return null; }
   const c = comId(s);
   clientesBusca.set(id, c);
   conferirBusca(c);
   return c;
 }
 
-// Busca: cada cliente guarda em "busca" o começo de cada palavra do nome (sem acento, minúsculo),
-// o telefone e o CPF/CNPJ só com números. Assim uma consulta "array-contains" acha o cliente
-// lendo só os que combinam. Clientes cadastrados pelas páginas antigas ainda não têm o campo:
-// a busca também procura pelo começo do nome, e o app grava o campo quando vê um cliente sem ele.
-const MAX_PREFIXO = 15;
-function chavesBusca(c) {
-  const k = new Set();
-  for (const p of semAcento(c.nome).split(/[^a-z0-9]+/)) for (let i = 2; i <= Math.min(p.length, MAX_PREFIXO); i++) k.add(p.slice(0, i));
-  const tel = soDigitos(c.telefone);
-  if (tel.length >= 8) {
-    const semDDD = tel.length >= 10 ? tel.slice(2) : tel;
-    for (let i = 4; i <= semDDD.length; i++) k.add(semDDD.slice(0, i));
-    k.add(tel);
-  }
-  const documento = soDigitos(c.cpfOuCnpj);
-  if (documento.length >= 11) k.add(documento);
-  return [...k].sort();
-}
-const conferidos = new Set();
-function conferirBusca(c) {
-  if (!c?.id || conferidos.has(c.id)) return;
-  conferidos.add(c.id);
-  const chaves = chavesBusca(c);
-  if (Array.isArray(c.busca) && c.busca.join("|") === chaves.join("|")) return;
-  updateDoc(doc(db, "clientes", c.id), { busca: chaves }).catch((e) => console.warn("Busca do cliente não atualizada:", e));
-}
 
 // Cliente aberto (página do cliente, rascunho, janela de edição): o cadastro e os orçamentos ficam ao vivo
 // enquanto o app está aberto. Guarda os últimos 30 clientes abertos.
@@ -307,7 +283,7 @@ function carregarOrcsDoCliente(id) {
   }, erroLeitura);
   const pararCliente = onSnapshot(doc(db, "clientes", id), (s) => {
     if (s.exists()) { const c = comId(s); clientesAbertos.set(id, c); semCliente.delete(id); conferirBusca(c); }
-    else { clientesAbertos.delete(id); clientesBusca.delete(id); clientesRascunho.delete(id); semCliente.add(id); }
+    else { clientesAbertos.delete(id); clientesBusca.delete(id); clientesRascunho.delete(id); semCliente.add(id); esquecerCliente(id); }
     redesenhar();
   }, erroLeitura);
   ouvindoCliente.set(id, () => { pararOrcs(); pararCliente(); });
@@ -401,37 +377,13 @@ function rInicio() {
 }
 
 // ---------- Clientes ----------
-// Não há lista de todos os clientes: a pessoa digita e o app consulta o banco (ver chavesBusca).
-const MAX_BUSCA = 30;
+// Não há lista de todos os clientes: a pessoa digita e o app consulta o banco (busca-clientes.js).
+// Com a busca vazia aparecem os últimos clientes escolhidos neste aparelho.
 const buscas = new Map(); // texto digitado → { carregando } | { ids, cheia } | { erro }
-const chaveDe = (texto) => String(texto ?? "").trim().replace(/\s+/g, " ");
-const termoDe = (texto) => semAcento(texto).replace(/[^a-z0-9]+/g, " ").trim();
-const ehBuscaNumero = (t) => /^[0-9 ]+$/.test(t);
-const podeBuscar = (t) => (ehBuscaNumero(t) ? t.replace(/ /g, "").length >= 4 : t.split(" ").some((p) => p.length >= 2));
-const comMaiusculas = (t) => t.toLowerCase().replace(/(^|\s)\S/g, (l) => l.toUpperCase());
-// Todas as palavras digitadas precisam ser o começo de alguma palavra do nome
-function combina(c, t) {
-  if (ehBuscaNumero(t)) {
-    const n = t.replace(/ /g, "");
-    return (c.busca || []).includes(n) || soDigitos(c.telefone).includes(n) || soDigitos(c.cpfOuCnpj).includes(n);
-  }
-  const palavras = semAcento(c.nome).split(/[^a-z0-9]+/);
-  return t.split(" ").every((p) => palavras.some((w) => w.startsWith(p)));
-}
 async function consultarClientes(texto) {
-  const t = termoDe(texto), col = collection(db, "clientes"), consultas = [];
-  if (ehBuscaNumero(t)) consultas.push(query(col, where("busca", "array-contains", t.replace(/ /g, "")), limit(MAX_BUSCA)));
-  else {
-    const maior = t.split(" ").sort((a, b) => b.length - a.length)[0].slice(0, MAX_PREFIXO);
-    consultas.push(query(col, where("busca", "array-contains", maior), limit(MAX_BUSCA)));
-    // Clientes ainda sem o campo de busca: pelo começo do nome, como costuma estar escrito
-    const bruto = chaveDe(texto);
-    for (const v of new Set([bruto, comMaiusculas(bruto), bruto.toUpperCase()])) consultas.push(query(col, where("nome", ">=", v), where("nome", "<=", v + "\uf8ff"), limit(10)));
-  }
-  const resultados = await Promise.all(consultas.map((q) => getDocs(q)));
-  const ids = new Set();
-  for (const r of resultados) r.docs.forEach((d) => { const c = comId(d); clientesBusca.set(d.id, c); ids.add(d.id); conferirBusca(c); });
-  return { ids: [...ids], cheia: resultados[0].size >= MAX_BUSCA };
+  const r = await consultarNoBanco(texto);
+  r.clientes.forEach((c) => clientesBusca.set(c.id, c));
+  return { ids: r.clientes.map((c) => c.id), cheia: r.cheia };
 }
 function buscar(texto, depois) {
   const chave = chaveDe(texto);
@@ -453,21 +405,31 @@ function ligarBusca(campo, desenhar) {
 }
 function listaClientes(el, texto, aoClicar, comOrcamentos) {
   const t = termoDe(texto), r = buscas.get(chaveDe(texto));
-  if (!t) { el.innerHTML = '<div class="vazio">Digite o nome, o telefone ou o CPF/CNPJ do cliente.</div>'; return; }
+  if (!t) {
+    // Últimos escolhidos neste aparelho: o cadastro em memória vale por cima do resumo guardado
+    const recentes = clientesRecentes().filter((x) => !semCliente.has(x.id)).map((x) => cliente(x.id) || x);
+    if (!recentes.length) { el.innerHTML = '<div class="vazio">Digite o nome, o telefone ou o CPF/CNPJ do cliente.</div>'; return; }
+    linhasClientes(el, recentes, aoClicar, comOrcamentos, '<div class="letra">Últimos pesquisados</div>');
+    return;
+  }
   if (!podeBuscar(t)) { el.innerHTML = '<div class="vazio">Continue digitando: pelo menos 2 letras ou 4 números.</div>'; return; }
   if (!r || r.carregando) { el.innerHTML = '<div class="vazio">Buscando…</div>'; return; }
   if (r.erro) { el.innerHTML = `<div class="vazio">Não foi possível buscar. ${erroTexto(r.erro)}</div>`; return; }
   const lista = r.ids.map(cliente).filter((c) => c && combina(c, t)).sort(porNome);
   if (!lista.length) { el.innerHTML = `<div class="vazio">Nenhum cliente encontrado para "${esc(texto.trim())}".</div>`; return; }
-  let html = "";
+  linhasClientes(el, lista, aoClicar, comOrcamentos, "", r.cheia ? '<div class="vazio">Há mais clientes com esse nome. Digite mais para achar o certo.</div>' : "");
+}
+function linhasClientes(el, lista, aoClicar, comOrcamentos, antes = "", depois = "") {
+  let html = antes;
   for (const c of lista) {
     const det = [c.telefone, [c.bairro, c.cidade].filter(Boolean).join(", ")].filter(Boolean).map(esc).join(" · ");
     const lado = comOrcamentos && rascunhoDe(c) ? '<span class="chip areia">Rascunho</span>' : "";
     html += `<button class="linha" type="button" data-cliente="${esc(c.id)}"><div><div class="nome">${esc(c.nome || "(sem nome)")}</div><div class="det">${det}</div></div><div>${lado}</div></button>`;
   }
-  if (r.cheia) html += '<div class="vazio">Há mais clientes com esse nome. Digite mais para achar o certo.</div>';
-  el.innerHTML = html;
-  el.querySelectorAll("[data-cliente]").forEach((b) => { b.onclick = () => aoClicar(b.dataset.cliente); });
+  el.innerHTML = html + depois;
+  el.querySelectorAll("[data-cliente]").forEach((b) => {
+    b.onclick = () => { lembrarCliente(lista.find((c) => c.id === b.dataset.cliente)); aoClicar(b.dataset.cliente); };
+  });
 }
 function rClientes() {
   $("contagem-clientes").textContent = totalClientes !== null ? `${plural(totalClientes, "cliente cadastrado", "clientes cadastrados")}. Busque e toque num cliente para editar.` : "";
@@ -1332,7 +1294,13 @@ $("c-nome").addEventListener("input", (e) => { e.target.value = e.target.value.r
 
 let editando = null, aoSalvarNovo = null;
 const CAMPOS_CLIENTE = [["c-nome", "nome"], ["c-tel", "telefone"], ["c-doc", "cpfOuCnpj"], ["c-end", "endereco"], ["c-bairro", "bairro"], ["c-cidade", "cidade"], ["c-email", "email"]];
-function abrirJanelaCliente(id, depoisDeSalvar = null) {
+async function abrirJanelaCliente(id, depoisDeSalvar = null) {
+  // Cliente escolhido em "Últimos pesquisados" pode não estar em memória
+  if (id && !cliente(id)) {
+    const achado = await lerCliente(id).catch((erro) => { alert("Não foi possível abrir o cliente. " + mensagemErro(erro)); return undefined; });
+    if (achado === undefined) return;
+    if (!achado) { esquecerCliente(id); redesenhar(); alert("Este cliente foi excluído."); return; }
+  }
   editando = id || null;
   aoSalvarNovo = id ? null : depoisDeSalvar;
   $("jc-salvar").textContent = aoSalvarNovo ? "Salvar e começar orçamento" : "Salvar cliente";
@@ -1376,6 +1344,7 @@ $("jc-excluir").onclick = () => {
       esquecerOrcs(orcs.map((o) => o.id));
       [clientesAbertos, clientesBusca, clientesRascunho].forEach((m) => m.delete(c.id));
       semCliente.add(c.id);
+      esquecerCliente(c.id);
       contarClientes();
       fecharJanelaCliente();
       if (atual.tela !== "clientes") ir("clientes", {}, "replace");
@@ -1407,6 +1376,7 @@ $("form-cliente").addEventListener("submit", async (e) => {
       clientesBusca.set(id, { id, ...dados });
       contarClientes();
     }
+    lembrarCliente({ id, ...dados });
     buscas.clear(); // o nome pode ter mudado: as próximas buscas consultam o banco de novo
     fecharJanelaCliente();
     if (depois) depois(id);
