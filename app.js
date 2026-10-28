@@ -1106,23 +1106,45 @@ $("dados-periodos").onclick = (e) => {
   document.querySelectorAll("#dados-periodos button").forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
   rDados();
 };
-// Planilha (CSV) dos pedidos do período, no formato que o Excel em português abre direto
+// Planilhas (CSV) do período, no formato que o Excel em português abre direto
+const numCSV = (v) => (Number(v) || 0).toFixed(2).replace(".", ",");
+const quandoCSV = (d) => (d ? `${dataCurta(d)} ${hora(d)}` : "");
+function baixarCSV(nome, linhas) {
+  const campo = (v) => `"${String(v ?? "").replace(/"/g, '""')}"`;
+  const csv = "\ufeff" + linhas.map((l) => l.map(campo).join(";")).join("\r\n");
+  const url = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }));
+  const h = new Date(), a = document.createElement("a");
+  a.href = url; a.download = `kaze-${nome}-${h.getFullYear()}-${pad(h.getMonth() + 1)}-${pad(h.getDate())}.csv`;
+  document.body.append(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
 $("dados-csv").onclick = () => {
   const { peds } = dadosDoPeriodo();
-  const num = (v) => (Number(v) || 0).toFixed(2).replace(".", ",");
-  const quando = (d) => (d ? `${dataCurta(d)} ${hora(d)}` : "");
-  const campo = (v) => `"${String(v ?? "").replace(/"/g, '""')}"`;
   const linhas = [["Aprovado em", "Orçamento", "Orçamento feito em", "Dias até aprovar", "Cliente", "Bairro", "Cidade", "Forma", "Parcelas", "Valor do orçamento", "Valor fechado", "Desconto", "Itens", "Produtos", "Quem fez o orçamento", "Quem aprovou", "Observação"]];
   for (const p of peds) {
     const d = dataPed(p), feito = p.orcamentoFeitoEm ? new Date(p.orcamentoFeitoEm) : null;
-    linhas.push([quando(d), p.numero || p.id, quando(feito), feito && d ? num((d - feito) / 864e5) : "", p.cliente?.nome, p.cliente?.bairro, p.cliente?.cidade, FORMAS[p.forma] || p.forma, p.parcelas, num(p.valorTabela), num(p.valorFechado), num(p.desconto), (p.itens || []).length, (p.itens || []).map((i) => i.produto).join(" | "), emailPessoa(p.orcamentoPor), p.aprovadoPorEmail, p.observacao]);
+    linhas.push([quandoCSV(d), p.numero || p.id, quandoCSV(feito), feito && d ? numCSV((d - feito) / 864e5) : "", p.cliente?.nome, p.cliente?.bairro, p.cliente?.cidade, FORMAS[p.forma] || p.forma, p.parcelas, numCSV(p.valorTabela), numCSV(p.valorFechado), numCSV(p.desconto), (p.itens || []).length, (p.itens || []).map((i) => i.produto).join(" | "), emailPessoa(p.orcamentoPor), p.aprovadoPorEmail, p.observacao]);
   }
-  const csv = "﻿" + linhas.map((l) => l.map(campo).join(";")).join("\r\n");
-  const url = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }));
-  const h = new Date(), a = document.createElement("a");
-  a.href = url; a.download = `kaze-pedidos-${h.getFullYear()}-${pad(h.getMonth() + 1)}-${pad(h.getDate())}.csv`;
-  document.body.append(a); a.click(); a.remove();
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  baixarCSV("pedidos", linhas);
+};
+// Orçamentos do período (sem telefone nem CPF), para conferir vendas antigas com os orçamentos
+$("dados-csv-orc").onclick = async () => {
+  const botao = $("dados-csv-orc");
+  botao.disabled = true;
+  try {
+    await carregarDesde(intervalo(periodo)[0]);
+    const orcs = dadosDoPeriodo().orcs.sort((a, b) => dataOrc(a) - dataOrc(b));
+    const linhas = [["Orçamento", "Id", "Feito em", "Cliente", "Bairro", "Cidade", "Total no cartão", "Total à vista", "Itens", "Produtos", "Quem fez", "Pedido aprovado"]];
+    for (const o of orcs) {
+      const c = clienteDoOrc(o);
+      linhas.push([numOrc(o), o.id, quandoCSV(dataOrc(o)), c.nome, c.bairro, c.cidade, numCSV(totalDe(o)), numCSV(vistaDe(o)), (o.itens || []).length, (o.itens || []).map((i) => i.produto).join(" | "), emailPessoa(o.usuarioId, o.usuarioEmail), pedidos.has(o.id) ? "Sim" : "Não"]);
+    }
+    baixarCSV("orcamentos", linhas);
+  } catch (erro) {
+    alert(`Não foi possível ler os orçamentos do período. ${mensagemErro(erro)}`);
+  } finally {
+    botao.disabled = false;
+  }
 };
 
 // ---------- Janela do cliente ----------
