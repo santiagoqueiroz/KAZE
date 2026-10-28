@@ -72,8 +72,13 @@
       <div><h1>Clientes</h1><p class="suave pequeno" id="contagem-clientes"></p></div>
       <button class="btn btn-primario" type="button" id="btn-novo-cliente">+ Novo cliente</button>
     </div>
-    <div class="busca"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input id="busca-clientes" type="search" placeholder="Buscar por nome, telefone, CPF/CNPJ ou bairro" aria-label="Buscar clientes"></div>
+    <div class="busca"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input id="busca-clientes" type="search" placeholder="Buscar por nome, telefone ou CPF/CNPJ" aria-label="Buscar clientes"></div>
     <div class="lista" id="lista-clientes"></div>
+    <div class="cartao" id="preparar-busca" hidden>
+      <p class="suave pequeno">Clientes cadastrados antes do sistema novo ainda são achados só pelo começo do nome. Prepare a busca uma vez para achá-los também por sobrenome, telefone e CPF/CNPJ.</p>
+      <button class="btn btn-secundario btn-p" type="button" id="btn-preparar-busca">Preparar busca</button>
+      <div id="preparar-msg"></div>
+    </div>
   </main>
 </section>
 

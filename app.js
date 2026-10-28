@@ -8,7 +8,7 @@ import { TIPOS, calcularItem } from "./calculos.js";
 import { ehFinanceiro, nomePessoa, emailPessoa } from "./perfis.js";
 import { onAuthStateChanged, signInWithEmailAndPassword, signOut, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import {
-  collection, doc, getDoc, getDocs, setDoc, updateDoc, deleteDoc, onSnapshot, query, where, getCountFromServer,
+  collection, doc, getDoc, getDocs, setDoc, updateDoc, deleteDoc, onSnapshot, query, where, orderBy, limit, getCountFromServer,
   runTransaction, writeBatch, serverTimestamp, deleteField, terminate, clearIndexedDbPersistence
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
@@ -53,13 +53,12 @@ const semPermissao = (e) => String(e?.code || "").includes("permission-denied");
 
 // ---------- Estado ----------
 let usuario = null, financeiro = false;
-let clientes = new Map(), orcamentos = new Map(), pedidos = new Map();
-const carregado = { clientes: false, orcamentos: false, pedidos: false };
+let orcamentos = new Map(), pedidos = new Map();
+const carregado = { orcamentos: false, pedidos: false };
 let pedidosBloqueados = false; // as regras novas do banco ainda não foram publicadas
 let tabelas = { tecidos: {}, tecidosBK: {}, trilhos: {}, parametros: {}, persianas: {} };
 let pTabelas = null;
 
-const cliente = (id) => clientes.get(id);
 const dataOrc = (o) => { const d = new Date(o.dataHora); return isNaN(d) ? (o.criadoEm?.toDate?.() || new Date(0)) : d; };
 const dataPed = (p) => p.aprovadoEm?.toDate?.() || null;
 const recentes = (a, b) => dataOrc(b) - dataOrc(a);
@@ -69,11 +68,12 @@ const numOrc = (o) => (o.numero ? `Nº ${String(o.numero).padStart(4, "0")}` : `
 const totalDe = (o) => (ehNumero(o.totalGeral) ? Number(o.totalGeral) : calcularTotais(o.itens).totalGeral);
 const vistaDe = (o) => (ehNumero(o.totalVista) ? Number(o.totalVista) : centavos(totalDe(o) * regras.fatorVista));
 // Dados do cliente para mostrar: o cadastro atual ou, se o cliente foi excluído, a cópia guardada no orçamento
+// (o cadastro só está em memória se o cliente foi buscado ou aberto; se não estiver, vale a cópia)
 function clienteDoOrc(o) {
   const c = cliente(o.clienteId);
   if (c) return c;
   const s = o.cliente || {};
-  return { id: null, nome: s.nome || "(cliente excluído)", telefone: s.telefone || "", endereco: s.endereco || "", bairro: s.bairro || "", cidade: s.cidade || "" };
+  return { id: semCliente.has(o.clienteId) ? null : o.clienteId || null, nome: s.nome || "(cliente excluído)", telefone: s.telefone || "", endereco: s.endereco || "", bairro: s.bairro || "", cidade: s.cidade || "" };
 }
 
 // Representação do item independente da ordem dos campos (para comparar itens)
@@ -244,20 +244,76 @@ function esquecerOrcs(ids) {
 function contarOrcs() {
   getCountFromServer(collection(db, "orcamentos")).then((s) => { totalOrcs = s.data().count; redesenhar(); }).catch((e) => console.warn("Contagem de orçamentos indisponível:", e));
 }
-// Orçamentos de um cliente, ao vivo enquanto o app está aberto (guarda os últimos 30 clientes abertos)
+// Clientes: o app não lê a lista inteira (cada cliente lido conta como uma leitura).
+// Ficam em memória só os clientes que apareceram numa busca, os com rascunho recente e os abertos.
+// Um cliente aberto fica ao vivo (vale por cima dos outros); a busca e os rascunhos valem nessa ordem.
+const clientesAbertos = new Map(), clientesRascunho = new Map(), clientesBusca = new Map();
+const semCliente = new Set(); // clientes que o banco disse que não existem (excluídos)
+const cliente = (id) => clientesAbertos.get(id) || clientesRascunho.get(id) || clientesBusca.get(id);
+let totalClientes = null;
+function contarClientes() {
+  getCountFromServer(collection(db, "clientes")).then((s) => { totalClientes = s.data().count; redesenhar(); }).catch((e) => console.warn("Contagem de clientes indisponível:", e));
+}
+// Um cliente que não está em memória (ex.: "Editar como novo" num orçamento aberto pela lista de recentes)
+async function lerCliente(id) {
+  if (!id) return null;
+  if (cliente(id)) return cliente(id);
+  const s = await getDoc(doc(db, "clientes", id));
+  if (!s.exists()) { semCliente.add(id); return null; }
+  const c = comId(s);
+  clientesBusca.set(id, c);
+  conferirBusca(c);
+  return c;
+}
+
+// Busca: cada cliente guarda em "busca" o começo de cada palavra do nome (sem acento, minúsculo),
+// o telefone e o CPF/CNPJ só com números. Assim uma consulta "array-contains" acha o cliente
+// lendo só os que combinam. Clientes cadastrados pelas páginas antigas ainda não têm o campo:
+// a busca também procura pelo começo do nome, e o app grava o campo quando vê um cliente sem ele.
+const MAX_PREFIXO = 15;
+function chavesBusca(c) {
+  const k = new Set();
+  for (const p of semAcento(c.nome).split(/[^a-z0-9]+/)) for (let i = 2; i <= Math.min(p.length, MAX_PREFIXO); i++) k.add(p.slice(0, i));
+  const tel = soDigitos(c.telefone);
+  if (tel.length >= 8) {
+    const semDDD = tel.length >= 10 ? tel.slice(2) : tel;
+    for (let i = 4; i <= semDDD.length; i++) k.add(semDDD.slice(0, i));
+    k.add(tel);
+  }
+  const documento = soDigitos(c.cpfOuCnpj);
+  if (documento.length >= 11) k.add(documento);
+  return [...k].sort();
+}
+const conferidos = new Set();
+function conferirBusca(c) {
+  if (!c?.id || conferidos.has(c.id)) return;
+  conferidos.add(c.id);
+  const chaves = chavesBusca(c);
+  if (Array.isArray(c.busca) && c.busca.join("|") === chaves.join("|")) return;
+  updateDoc(doc(db, "clientes", c.id), { busca: chaves }).catch((e) => console.warn("Busca do cliente não atualizada:", e));
+}
+
+// Cliente aberto (página do cliente, rascunho, janela de edição): o cadastro e os orçamentos ficam ao vivo
+// enquanto o app está aberto. Guarda os últimos 30 clientes abertos.
 const ouvindoCliente = new Map();
 function carregarOrcsDoCliente(id) {
   if (!id) return;
   if (ouvindoCliente.has(id)) { const parar = ouvindoCliente.get(id); ouvindoCliente.delete(id); ouvindoCliente.set(id, parar); return; }
   const nome = "cliente:" + id;
-  ouvindoCliente.set(id, onSnapshot(query(collection(db, "orcamentos"), where("clienteId", "==", id)), (s) => {
+  const pararOrcs = onSnapshot(query(collection(db, "orcamentos"), where("clienteId", "==", id)), (s) => {
     orcsCompletos.add(id);
     guardarOrcs(fontesVivas, nome, s.docs);
     if (!$("janela-cliente").hidden && editando === id) rotuloOrcsCliente(id);
-  }, erroLeitura));
+  }, erroLeitura);
+  const pararCliente = onSnapshot(doc(db, "clientes", id), (s) => {
+    if (s.exists()) { const c = comId(s); clientesAbertos.set(id, c); semCliente.delete(id); conferirBusca(c); }
+    else { clientesAbertos.delete(id); clientesBusca.delete(id); clientesRascunho.delete(id); semCliente.add(id); }
+    redesenhar();
+  }, erroLeitura);
+  ouvindoCliente.set(id, () => { pararOrcs(); pararCliente(); });
   if (ouvindoCliente.size > 30) {
     const [velho, parar] = ouvindoCliente.entries().next().value;
-    parar(); ouvindoCliente.delete(velho); orcsCompletos.delete(velho); fontesVivas.delete("cliente:" + velho);
+    parar(); ouvindoCliente.delete(velho); orcsCompletos.delete(velho); fontesVivas.delete("cliente:" + velho); clientesAbertos.delete(velho);
   }
 }
 // Um orçamento fora do que está em memória (ex.: pedido antigo aberto em Dados)
@@ -284,11 +340,13 @@ function carregarDesde(inicio) {
 }
 
 function ouvirDados() {
-  onSnapshot(collection(db, "clientes"), (s) => {
-    clientes = new Map(s.docs.map((d) => [d.id, comId(d)]));
-    carregado.clientes = true;
+  // Rascunhos: só os clientes com orçamento em aberto mais recente (o resto aparece na página de cada cliente)
+  onSnapshot(query(collection(db, "clientes"), orderBy("orcamentoAtivo.dataCriacao", "desc"), limit(LER_RASCUNHOS)), (s) => {
+    clientesRascunho.clear();
+    s.docs.forEach((d) => { const c = comId(d); clientesRascunho.set(d.id, c); conferirBusca(c); });
     redesenhar();
   }, erroLeitura);
+  contarClientes();
   onSnapshot(query(collection(db, "orcamentos"), where("dataHora", ">=", corteRecentes)), (s) => {
     carregado.orcamentos = true;
     guardarOrcs(fontesVivas, "recentes", s.docs);
@@ -327,14 +385,14 @@ function linhaRascunho(c) {
   return `<button class="linha" type="button" data-rascunho="${esc(c.id)}"><div><div class="nome">${esc(c.nome)} <span class="chip areia">Rascunho</span></div><div class="det">${plural(r.itens.length, "item", "itens")}${d ? ` · guardado ${dataCurta(d)} às ${hora(d)}` : ""}</div></div><div class="valor">${real(calcularTotais(r.itens).totalGeral)}</div></button>`;
 }
 // As listas mostram só os mais recentes; os demais ficam na página de cada cliente
-const MAX_LISTA = 10;
+const MAX_LISTA = 10, LER_RASCUNHOS = 20;
 function comRascunho() {
-  return [...clientes.values()].filter(rascunhoDe).sort((a, b) => (dataRascunho(rascunhoDe(b))?.getTime() || 0) - (dataRascunho(rascunhoDe(a))?.getTime() || 0)).slice(0, MAX_LISTA);
+  return [...clientesRascunho.keys()].map(cliente).filter(rascunhoDe).sort((a, b) => (dataRascunho(rascunhoDe(b))?.getTime() || 0) - (dataRascunho(rascunhoDe(a))?.getTime() || 0)).slice(0, MAX_LISTA);
 }
 function ligarRascunhos(el) { el.querySelectorAll("[data-rascunho]").forEach((b) => { b.onclick = () => ir("editor", { cliente: b.dataset.rascunho }); }); }
 function rInicio() {
   $("hoje").textContent = new Date().toLocaleDateString("pt-BR", { weekday: "long", day: "numeric", month: "long" });
-  $("resumo-clientes").textContent = carregado.clientes ? plural(clientes.size, "cliente", "clientes") : "Carregando…";
+  $("resumo-clientes").textContent = totalClientes !== null ? plural(totalClientes, "cliente", "clientes") : "Buscar ou cadastrar";
   $("resumo-orcamentos").textContent = totalOrcs !== null ? plural(totalOrcs, "orçamento salvo", "orçamentos salvos") : "";
   const lista = comRascunho();
   $("bloco-rascunhos-inicio").hidden = !lista.length;
@@ -343,28 +401,105 @@ function rInicio() {
 }
 
 // ---------- Clientes ----------
-function listaClientes(el, termo, aoClicar, comOrcamentos) {
-  if (!carregado.clientes) { el.innerHTML = '<div class="vazio">Carregando clientes…</div>'; return; }
-  const t = semAcento(termo.trim()), nums = termo.replace(/\D/g, "");
-  const lista = [...clientes.values()].filter((c) => !t || semAcento(`${c.nome} ${c.bairro} ${c.cidade}`).includes(t) || (nums.length >= 3 && `${c.telefone}${c.cpfOuCnpj}`.replace(/\D/g, "").includes(nums))).sort(porNome);
-  if (!lista.length) { el.innerHTML = termo.trim() ? `<div class="vazio">Nenhum cliente encontrado para "${esc(termo)}".</div>` : '<div class="vazio">Nenhum cliente cadastrado ainda.</div>'; return; }
-  let letra = "", html = "";
+// Não há lista de todos os clientes: a pessoa digita e o app consulta o banco (ver chavesBusca).
+const MAX_BUSCA = 30;
+const buscas = new Map(); // texto digitado → { carregando } | { ids, cheia } | { erro }
+const chaveDe = (texto) => String(texto ?? "").trim().replace(/\s+/g, " ");
+const termoDe = (texto) => semAcento(texto).replace(/[^a-z0-9]+/g, " ").trim();
+const ehBuscaNumero = (t) => /^[0-9 ]+$/.test(t);
+const podeBuscar = (t) => (ehBuscaNumero(t) ? t.replace(/ /g, "").length >= 4 : t.split(" ").some((p) => p.length >= 2));
+const comMaiusculas = (t) => t.toLowerCase().replace(/(^|\s)\S/g, (l) => l.toUpperCase());
+// Todas as palavras digitadas precisam ser o começo de alguma palavra do nome
+function combina(c, t) {
+  if (ehBuscaNumero(t)) {
+    const n = t.replace(/ /g, "");
+    return (c.busca || []).includes(n) || soDigitos(c.telefone).includes(n) || soDigitos(c.cpfOuCnpj).includes(n);
+  }
+  const palavras = semAcento(c.nome).split(/[^a-z0-9]+/);
+  return t.split(" ").every((p) => palavras.some((w) => w.startsWith(p)));
+}
+async function consultarClientes(texto) {
+  const t = termoDe(texto), col = collection(db, "clientes"), consultas = [];
+  if (ehBuscaNumero(t)) consultas.push(query(col, where("busca", "array-contains", t.replace(/ /g, "")), limit(MAX_BUSCA)));
+  else {
+    const maior = t.split(" ").sort((a, b) => b.length - a.length)[0].slice(0, MAX_PREFIXO);
+    consultas.push(query(col, where("busca", "array-contains", maior), limit(MAX_BUSCA)));
+    // Clientes ainda sem o campo de busca: pelo começo do nome, como costuma estar escrito
+    const bruto = chaveDe(texto);
+    for (const v of new Set([bruto, comMaiusculas(bruto), bruto.toUpperCase()])) consultas.push(query(col, where("nome", ">=", v), where("nome", "<=", v + "\uf8ff"), limit(10)));
+  }
+  const resultados = await Promise.all(consultas.map((q) => getDocs(q)));
+  const ids = new Set();
+  for (const r of resultados) r.docs.forEach((d) => { const c = comId(d); clientesBusca.set(d.id, c); ids.add(d.id); conferirBusca(c); });
+  return { ids: [...ids], cheia: resultados[0].size >= MAX_BUSCA };
+}
+function buscar(texto, depois) {
+  const chave = chaveDe(texto);
+  if (!podeBuscar(termoDe(chave)) || buscas.has(chave)) return depois();
+  buscas.set(chave, { carregando: true });
+  consultarClientes(chave)
+    .then((r) => buscas.set(chave, r))
+    .catch((erro) => { console.error(erro); buscas.set(chave, { erro }); })
+    .finally(() => { depois(); if (buscas.get(chave)?.erro) buscas.delete(chave); });
+}
+// Liga um campo de busca: desenha na hora e consulta o banco quando a pessoa para de digitar
+function ligarBusca(campo, desenhar) {
+  let espera = null;
+  campo.addEventListener("input", () => {
+    clearTimeout(espera);
+    desenhar();
+    espera = setTimeout(() => buscar(campo.value, desenhar), 400);
+  });
+}
+function listaClientes(el, texto, aoClicar, comOrcamentos) {
+  const t = termoDe(texto), r = buscas.get(chaveDe(texto));
+  if (!t) { el.innerHTML = '<div class="vazio">Digite o nome, o telefone ou o CPF/CNPJ do cliente.</div>'; return; }
+  if (!podeBuscar(t)) { el.innerHTML = '<div class="vazio">Continue digitando: pelo menos 2 letras ou 4 números.</div>'; return; }
+  if (!r || r.carregando) { el.innerHTML = '<div class="vazio">Buscando…</div>'; return; }
+  if (r.erro) { el.innerHTML = `<div class="vazio">Não foi possível buscar. ${erroTexto(r.erro)}</div>`; return; }
+  const lista = r.ids.map(cliente).filter((c) => c && combina(c, t)).sort(porNome);
+  if (!lista.length) { el.innerHTML = `<div class="vazio">Nenhum cliente encontrado para "${esc(texto.trim())}".</div>`; return; }
+  let html = "";
   for (const c of lista) {
-    const inicial = semAcento((c.nome || "#")[0]).toUpperCase(), l = /[A-Z]/.test(inicial) ? inicial : "#";
-    if (l !== letra && !t) { letra = l; html += `<div class="letra">${esc(l)}</div>`; }
     const det = [c.telefone, [c.bairro, c.cidade].filter(Boolean).join(", ")].filter(Boolean).map(esc).join(" · ");
-    let lado = "";
-    if (comOrcamentos && rascunhoDe(c)) lado = '<span class="chip areia">Rascunho</span>';
+    const lado = comOrcamentos && rascunhoDe(c) ? '<span class="chip areia">Rascunho</span>' : "";
     html += `<button class="linha" type="button" data-cliente="${esc(c.id)}"><div><div class="nome">${esc(c.nome || "(sem nome)")}</div><div class="det">${det}</div></div><div>${lado}</div></button>`;
   }
+  if (r.cheia) html += '<div class="vazio">Há mais clientes com esse nome. Digite mais para achar o certo.</div>';
   el.innerHTML = html;
   el.querySelectorAll("[data-cliente]").forEach((b) => { b.onclick = () => aoClicar(b.dataset.cliente); });
 }
 function rClientes() {
-  $("contagem-clientes").textContent = carregado.clientes ? `${plural(clientes.size, "cliente", "clientes")} em ordem alfabética. Toque num cliente para editar.` : "";
+  $("contagem-clientes").textContent = totalClientes !== null ? `${plural(totalClientes, "cliente cadastrado", "clientes cadastrados")}. Busque e toque num cliente para editar.` : "";
   listaClientes($("lista-clientes"), $("busca-clientes").value, (id) => abrirJanelaCliente(id), false);
+  $("preparar-busca").hidden = !financeiro || buscaPreparada();
 }
-$("busca-clientes").addEventListener("input", rClientes);
+ligarBusca($("busca-clientes"), rClientes);
+
+// Grava o campo de busca em todos os clientes que ainda não têm (clientes cadastrados pelas páginas antigas).
+// Lê todos os clientes uma vez; depois disso a busca acha também por sobrenome, telefone e CPF/CNPJ.
+const MARCA_BUSCA = "kaze-busca-preparada";
+function buscaPreparada() { try { return localStorage.getItem(MARCA_BUSCA) === "1"; } catch { return false; } }
+$("btn-preparar-busca").onclick = () => confirmar($("preparar-msg"), "Ler todos os clientes uma vez para preparar a busca? Conta como uma leitura por cliente.", "Preparar", async () => {
+  const btn = $("btn-preparar-busca");
+  btn.disabled = true; btn.textContent = "Preparando…";
+  try {
+    const s = await getDocs(collection(db, "clientes"));
+    const faltam = s.docs.map(comId).filter((c) => (c.busca || []).join("|") !== chavesBusca(c).join("|"));
+    for (let i = 0; i < faltam.length; i += 400) {
+      const lote = writeBatch(db);
+      faltam.slice(i, i + 400).forEach((c) => lote.update(doc(db, "clientes", c.id), { busca: chavesBusca(c) }));
+      await lote.commit();
+    }
+    try { localStorage.setItem(MARCA_BUSCA, "1"); } catch { /* sem armazenamento: o botão volta a aparecer */ }
+    buscas.clear();
+    avisar($("preparar-msg"), `Pronto: ${plural(faltam.length, "cliente atualizado", "clientes atualizados")} de ${s.size}.`);
+  } catch (erro) {
+    avisar($("preparar-msg"), `Não foi possível preparar a busca. ${erroTexto(erro)}`, "confirma");
+  } finally {
+    btn.disabled = false; btn.textContent = "Preparar busca";
+  }
+});
 
 // ---------- Orçamentos ----------
 const chipAprovado = (o) => (pedidos.has(o.id) ? ' <span class="chip ok">Aprovado</span>' : "");
@@ -378,12 +513,17 @@ function rOrcamentos() {
   ligarRascunhos($("lista-recentes"));
   listaClientes($("lista-clientes-orc"), $("busca-orc").value, (id) => ir("cliente-orc", { cliente: id }), true);
 }
-$("busca-orc").addEventListener("input", rOrcamentos);
+ligarBusca($("busca-orc"), rOrcamentos);
 
 function rClienteOrc(navegou) {
+  carregarOrcsDoCliente(atual.cliente);
   const c = cliente(atual.cliente);
-  if (!c) { if (carregado.clientes) ir("orcamentos", {}, "replace"); return; }
-  carregarOrcsDoCliente(c.id);
+  if (!c) {
+    if (semCliente.has(atual.cliente)) { ir("orcamentos", {}, "replace"); return; }
+    $("co-migalha").textContent = $("co-nome").textContent = $("co-contato").textContent = "";
+    $("co-lista").innerHTML = '<div class="cartao vazio">Carregando cliente…</div>';
+    return;
+  }
   $("co-migalha").textContent = c.nome;
   $("co-nome").textContent = c.nome;
   $("co-contato").textContent = [c.telefone, [c.endereco, c.bairro].filter(Boolean).join(", ")].filter(Boolean).join(" · ");
@@ -434,9 +574,11 @@ async function excluirOrcamento(o, caixa) {
 }
 
 // Começa um rascunho vazio ou cópia de um orçamento salvo. Se já há rascunho, pergunta antes.
-function comecarRascunho(clienteId, baseId, alvo, antes = () => {}) {
-  const c = cliente(clienteId);
-  if (!c) return;
+async function comecarRascunho(clienteId, baseId, alvo, antes = () => {}) {
+  alvo = alvo || (atual.tela === "ver" ? $("ver-confirma") : $("co-aviso"));
+  let c;
+  try { c = await lerCliente(clienteId); } catch (erro) { avisar(alvo, `Não foi possível abrir o cliente. ${erroTexto(erro)}`, "confirma"); return; }
+  if (!c) { avisar(alvo, "O cliente deste orçamento foi excluído. Cadastre-o de novo para fazer outro orçamento."); return; }
   const criar = () => {
     const base = baseId ? orcamentos.get(baseId) : null;
     const itens = base ? (base.itens || []).map((i) => ({ ...i, id: i.id || novoId() })) : [];
@@ -449,7 +591,6 @@ function comecarRascunho(clienteId, baseId, alvo, antes = () => {}) {
   };
   const r = rascunhoDe(c);
   if (!r) return criar();
-  alvo = alvo || (atual.tela === "ver" ? $("ver-confirma") : $("co-aviso"));
   alvo.innerHTML = `<div class="info"><span>${esc(c.nome)} já tem um rascunho em aberto (${plural(r.itens.length, "item", "itens")}).</span><button class="btn btn-primario btn-p" type="button" data-cont>Continuar rascunho</button><button class="btn btn-perigo btn-p" type="button" data-subst>Descartar e começar ${baseId ? "a cópia" : "outro"}</button></div>`;
   alvo.querySelector("[data-cont]").onclick = () => { antes(); ir("editor", { cliente: clienteId }); };
   alvo.querySelector("[data-subst]").onclick = criar;
@@ -462,6 +603,7 @@ function rEscolher() {
   $("je-aviso").innerHTML = "";
   listaClientes($("je-lista"), $("je-busca").value, (id) => comecarRascunho(id, null, $("je-aviso"), fecharEscolher), true);
 }
+ligarBusca($("je-busca"), rEscolher);
 $("btn-novo-orc-grande").onclick = () => {
   $("je-busca").value = "";
   rEscolher();
@@ -469,7 +611,6 @@ $("btn-novo-orc-grande").onclick = () => {
   $("je-lista").scrollTop = 0;
   if (matchMedia("(min-width: 721px)").matches) $("je-busca").focus();
 };
-$("je-busca").addEventListener("input", rEscolher);
 $("je-fechar").onclick = fecharEscolher;
 $("janela-escolher").addEventListener("click", (e) => { if (e.target === $("janela-escolher")) fecharEscolher(); });
 $("je-novo-cliente").onclick = () => { fecharEscolher(); abrirJanelaCliente(null, (id) => comecarRascunho(id, null)); };
@@ -483,9 +624,13 @@ function detalheItem(i) {
   return p.join(" · ");
 }
 function rEditor(navegou) {
+  carregarOrcsDoCliente(atual.cliente); // o cadastro ao vivo e o orçamento em que a cópia se baseou
   const c = cliente(atual.cliente), r = c?.orcamentoAtivo;
-  if (!c || !r) { if (carregado.clientes) ir(c ? "cliente-orc" : "orcamentos", c ? { cliente: c.id } : {}, "replace"); return; }
-  carregarOrcsDoCliente(c.id); // para achar o orçamento em que a cópia se baseou
+  if (!c || !r) {
+    if (c || semCliente.has(atual.cliente)) ir(c ? "cliente-orc" : "orcamentos", c ? { cliente: c.id } : {}, "replace");
+    else $("ed-itens").innerHTML = '<div class="vazio">Carregando…</div>';
+    return;
+  }
   const itens = r.itens || [], base = r.baseadoEm && orcamentos.get(r.baseadoEm), d = dataRascunho(r);
   $("ed-voltar-cliente").textContent = c.nome;
   $("ed-voltar-cliente").onclick = () => ir("cliente-orc", { cliente: c.id });
@@ -1229,6 +1374,9 @@ $("jc-excluir").onclick = () => {
       lote.delete(doc(db, "clientes", c.id));
       await lote.commit();
       esquecerOrcs(orcs.map((o) => o.id));
+      [clientesAbertos, clientesBusca, clientesRascunho].forEach((m) => m.delete(c.id));
+      semCliente.add(c.id);
+      contarClientes();
       fecharJanelaCliente();
       if (atual.tela !== "clientes") ir("clientes", {}, "replace");
     } catch (erro) {
@@ -1246,6 +1394,7 @@ $("form-cliente").addEventListener("submit", async (e) => {
   if (!checarDoc()) ok = false;
   if (!ok) return;
   const dados = { nome, telefone: $("c-tel").value, cpfOuCnpj: $("c-doc").value, endereco: $("c-end").value.trim(), bairro: $("c-bairro").value.trim(), cidade: $("c-cidade").value.trim(), email };
+  dados.busca = chavesBusca(dados);
   const btn = $("jc-salvar"), rotulo = btn.textContent, depois = aoSalvarNovo;
   btn.disabled = true; btn.textContent = "Salvando…";
   try {
@@ -1255,7 +1404,10 @@ $("form-cliente").addEventListener("submit", async (e) => {
       const ref = doc(collection(db, "clientes"));
       await setDoc(ref, { ...dados, criadoPor: usuario.uid, criadoEm: serverTimestamp() });
       id = ref.id;
+      clientesBusca.set(id, { id, ...dados });
+      contarClientes();
     }
+    buscas.clear(); // o nome pode ter mudado: as próximas buscas consultam o banco de novo
     fecharJanelaCliente();
     if (depois) depois(id);
   } catch (erro) {
