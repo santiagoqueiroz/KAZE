@@ -96,6 +96,7 @@
     <h1>Clientes Cadastrados</h1>
 
     <div id="busca-cliente"></div>
+    <p><button type="button" id="verTodos" style="display:none">Ver todos os clientes</button></p>
 
     <table id="tabelaClientes">
       <thead>
@@ -143,7 +144,7 @@
       const tabela = document.querySelector("#tabelaClientes tbody");
 
       // A tabela mostra só o resultado da busca (ou os últimos pesquisados): não lê todos os clientes
-      caixaBuscaCliente(document.getElementById("busca-cliente"), () => {}, { aoListar: (lista) => {
+      const desenharTabela = (lista) => {
         tabela.innerHTML = "";
         lista.forEach((c) => {
           clientesMostrados[c.id] = c;
@@ -171,7 +172,26 @@
 
           tabela.appendChild(linha);
         });
-      } });
+      };
+      caixaBuscaCliente(document.getElementById("busca-cliente"), () => {}, { aoListar: desenharTabela });
+
+      // Lista inteira só quando pedida (cada cliente conta como uma leitura do banco)
+      const btnTodos = document.getElementById("verTodos");
+      btnTodos.style.display = "inline-block";
+      btnTodos.addEventListener("click", async () => {
+        if (!confirm("Carregar todos os clientes? Cada cliente conta como uma leitura do banco.")) return;
+        btnTodos.disabled = true; btnTodos.textContent = "Carregando...";
+        try {
+          const snap = await getDocs(query(collection(db, "clientes"), orderBy("nome")));
+          desenharTabela(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
+          btnTodos.style.display = "none";
+        } catch (erro) {
+          console.error("Erro ao buscar clientes:", erro);
+          alert("Não foi possível carregar os clientes. " + mensagemErro(erro));
+        } finally {
+          btnTodos.disabled = false; btnTodos.textContent = "Ver todos os clientes";
+        }
+      });
     });
 
     import { deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";

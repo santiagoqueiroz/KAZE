@@ -380,6 +380,7 @@ function rInicio() {
 // Não há lista de todos os clientes: a pessoa digita e o app consulta o banco (busca-clientes.js).
 // Com a busca vazia aparecem os últimos clientes escolhidos neste aparelho.
 const buscas = new Map(); // texto digitado → { carregando } | { ids, cheia } | { erro }
+let todosClientes = null;  // ids de todos os clientes, depois de "Ver todos os clientes"
 async function consultarClientes(texto) {
   const r = await consultarNoBanco(texto);
   r.clientes.forEach((c) => clientesBusca.set(c.id, c));
@@ -387,7 +388,7 @@ async function consultarClientes(texto) {
 }
 function buscar(texto, depois) {
   const chave = chaveDe(texto);
-  if (!podeBuscar(termoDe(chave)) || buscas.has(chave)) return depois();
+  if (todosClientes || !podeBuscar(termoDe(chave)) || buscas.has(chave)) return depois();
   buscas.set(chave, { carregando: true });
   consultarClientes(chave)
     .then((r) => buscas.set(chave, r))
@@ -403,8 +404,16 @@ function ligarBusca(campo, desenhar) {
     espera = setTimeout(() => buscar(campo.value, desenhar), 400);
   });
 }
-function listaClientes(el, texto, aoClicar, comOrcamentos) {
-  const t = termoDe(texto), r = buscas.get(chaveDe(texto));
+function listaClientes(el, texto, aoClicar, comOrcamentos, mostrarTodos = false) {
+  const t = termoDe(texto);
+  // Lista inteira carregada ("Ver todos os clientes"): filtra aqui, sem consultar o banco
+  if (todosClientes && (t || mostrarTodos)) {
+    const lista = todosClientes.map(cliente).filter((c) => c && (!t || combina(c, t))).sort(porNome);
+    if (!lista.length) { el.innerHTML = `<div class="vazio">Nenhum cliente encontrado para "${esc(texto.trim())}".</div>`; return; }
+    linhasClientes(el, lista, aoClicar, comOrcamentos, "", "", !t);
+    return;
+  }
+  const r = buscas.get(chaveDe(texto));
   if (!t) {
     // Últimos escolhidos neste aparelho: o cadastro em memória vale por cima do resumo guardado
     const recentes = clientesRecentes().filter((x) => !semCliente.has(x.id)).map((x) => cliente(x.id) || x);
@@ -419,9 +428,13 @@ function listaClientes(el, texto, aoClicar, comOrcamentos) {
   if (!lista.length) { el.innerHTML = `<div class="vazio">Nenhum cliente encontrado para "${esc(texto.trim())}".</div>`; return; }
   linhasClientes(el, lista, aoClicar, comOrcamentos, "", r.cheia ? '<div class="vazio">Há mais clientes com esse nome. Digite mais para achar o certo.</div>' : "");
 }
-function linhasClientes(el, lista, aoClicar, comOrcamentos, antes = "", depois = "") {
-  let html = antes;
+function linhasClientes(el, lista, aoClicar, comOrcamentos, antes = "", depois = "", letras = false) {
+  let html = antes, letra = "";
   for (const c of lista) {
+    if (letras) {
+      const inicial = semAcento((c.nome || "#")[0]).toUpperCase(), l = /[A-Z]/.test(inicial) ? inicial : "#";
+      if (l !== letra) { letra = l; html += `<div class="letra">${esc(l)}</div>`; }
+    }
     const det = [c.telefone, [c.bairro, c.cidade].filter(Boolean).join(", ")].filter(Boolean).map(esc).join(" · ");
     const lado = comOrcamentos && rascunhoDe(c) ? '<span class="chip areia">Rascunho</span>' : "";
     html += `<button class="linha" type="button" data-cliente="${esc(c.id)}"><div><div class="nome">${esc(c.nome || "(sem nome)")}</div><div class="det">${det}</div></div><div>${lado}</div></button>`;
@@ -433,10 +446,35 @@ function linhasClientes(el, lista, aoClicar, comOrcamentos, antes = "", depois =
 }
 function rClientes() {
   $("contagem-clientes").textContent = totalClientes !== null ? `${plural(totalClientes, "cliente cadastrado", "clientes cadastrados")}. Busque e toque num cliente para editar.` : "";
-  listaClientes($("lista-clientes"), $("busca-clientes").value, (id) => abrirJanelaCliente(id), false);
-  $("preparar-busca").hidden = !financeiro || buscaPreparada();
+  listaClientes($("lista-clientes"), $("busca-clientes").value, (id) => abrirJanelaCliente(id), false, true);
+  $("preparar-busca").hidden = !financeiro || buscaPreparada() || !!todosClientes;
+  $("btn-todos-clientes").hidden = !!todosClientes;
 }
 ligarBusca($("busca-clientes"), rClientes);
+
+// Lista inteira, só quando pedida: lê todos os clientes uma vez (uma leitura por cliente).
+// Não fica ao vivo; vale até fechar ou recarregar o app.
+$("btn-todos-clientes").onclick = () => {
+  const qtd = totalClientes !== null ? `os ${totalClientes} clientes` : "todos os clientes";
+  confirmar($("todos-msg"), `Carregar ${qtd}? Cada cliente conta como uma leitura do banco.`, "Carregar", async () => {
+    const btn = $("btn-todos-clientes");
+    btn.disabled = true; btn.textContent = "Carregando…";
+    try {
+      const s = await getDocs(collection(db, "clientes"));
+      const lista = s.docs.map(comId);
+      lista.forEach((c) => { clientesBusca.set(c.id, c); conferirBusca(c); });
+      todosClientes = lista.map((c) => c.id);
+      totalClientes = lista.length;
+      $("busca-clientes").value = "";
+      avisar($("todos-msg"), `Lista completa: ${plural(lista.length, "cliente", "clientes")}. A busca agora filtra esta lista.`);
+      rClientes();
+    } catch (erro) {
+      avisar($("todos-msg"), `Não foi possível carregar. ${erroTexto(erro)}`, "confirma");
+    } finally {
+      btn.disabled = false; btn.textContent = "Ver todos os clientes";
+    }
+  });
+};
 
 // Grava o campo de busca em todos os clientes que ainda não têm (clientes cadastrados pelas páginas antigas).
 // Lê todos os clientes uma vez; depois disso a busca acha também por sobrenome, telefone e CPF/CNPJ.
@@ -1374,6 +1412,7 @@ $("form-cliente").addEventListener("submit", async (e) => {
       await setDoc(ref, { ...dados, criadoPor: usuario.uid, criadoEm: serverTimestamp() });
       id = ref.id;
       clientesBusca.set(id, { id, ...dados });
+      todosClientes?.push(id);
       contarClientes();
     }
     lembrarCliente({ id, ...dados });
