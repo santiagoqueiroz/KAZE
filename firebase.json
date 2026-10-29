@@ -15,7 +15,9 @@
       "teste/**",
       "README.md",
       "firestore.rules",
-      "index.html"
+      "index.html",
+      "dados_antigos/**",
+      "**/*or*amento*.png"
     ],
     "cleanUrls": false,
     "redirects": [
